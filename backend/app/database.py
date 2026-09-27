@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session as OrmSession
+from sqlalchemy.pool import StaticPool
 
 from .models import Base
 from .seed import seed_demo_data
@@ -20,7 +21,13 @@ def create_sqlite_engine(database_url: str) -> Engine:
     if url.database and url.database != ":memory:":
         Path(url.database).parent.mkdir(parents=True, exist_ok=True)
 
-    engine = create_engine(database_url, connect_args={"check_same_thread": False})
+    connection_options = {"check_same_thread": False}
+    if url.database in (None, ":memory:"):
+        engine = create_engine(
+            database_url, connect_args=connection_options, poolclass=StaticPool
+        )
+    else:
+        engine = create_engine(database_url, connect_args=connection_options)
 
     @event.listens_for(engine, "connect")
     def enable_foreign_keys(dbapi_connection, connection_record):

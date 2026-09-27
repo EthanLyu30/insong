@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
@@ -46,3 +47,27 @@ def test_fresh_database_directory_and_restart(tmp_path):
             assert db.scalar(select(func.count()).select_from(User)) == 2
             assert db.scalar(select(func.count()).select_from(Song)) == 5
             assert db.scalar(select(func.count()).select_from(MemoryCard)) == 5
+
+
+@pytest.mark.parametrize("song_id", ["9223372036854775808", "-9223372036854775809"])
+def test_out_of_range_song_ids_keep_not_found(tmp_path, song_id):
+    from app.main import create_app
+
+    app = create_app(f"sqlite:///{tmp_path / 'app.db'}")
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.get(f"/api/songs/{song_id}")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "找不到这首演示歌曲"}
+
+
+@pytest.mark.parametrize("db_url", ["sqlite:///:memory:", "sqlite://"])
+def test_in_memory_database_can_serve_songs(db_url):
+    from app.main import create_app
+
+    app = create_app(db_url)
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.get("/api/songs")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 5

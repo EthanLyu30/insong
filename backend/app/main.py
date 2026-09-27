@@ -62,7 +62,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
     @app.get("/api/songs/{song_id}")
     def get_song(song_id: int, db: OrmSession = Depends(get_db)) -> dict:
-        song = db.get(Song, song_id)
+        song = db.get(Song, song_id) if -(2**63) <= song_id < 2**63 else None
         if song is None:
             raise HTTPException(status_code=404, detail="找不到这首演示歌曲")
         return serialize_song(song)
