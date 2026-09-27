@@ -1,6 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, Route, Routes, useParams } from "react-router";
-import { getSong, getSongs, type Song } from "./api";
+import { apiBaseUrl, getSong, getSongs, type Song } from "./api";
+import { DemoAccountSwitcher } from "./DemoAccountSwitcher";
+import { getDemoIdentity, switchDemoIdentity, type DemoIdentity } from "./demoAuth";
 
 function Glyph({ name, size = 22 }: { name: "arrow" | "search" | "music" | "pen" | "home" | "bookmark"; size?: number }) {
   const paths: Record<typeof name, ReactNode> = {
@@ -14,7 +16,16 @@ function Glyph({ name, size = 22 }: { name: "arrow" | "search" | "music" | "pen"
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
-function PageShell({ children }: { children: ReactNode }) {
+function PageShell({
+  children, identity, loading, error, onSwitch, onRetry,
+}: {
+  children: ReactNode;
+  identity: DemoIdentity | null;
+  loading: boolean;
+  error: string;
+  onSwitch: (id: 1 | 2 | null) => Promise<void>;
+  onRetry: () => void;
+}) {
   return (
     <div className="site-shell">
       <header className="topbar">
@@ -22,7 +33,7 @@ function PageShell({ children }: { children: ReactNode }) {
           <span className="brand-mark"><span /></span>
           <span>歌里有我</span>
         </Link>
-        <span className="demo-chip">演示环境</span>
+        <DemoAccountSwitcher identity={identity} loading={loading} error={error} onSwitch={onSwitch} onRetry={onRetry} />
       </header>
       <main className="main-content">{children}</main>
       <nav className="bottom-nav" aria-label="主导航">
@@ -161,12 +172,42 @@ function ComingSoon({ title, description }: { title: string; description: string
 }
 
 export default function App() {
-  return <PageShell><Routes>
+  const [identity, setIdentity] = useState<DemoIdentity | null>(null);
+  const [identityLoading, setIdentityLoading] = useState(true);
+  const [identityError, setIdentityError] = useState("");
+
+  const loadIdentity = useCallback(async () => {
+    setIdentityLoading(true);
+    setIdentityError("");
+    try {
+      setIdentity(await getDemoIdentity(apiBaseUrl));
+    } catch (reason) {
+      setIdentityError(reason instanceof Error ? reason.message : "当前演示帐号加载失败，请重试。");
+    } finally {
+      setIdentityLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void loadIdentity(); }, [loadIdentity]);
+
+  async function onSwitch(userId: 1 | 2 | null) {
+    setIdentityLoading(true);
+    setIdentityError("");
+    try {
+      setIdentity(await switchDemoIdentity(apiBaseUrl, userId));
+    } catch (reason) {
+      setIdentityError(reason instanceof Error ? reason.message : "演示帐号切换失败，请重试。");
+    } finally {
+      setIdentityLoading(false);
+    }
+  }
+
+  return <PageShell identity={identity} loading={identityLoading} error={identityError} onSwitch={onSwitch} onRetry={() => { void loadIdentity(); }}><Routes>
     <Route path="/" element={<HomePage />} />
     <Route path="/songs/:songId" element={<SongPage />} />
     <Route path="/songs/:songId/write" element={<ComingSoon title="写下我的故事" description="故事编辑与私密保存正在接入，下一阶段即可使用。" />} />
     <Route path="/discover" element={<ComingSoon title="找一段相似的故事" description="公开故事与关键词搜索正在接入。" />} />
-    <Route path="/memories" element={<ComingSoon title="我的音乐记忆" description="私密记忆管理正在接入。" />} />
+    <Route path="/memories" element={identityLoading ? <div className="status-card" role="status">正在确认演示帐号…</div> : identity?.user ? <ComingSoon title="我的音乐记忆" description="私密记忆管理正在接入。" /> : <ComingSoon title="先切换演示帐号" description="请在页面顶部切换到小林或阿远，再查看自己的音乐记忆。" />} />
     <Route path="*" element={<ComingSoon title="这里还没有音乐记忆" description="返回发现页，选一首歌重新开始。" />} />
   </Routes></PageShell>;
 }

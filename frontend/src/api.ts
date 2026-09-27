@@ -8,7 +8,7 @@ export type Song = {
   audio_available: boolean;
 };
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+export const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 export async function getSongs(signal?: AbortSignal): Promise<Song[]> {
   const response = await fetch(`${apiBaseUrl}/api/songs`, {
