@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from sqlalchemy.orm import Session as OrmSession
 
-from .models import Session, User
+from .models import MemoryCard, Session, User
 
 SESSION_COOKIE_NAME = "song_memory_session"
 SESSION_LIFETIME_SECONDS = 86400
@@ -60,3 +60,9 @@ def require_user(user: User | None) -> User:
     if user is None:
         raise HTTPException(status_code=401, detail="请先切换到演示帐号。")
     return user
+
+
+def can_read_memory(card: MemoryCard, user: User | None) -> bool:
+    return card.visibility == "public" or (
+        user is not None and user.id == card.owner_id
+    )

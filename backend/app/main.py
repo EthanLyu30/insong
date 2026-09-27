@@ -11,13 +11,14 @@ from sqlalchemy.orm import Session as OrmSession, sessionmaker
 from .auth import (
     SESSION_COOKIE_NAME,
     SESSION_LIFETIME_SECONDS,
+    can_read_memory,
     create_session,
     require_user,
     resolve_user,
     revoke_session,
 )
 from .database import DEFAULT_DB_PATH, create_sqlite_engine, initialize_database
-from .models import Song, User
+from .models import MemoryCard, Song, User
 
 
 class DemoSessionRequest(BaseModel):
@@ -130,6 +131,30 @@ def create_app(database_url: str | None = None) -> FastAPI:
         if song is None:
             raise HTTPException(status_code=404, detail="找不到这首演示歌曲")
         return serialize_song(song)
+
+    @app.get("/api/memories/{memory_id}")
+    def get_memory(
+        memory_id: int,
+        db: OrmSession = Depends(get_db),
+        user: User | None = Depends(get_optional_user),
+    ) -> dict:
+        card = db.get(MemoryCard, memory_id) if -(2**63) <= memory_id < 2**63 else None
+        if card is None or not can_read_memory(card, user):
+            raise HTTPException(status_code=404, detail="这段音乐记忆已经不可见。")
+        return {
+            "id": card.id,
+            "owner_id": card.owner_id,
+            "owner_display_name": card.owner.display_name,
+            "song_id": card.song_id,
+            "story": card.story,
+            "tags": [link.tag.name for link in card.tag_links],
+            "life_time": card.life_time,
+            "scene": card.scene,
+            "visibility": card.visibility,
+            "is_demo_sample": card.is_demo_sample,
+            "created_at": card.created_at.isoformat(),
+            "updated_at": card.updated_at.isoformat(),
+        }
 
     return app
 
