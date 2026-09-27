@@ -1,9 +1,10 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import create_app
 
 
-def test_health_reports_service_is_ready():
+def test_health_reports_service_is_ready(tmp_path):
+    app = create_app(f"sqlite:///{tmp_path / 'health.db'}")
     with TestClient(app) as client:
         response = client.get("/api/health")
 
@@ -11,7 +12,8 @@ def test_health_reports_service_is_ready():
     assert response.json() == {"status": "ok"}
 
 
-def test_home_can_load_five_clearly_labeled_demo_songs():
+def test_home_can_load_five_clearly_labeled_demo_songs(tmp_path):
+    app = create_app(f"sqlite:///{tmp_path / 'songs.db'}")
     with TestClient(app) as client:
         response = client.get("/api/songs")
 
@@ -24,7 +26,8 @@ def test_home_can_load_five_clearly_labeled_demo_songs():
     assert all(song["source_label"] == "虚构演示曲目" for song in songs)
 
 
-def test_unknown_song_returns_not_found():
+def test_unknown_song_returns_not_found(tmp_path):
+    app = create_app(f"sqlite:///{tmp_path / 'missing.db'}")
     with TestClient(app) as client:
         response = client.get("/api/songs/999")
 

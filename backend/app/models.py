@@ -1,0 +1,110 @@
+"""Persistent records for the fictional H5 demo."""
+
+from datetime import datetime, timezone
+
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, Text, func, text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    display_name: Mapped[str] = mapped_column(String(80), nullable=False)
+    is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    memory_cards: Mapped[list["MemoryCard"]] = relationship(back_populates="owner")
+    sessions: Mapped[list["Session"]] = relationship(back_populates="user")
+
+
+class Song(Base):
+    __tablename__ = "songs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    artist: Mapped[str] = mapped_column(String(160), nullable=False)
+    version: Mapped[str] = mapped_column(String(100), nullable=False)
+    source_label: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    audio_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+    memory_cards: Mapped[list["MemoryCard"]] = relationship(back_populates="song")
+
+
+class MemoryCard(Base):
+    __tablename__ = "memory_cards"
+    __table_args__ = (
+        CheckConstraint("visibility IN ('private', 'public')", name="ck_memory_cards_visibility"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), nullable=False)
+    story: Mapped[str] = mapped_column(Text, nullable=False)
+    life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    scene: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    visibility: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="private", server_default=text("'private'")
+    )
+    is_demo_sample: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("0")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now,
+        server_default=func.current_timestamp(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now,
+        server_default=func.current_timestamp(),
+    )
+
+    owner: Mapped[User] = relationship(back_populates="memory_cards")
+    song: Mapped[Song] = relationship(back_populates="memory_cards")
+    tag_links: Mapped[list["MemoryCardTag"]] = relationship(
+        back_populates="memory_card", cascade="all, delete-orphan"
+    )
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+
+    memory_card_links: Mapped[list["MemoryCardTag"]] = relationship(back_populates="tag")
+
+
+class MemoryCardTag(Base):
+    __tablename__ = "memory_card_tags"
+
+    memory_card_id: Mapped[int] = mapped_column(
+        ForeignKey("memory_cards.id", ondelete="CASCADE"), primary_key=True
+    )
+    tag_id: Mapped[int] = mapped_column(ForeignKey("tags.id"), primary_key=True)
+
+    memory_card: Mapped[MemoryCard] = relationship(back_populates="tag_links")
+    tag: Mapped[Tag] = relationship(back_populates="memory_card_links")
+
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    user: Mapped[User] = relationship(back_populates="sessions")
