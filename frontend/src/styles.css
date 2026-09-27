@@ -190,11 +190,11 @@ body { background: #eee6db; }
 .collage-card:hover { filter: brightness(1.07); }
 .collage-card:focus-visible, .collage-phone:focus-visible { outline: 3px solid #a85438; outline-offset: 3px; }
 .collage-card.is-selected { box-shadow: 0 3cqw 6cqw rgba(113, 64, 39, .34), 0 0 0 .3cqw rgba(255, 244, 223, .8); }
-.collage-card--top { top: 9%; left: 33%; width: 34%; height: 31%; transform: perspective(900px) rotateX(-16deg); }
-.collage-card--upper-left { top: 20.5%; left: 6.5%; width: 27%; height: 26%; transform: rotate(-45deg); }
-.collage-card--upper-right { top: 19.5%; left: 66.5%; width: 27%; height: 26%; transform: rotate(45deg); }
-.collage-card--lower-left { top: 46%; left: 3%; width: 27%; height: 26%; transform: rotate(-90deg); }
-.collage-card--lower-right { top: 46%; left: 70%; width: 27%; height: 26%; transform: rotate(90deg); }
+.collage-card--top { top: 7%; left: 35.5%; width: 29%; height: 35%; transform: perspective(900px) rotateX(-16deg); }
+.collage-card--upper-left { top: 18%; left: 8%; width: 24%; height: 31%; transform: rotate(-45deg); }
+.collage-card--upper-right { top: 17%; left: 68%; width: 24%; height: 31%; transform: rotate(45deg); }
+.collage-card--lower-left { top: 43.5%; left: 4.5%; width: 24%; height: 31%; transform: rotate(-90deg); }
+.collage-card--lower-right { top: 43.5%; left: 71.5%; width: 24%; height: 31%; transform: rotate(90deg); }
 .collage-card-art { position: relative; display: block; flex: 0 0 63%; min-height: 0; overflow: hidden; border-radius: 1.7cqw 1.7cqw .6cqw .6cqw; background: #eed4bc; }
 .collage-card-art img, .collage-phone-art img { display: block; width: 100%; height: 100%; object-fit: cover; animation: cover-appear .55s ease both, cover-breathe 9s ease-in-out infinite alternate; }
 .collage-card-meta { display: flex; flex-direction: column; align-items: stretch; gap: .5cqw; min-width: 0; padding: .3cqw .6cqw .6cqw; }
@@ -242,14 +242,15 @@ body { background: #eee6db; }
 .collage-note { position: absolute; z-index: 2; width: 3.8cqw; height: 3.8cqw; color: #fff9ee; filter: drop-shadow(0 1px 2px rgba(84, 52, 38, .5)); }
 .collage-note--left { left: 31%; top: 71%; transform: rotate(-18deg); }
 .collage-note--right { right: 31%; top: 71%; transform: rotate(16deg); }
-.collage-scene-footnote { position: absolute; z-index: 2; bottom: 4%; left: 10%; width: 80%; text-align: center; color: #fff7ea; font-size: clamp(9px, 2.6cqw, 14px); letter-spacing: .08em; text-shadow: 0 1px 5px rgba(40, 28, 24, .7); }
+.collage-scene-footnote { position: absolute; z-index: 2; bottom: 4%; left: 10%; width: 80%; text-align: center; color: #fff7ea; font: 500 clamp(10px, 2.7cqw, 15px)/1.6 'Noto Serif SC', 'Songti SC', 'STSong', serif; letter-spacing: .04em; text-shadow: 0 1px 5px rgba(40, 28, 24, .7); }
 
-.collage-copy { padding: 28px 25px 25px; background: #fbf7f0; }
-.collage-copy .section-kicker { color: #b86e51; font-size: 10px; letter-spacing: .16em; }
-.collage-copy h1 { margin: 12px 0 13px; color: #503d34; font-size: clamp(30px, 8.5vw, 42px); line-height: 1.22; letter-spacing: -.065em; }
-.collage-copy h1 em { color: #bb7153; font-style: normal; }
-.collage-copy p { max-width: 380px; margin: 0 0 23px; color: #7b6659; font-size: 14px; line-height: 1.8; }
-.collage-primary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 12px 19px; border-radius: 14px; background: #bc765b; color: #fffaf5; font-size: 14px; font-weight: 800; box-shadow: 0 10px 25px rgba(161, 90, 62, .17); }
+.collage-copy { padding: 36px 30px 35px; background: #fbf8f3; }
+.collage-copy .section-kicker { display: inline-flex; align-items: center; gap: 10px; color: #a46d53; font: 600 12px/1.5 'DengXian', 'PingFang SC', sans-serif; letter-spacing: .12em; }
+.collage-copy .section-kicker::before { content: ''; width: 22px; height: 1px; background: #bd896d; }
+.collage-copy h1 { margin: 18px 0 18px; color: #4b3a31; font: 600 clamp(36px, 8.8vw, 46px)/1.32 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif; letter-spacing: .015em; }
+.collage-copy h1 em { color: #aa674e; font-style: normal; }
+.collage-copy p { max-width: 390px; margin: 0 0 26px; color: #6f5d51; font: 400 15px/1.95 'DengXian', 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: .02em; }
+.collage-primary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 12px 19px; border-radius: 14px; background: #bc765b; color: #fffaf5; font: 600 14px/1.5 'DengXian', 'PingFang SC', 'Microsoft YaHei', sans-serif; box-shadow: 0 10px 25px rgba(161, 90, 62, .17); }
 .collage-primary:hover { background: #a7634a; }
 .collage-primary svg { flex: none; width: 21px; height: 21px; }
 .collage-disclaimer { display: block; margin-top: 14px; color: #9b887b; font-size: 11px; line-height: 1.6; }

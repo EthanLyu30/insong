@@ -93,7 +93,7 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
       </div>
 
       <div className="collage-copy">
-        <span className="section-kicker">SONGS HOLD STORIES</span>
+        <span className="section-kicker">把故事留在旋律里</span>
         <h1>有些时刻，<br /><em>会住在歌里。</em></h1>
         <p>选一首歌，留住它陪你经过的那一刻。先私密收好，想分享时再公开一小段。</p>
         <Link className="collage-primary" to={`/songs/${selected.id}`}>
