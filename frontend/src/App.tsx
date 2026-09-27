@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes, useParams } from "react-router";
 import { apiBaseUrl, getSong, getSongs, type Song } from "./api";
 import { DemoAccountSwitcher } from "./DemoAccountSwitcher";
 import { getDemoIdentity, switchDemoIdentity, type DemoIdentity } from "./demoAuth";
+import { MemoryCollage } from "./MemoryCollage";
 
 function Glyph({ name, size = 22 }: { name: "arrow" | "search" | "music" | "pen" | "home" | "bookmark"; size?: number }) {
   const paths: Record<typeof name, ReactNode> = {
@@ -53,26 +54,9 @@ function PageShell({
 
 function SongCover({ songId, large = false }: { songId: number; large?: boolean }) {
   return (
-    <div className={`song-cover cover-${(songId - 1) % 5}${large ? " song-cover-large" : ""}`} aria-label="虚构演示曲目占位封面">
-      <span className="cover-ring cover-ring-one" />
-      <span className="cover-ring cover-ring-two" />
-      <span className="cover-center" />
-      <span className="cover-note"><Glyph name="music" size={large ? 28 : 20} /></span>
+    <div className={`song-cover${large ? " song-cover-large" : ""}`}>
+      <img src={`/covers/song-${songId}.png`} alt="原创演示曲目画面" />
     </div>
-  );
-}
-
-function SongRow({ song }: { song: Song }) {
-  return (
-    <Link className="song-row" to={`/songs/${song.id}`}>
-      <SongCover songId={song.id} />
-      <span className="song-row-text">
-        <strong>{song.title}</strong>
-        <small>{song.artist} · {song.version}</small>
-        <span className="small-label">演示曲目</span>
-      </span>
-      <span className="row-arrow"><Glyph name="arrow" size={19} /></span>
-    </Link>
   );
 }
 
@@ -98,38 +82,11 @@ function HomePage() {
   }, [requestKey]);
 
   return (
-    <>
-      <section className="hero">
-        <div className="hero-orbit hero-orbit-outer" /><div className="hero-orbit hero-orbit-inner" />
-        <div className="hero-content">
-          <span className="eyebrow">让记忆，有歌可循</span>
-          <h1>有些歌，<br /><em>装着一段人生。</em></h1>
-          <p>有些歌，不只是听过，而是曾经发生在你的生活里。</p>
-          <Link to="/discover" className="hero-link">从一段感受出发 <Glyph name="arrow" size={18} /></Link>
-        </div>
-        <span className="hero-index">01 / SONG MEMORY</span>
-      </section>
-
-      <div className="intro-line"><span className="intro-dot" /> 从一首歌，找回一个瞬间</div>
-
-      <section className="content-section">
-        <div className="section-heading">
-          <div><span className="section-kicker">DEMO TRACKS</span><h2>先听见这些歌名</h2></div>
-          <span className="section-count">{songs.length.toString().padStart(2, "0")}</span>
-        </div>
-        <p className="section-description">选一首演示歌曲，写下它曾出现的时刻。</p>
-        {loading && <div className="status-card" role="status">正在加载演示歌曲…</div>}
-        {error && <div className="status-card error-card" role="alert">{error}<button onClick={() => setRequestKey((value) => value + 1)}>重新加载</button></div>}
-        {!loading && !error && <div className="song-list">{songs.map((song) => <SongRow key={song.id} song={song} />)}</div>}
-      </section>
-
-      <section className="content-section memories-preview">
-        <div className="section-heading"><div><span className="section-kicker">SHARED STORIES</span><h2>最近公开的音乐记忆</h2></div></div>
-        <div className="empty-story"><span className="empty-story-icon"><Glyph name="pen" size={23} /></span><p>公开故事将在下一阶段接入。<br />此刻可以先逛逛演示歌曲。</p></div>
-      </section>
-
-      <div className="source-note">当前演示环境未接入已授权音源；音乐记忆的保存和阅读将在后续任务接入。歌曲、封面均为虚构演示内容。</div>
-    </>
+    <div className="home-page">
+      {loading && <div className="status-card" role="status">正在布置你的音乐记忆…</div>}
+      {error && <div className="status-card error-card" role="alert">{error}<button onClick={() => setRequestKey((value) => value + 1)}>重新加载</button></div>}
+      {!loading && !error && <MemoryCollage songs={songs} />}
+    </div>
   );
 }
 
@@ -159,7 +116,7 @@ function SongPage() {
   return (
     <div className="song-page">
       <Link className="back-link" to="/">← 返回发现</Link>
-      <div className="song-hero"><SongCover songId={song.id} large /><span className="eyebrow">演示曲目 · {song.version}</span><h1>{song.title}</h1><p>{song.artist}</p></div>
+      <div className="song-hero"><SongCover songId={song.id} large /><span className="eyebrow">演示曲目 · {song.version}</span><h1>{song.title}</h1><p>歌里有我 · 虚构演示</p></div>
       <div className="song-prompt"><span>写给这首歌的你</span><h2>这首歌曾出现在你人生的哪个瞬间？</h2><p>一首歌，一段故事，先为自己留住。</p><Link className="primary-button" to={`/songs/${song.id}/write`}>写下我的故事 <Glyph name="arrow" size={19} /></Link></div>
       <div className="audio-note">当前演示环境未接入已授权音源；音乐记忆的保存和阅读将在后续任务接入。</div>
       <section className="content-section"><div className="section-heading"><div><span className="section-kicker">SHARED STORIES</span><h2>关于这首歌的公开故事</h2></div></div><div className="empty-story"><p>公开故事将在下一阶段接入。</p></div></section>
