@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Wanwei Handwriting';
+  src: url('/fonts/wanwei-handwriting.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   color: #f8f1ee;
@@ -203,20 +211,20 @@ body { background: #eee6db; }
 .collage-note--left { left: 236px; top: 694px; transform: rotate(-18deg); }
 .collage-note--right { left: 481px; top: 690px; transform: rotate(16deg); }
 .collage-scene-footnote { position: absolute; z-index: 2; bottom: 42px; left: 80px; width: 590px; text-align: center; color: #fffaec; font: 400 18px/1.9 'Noto Serif SC', 'Songti SC', 'STSong', serif; letter-spacing: .06em; text-shadow: 0 1px 4px rgba(30,24,19,.65); }
-.collage-copy { padding: 28px 30px 32px; background: #fbf8f3; }
+.collage-copy { --memory-handwriting: 'Wanwei Handwriting', 'PingFang SC', 'Microsoft YaHei', sans-serif; padding: 28px 30px 32px; background: #fbf8f3; font-family: var(--memory-handwriting); }
 .collage-copy-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.collage-copy .section-kicker { color: #9a7763; font: 400 11px/1.5 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: .1em; }
-.collage-motion-toggle { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 8px 0 8px 8px; background: none; color: #846c5d; font-size: 10px; cursor: pointer; }
+.collage-copy .section-kicker { color: #9a7763; font: 400 13px/1.5 var(--memory-handwriting); letter-spacing: .1em; }
+.collage-motion-toggle { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 8px 0 8px 8px; background: none; color: #846c5d; font-size: 12px; cursor: pointer; }
 .collage-motion-toggle svg { width: 11px; height: 11px; }
 .collage-motion-toggle:disabled { cursor: default; }
-.collage-copy h1 { margin: 16px 0 17px; color: #4d4239; font: 500 clamp(30px, 7.7vw, 38px)/1.5 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif; letter-spacing: .025em; }
+.collage-copy h1 { margin: 16px 0 17px; color: #4d4239; font: 400 clamp(30px, 7.7vw, 38px)/1.5 var(--memory-handwriting); letter-spacing: .025em; }
 .collage-copy h1 em { color: #a5755d; font-style: normal; }
-.collage-copy p { margin: 0 0 25px; color: #817164; font: 400 13px/2 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: .02em; }
-.collage-primary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; padding: 12px 16px; border-radius: 9px; background: #b78165; color: #fffbf4; font-size: 13px; font-weight: 400; }
+.collage-copy p { margin: 0 0 25px; color: #817164; font: 400 15px/2 var(--memory-handwriting); letter-spacing: .02em; }
+.collage-primary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; padding: 12px 16px; border-radius: 9px; background: #b78165; color: #fffbf4; font-size: 15px; font-weight: 400; }
 .collage-primary:hover { background: #a57055; }
 .collage-primary svg { flex: none; width: 19px; height: 19px; }
 .collage-motion-toggle:focus-visible, .collage-primary:focus-visible { outline: 2px solid #986348; outline-offset: 4px; }
-.collage-disclaimer { display: block; margin-top: 13px; color: #978579; font-size: 10px; line-height: 1.6; }
+.collage-disclaimer { display: block; margin-top: 13px; color: #978579; font-size: 12px; line-height: 1.6; }
 .collage-scene.is-paused .collage-card-art img, .collage-scene.is-paused .collage-phone-art img { animation-play-state: paused; }
 
 .bottom-nav { background: rgba(255, 250, 244, .96); border-color: #e5d7ca; box-shadow: 0 -7px 26px rgba(109, 73, 51, .07); }
