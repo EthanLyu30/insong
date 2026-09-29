@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, Text, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, LargeBinary, String, Text, Integer, UniqueConstraint, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -46,6 +46,7 @@ class MemoryCard(Base):
     __tablename__ = "memory_cards"
     __table_args__ = (
         CheckConstraint("visibility IN ('private', 'public')", name="ck_memory_cards_visibility"),
+        UniqueConstraint('owner_id', 'request_key', name='uq_memory_request'),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -54,6 +55,17 @@ class MemoryCard(Base):
     story: Mapped[str] = mapped_column(Text, nullable=False)
     life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
     scene: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    photo_id: Mapped[str | None] = mapped_column(ForeignKey('photos.id'), nullable=True)
+    event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    life_precision: Mapped[str] = mapped_column(String(16), default='unknown', server_default='unknown')
+    revision: Mapped[int] = mapped_column(Integer, default=1, server_default='1')
+    request_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    reflections_json: Mapped[str] = mapped_column(Text, default='[]', server_default='[]')
     visibility: Mapped[str] = mapped_column(
         String(10), nullable=False, default="private", server_default=text("'private'")
     )
@@ -74,6 +86,29 @@ class MemoryCard(Base):
     tag_links: Mapped[list["MemoryCardTag"]] = relationship(
         back_populates="memory_card", cascade="all, delete-orphan"
     )
+    publication: Mapped["PublicStory | None"] = relationship(back_populates='memory', cascade='all, delete-orphan', uselist=False)
+
+
+class PublicStory(Base):
+    """Only fields explicitly approved for discovery; originals remain owner-only."""
+    __tablename__ = 'public_stories'
+    memory_id: Mapped[int] = mapped_column(ForeignKey('memory_cards.id', ondelete='CASCADE'), primary_key=True)
+    excerpt: Mapped[str] = mapped_column(Text)
+    life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    share_life_time: Mapped[bool] = mapped_column(Boolean, default=False)
+    anonymous: Mapped[bool] = mapped_column(Boolean, default=True)
+    author_name: Mapped[str] = mapped_column(String(80))
+    offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    photo_id: Mapped[str | None] = mapped_column(ForeignKey('photos.id'), nullable=True)
+    event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    published: Mapped[bool] = mapped_column(Boolean, default=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    memory: Mapped[MemoryCard] = relationship(back_populates='publication')
 
 
 class Tag(Base):
@@ -108,3 +143,35 @@ class Session(Base):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="sessions")
+
+
+class AccountCredential(Base):
+    __tablename__ = 'account_credentials'
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    username: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(256), nullable=False)
+
+
+class MemoryReceipt(Base):
+    """Consumed IDs / request keys survive deletion; no private text is retained."""
+    __tablename__ = 'memory_receipts'
+    __table_args__ = (UniqueConstraint('owner_id', 'request_key'), {'sqlite_autoincrement': True})
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    request_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
+
+
+class Photo(Base):
+    """Sanitized photo bytes; access is decided from ownership and live snapshots."""
+    __tablename__ = 'photos'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False, index=True)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class Footprint(Base):
+    __tablename__ = 'footprints'
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    event_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

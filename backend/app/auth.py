@@ -42,7 +42,7 @@ def resolve_user(db: OrmSession, raw_token: str | None) -> User | None:
     if expires_at <= datetime.now(timezone.utc):
         return None
     user = db.get(User, session.user_id)
-    if user is None or user.id not in (1, 2) or not user.is_demo:
+    if user is None:
         return None
     return user
 
@@ -58,11 +58,9 @@ def revoke_session(db: OrmSession, raw_token: str | None) -> None:
 
 def require_user(user: User | None) -> User:
     if user is None:
-        raise HTTPException(status_code=401, detail="请先切换到演示帐号。")
+        raise HTTPException(status_code=401, detail="请先登录，再收好属于你的记忆。")
     return user
 
 
 def can_read_memory(card: MemoryCard, user: User | None) -> bool:
-    return card.visibility == "public" or (
-        user is not None and user.id == card.owner_id
-    )
+    return user is not None and user.id == card.owner_id

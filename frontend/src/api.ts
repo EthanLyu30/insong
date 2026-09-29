@@ -6,7 +6,14 @@ export type Song = {
   source_label: string;
   is_demo: boolean;
   audio_available: boolean;
+  audio_url: string | null;
+  duration_ms: number | null;
+  recording_label: string;
+  lyrics?: Lyric[];
+  lyrics_note?: string;
 };
+
+export type Lyric = { id: string; text: string; start_ms: number };
 
 export const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 

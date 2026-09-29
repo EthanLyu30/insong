@@ -1,0 +1,116 @@
+.footprints-page { color: #5b5145; }
+.footprints-intro { position: relative; padding: 12px 0 5px; }
+.footprints-intro h1 { margin-top: 11px; font-size: 33px; line-height: 1.5; }
+.footprints-intro h1 em { color: #a47258; font-style: normal; }
+.footprints-intro p { color: #827666; font-size: 12px; line-height: 1.9; }
+.footprints-spark { position: absolute; right: 7px; top: 42px; font-size: 54px; color: #b5b895; transform: rotate(15deg); }
+.footprint-artists { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 22px 0 31px; }
+.footprint-artist { display: grid; grid-template-columns: 46px 1fr; column-gap: 10px; align-items: center; text-align: left; border: 1px solid #e0d4c3; background: #fcf8ef; border-radius: 13px; padding: 14px 11px; color: #675746; min-width: 0; transition: border-color .2s, background .2s, transform .2s; }
+.footprint-artist:hover { transform: translateY(-2px); }
+.footprint-artist.is-selected { border-color: var(--artist-color); background: #eee7d8; box-shadow: 0 3px 0 #b29a7322; }
+.footprint-artist strong { font-size: 15px; font-weight: 500; }
+.footprint-artist small { grid-column: 2; margin-top: 4px; color: #8a796a; font-size: 9px; white-space: nowrap; }
+.footprint-artist-disc { position: relative; display: grid; place-items: center; width: 45px; height: 45px; grid-row: span 2; border-radius: 50%; color: #fff8e9; background: repeating-radial-gradient(circle,#b2906a 0,#b2906a 1px,var(--artist-color) 2px,var(--artist-color) 5px); box-shadow: 2px 3px 0 #77644b20; font: 10px Georgia,serif; }
+.footprint-artist-disc i { position: absolute; width: 6px; height: 6px; top: 9px; border: 2px solid #f8ebd4; border-radius: 50%; }
+.footprint-artist-disc::after { content: ''; width: 15px; height: 4px; position: absolute; right: -5px; bottom: 4px; background: #c2b389; border-radius: 2px; transform: rotate(-52deg); }
+.footprint-map-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
+.footprint-kicker { font-size: 10px; color: #8a806c; letter-spacing: .1em; }
+.footprint-map-heading h2 { font-family: 'Wanwei Handwriting','Microsoft YaHei',sans-serif; margin: 4px 0 0; font-size: 23px; }
+.footprint-count { display: flex; align-items: center; gap: 7px; flex: none; }
+.footprint-count b { font: italic 29px Georgia,serif; color: #9a745a; }
+.footprint-count span { font-size: 9px; color: #8c7c69; }
+.footprint-map { position: relative; aspect-ratio: 1.36; overflow: hidden; background: #f1efde; border: 1px solid #dcdcc7; border-radius: 16px; box-shadow: 0 4px 0 #d4c9ac22; }
+.footprint-map-art { position: absolute; width: 100%; height: 100%; inset: 0; }
+.footprint-map-caption { position: absolute; top: 15px; left: 15px; color: #8c9279; font: 14px 'Wanwei Handwriting','Microsoft YaHei',sans-serif; }
+.footprint-compass { position: absolute; top: 14px; right: 17px; display: grid; justify-items: center; color: #989d82; font: 10px Georgia,serif; gap: 2px; }
+.footprint-compass span { font-size: 26px; }
+.footprint-pin { position: absolute; width: 116px; height: 109px; padding: 0; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; border: 0; background: none; color: #5f6858; }
+.footprint-pin:focus-visible { outline-offset: 1px; border-radius: 12px; }
+.footprint-stadium { display: block; width: 110px; flex: none; }
+.footprint-stadium.is-lit { --stadium-wall: #dcb77b; --stadium-field: #b1ba8f; --stadium-light: #d7a44d; }
+.footprint-pin .footprint-stadium { transition: transform .2s; }
+.footprint-pin:hover .footprint-stadium, .footprint-pin.is-selected .footprint-stadium { transform: translateY(-4px); }
+.footprint-pin-label { display: block; padding: 4px 12px; margin-top: -9px; position: relative; background: #fbf6e6ec; border: 1px solid #d4d6bd; border-radius: 7px; min-width: 72px; font-size: 13px; box-shadow: 0 3px 8px #74805e0a; }
+.footprint-pin-label small { display: block; font-size: 9px; color: #878871; padding-top: 2px; white-space: nowrap; }
+.footprint-pin.is-selected .footprint-pin-label { border-color: #a8916c; }
+.footprint-pin.is-mine .footprint-pin-label { border: 1.5px solid #ae6d54; color: #955e49; transform: rotate(-3deg); background: #fff2df; }
+.footprint-pin.is-mine .footprint-pin-label small { color: #a66850; }
+.footprint-map-note { position: absolute; bottom: 12px; right: 13px; font-size: 8px; color: #8f967f; letter-spacing: .03em; }
+.footprint-legend { display: flex; justify-content: center; flex-wrap: wrap; column-gap: 15px; row-gap: 9px; margin: 13px 0 18px; color: #8a7d6a; font-size: 9px; }
+.footprint-legend span { display: flex; align-items: center; gap: 5px; }
+.footprint-legend i { width: 7px; height: 7px; border-radius: 50%; }
+.footprint-legend .is-concert { background: #d7a44d; }
+.footprint-legend .is-announced { background: #aeb6a1; }
+.footprint-legend .is-personal { border: 1.5px solid #ae6d54; width: 9px; height: 9px; }
+.footprint-city-tabs, .footprint-date-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.footprint-city-tabs { margin: 18px 0 13px; }
+.footprint-city-tabs button { border: 1px solid #ded5c5; background: #faf5e9; color: #82735e; border-radius: 99px; padding: 8px 15px; min-height: 40px; font-size: 12px; }
+.footprint-city-tabs button span { margin-left: 7px; opacity: .75; font-size: 9px; }
+.footprint-city-tabs button[aria-pressed="true"] { background: #e7e9dc; border-color: #a8b298; color: #62735f; }
+.footprint-ticket { position: relative; border: 1px solid #dcccb2; background: #fffbf0; border-radius: 10px; overflow: hidden; box-shadow: 3px 4px 0 #c9b28c14; }
+.footprint-ticket-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 13px 18px; font: 9px Georgia,'Microsoft YaHei',sans-serif; color: #9a7f60; letter-spacing: .07em; background: #f1e8d4; }
+.footprint-ticket-top span:last-child { font-size: 9px; letter-spacing: 0; }
+.footprint-ticket-body { position: relative; padding: 22px 18px; }
+.footprint-ticket-city { display: flex; align-items: baseline; gap: 13px; }
+.footprint-ticket-city strong { color: #6a5845; font: 31px 'Wanwei Handwriting','Microsoft YaHei',sans-serif; }
+.footprint-ticket-city > span { color: #a38668; font: 14px Georgia,serif; letter-spacing: .04em; }
+.journal-page .footprint-event-title { margin: 12px 0 7px; color: #6e5a45; font-size: 14px; line-height: 1.7; max-width: 88%; }
+.footprint-venue-name { font-size: 11px; color: #8b7e6d; margin: 0; line-height: 1.8; }
+.footprint-date-tabs { margin-top: 16px; }
+.footprint-date-tabs button { min-height: 38px; border: 1px solid #ded0b9; border-radius: 5px; padding: 7px 10px; font-size: 10px; background: #fbf5e6; color: #8c765b; }
+.footprint-date-tabs button[aria-pressed="true"] { color: #8d5b43; border-color: #b28763; background: #f1e5cf; }
+.footprint-stamp { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 89px; min-height: 89px; border: 2px solid #b3765d; outline: 1px dashed #b3765d; outline-offset: -6px; border-radius: 50%; color: #a46951; transform: rotate(-12deg); margin: 20px 0 0 auto; opacity: .9; }
+.footprint-stamp span { font-size: 8px; }
+.footprint-stamp b { font-weight: 500; font-size: 14px; margin: 4px 0; }
+.footprint-stamp small { font: 9px Georgia,serif; }
+.footprint-ticket-bottom { border-top: 1px dashed #d6c5a6; padding: 16px 18px 9px; position: relative; }
+.footprint-ticket-bottom::before, .footprint-ticket-bottom::after { content: ''; position: absolute; width: 15px; height: 15px; border: 1px solid #dcccb2; background: #f8f2e7; border-radius: 50%; top: -8px; }
+.footprint-ticket-bottom::before { left: -8px; }
+.footprint-ticket-bottom::after { right: -8px; }
+.footprint-attend { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; min-height: 46px; padding: 10px 13px; border: 1px solid #a9ac90; border-radius: 7px; background: #e4e8d6; color: #677257; font: 13px 'Microsoft YaHei',sans-serif; }
+.footprint-attend:hover:not(:disabled) { background: #d8dfc6; }
+.footprint-attend.is-attended { background: #f6ebd9; border-color: #d5bb98; color: #9b7253; }
+.footprint-attend > span { font-size: 21px; }
+.footprint-ticket-bottom > p { font-size: 9px; color: #938471; line-height: 1.7; text-align: center; margin: 10px 0 3px; }
+.footprint-ticket-bottom .form-error { text-align: left; font-size: 11px; }
+.footprint-save-notice { display: block; color: #71815d; font-size: 10px; line-height: 1.7; text-align: center; min-height: 13px; }
+.footprint-write-link { display: flex; align-items: center; gap: 12px; margin: 19px 0 31px; padding: 15px 13px; background: #f0e6d6; border: 1px solid #e2d2ba; border-radius: 10px; }
+.footprint-write-link > span:nth-child(2) { flex: 1; }
+.footprint-write-link strong { display: block; color: #8c694d; font: 17px 'Wanwei Handwriting','Microsoft YaHei',sans-serif; }
+.footprint-write-link small { display: block; margin-top: 6px; color: #94816a; font-size: 9px; line-height: 1.7; }
+.footprint-write-link > span:last-child { color: #a47b57; font-size: 19px; }
+.footprint-pencil { font-size: 30px; color: #ac8c63; flex: none; }
+.footprint-songs .list-heading h2 { font: 22px 'Wanwei Handwriting','Microsoft YaHei',sans-serif; }
+.footprint-songs .list-heading > span { color: #978575; font-size: 10px; }
+.footprint-song { display: flex; align-items: center; gap: 13px; padding: 13px 4px; border-bottom: 1px solid #e4d8c8; }
+.footprint-song > span:nth-child(2) { flex: 1; }
+.footprint-song strong { display: block; color: #6d5c48; font-size: 13px; font-weight: 500; }
+.footprint-song small { display: block; color: #958571; font-size: 9px; line-height: 1.6; margin-top: 4px; }
+.footprint-song > span:last-child { color: #aa9275; }
+.footprint-record { display: grid; place-items: center; width: 39px; height: 39px; color: #efe4cc; font-size: 17px; border-radius: 50%; background: repeating-radial-gradient(circle,#788474 0,#788474 2px,#88927e 3px,#88927e 4px); box-shadow: 0 0 0 4px #e8e7d7; margin: 4px; }
+.footprint-song-note { color: #9a8d79; font-size: 9px; line-height: 1.9; margin: 13px 0 28px; }
+.footprint-sources { border-top: 1px solid #ded2c0; margin-top: 28px; padding-top: 13px; color: #9a8873; font-size: 10px; line-height: 1.9; }
+.footprint-sources summary { cursor: pointer; min-height: 34px; color: #8d7961; }
+.footprint-sources a { display: inline-block; color: #8c775e; text-decoration: underline; text-underline-offset: 3px; }
+.footprint-awaiting { text-align: center; border: 1px dashed #d5cfb8; border-radius: 15px; background: #f0eedf; padding: 25px 12px 28px; }
+.footprint-awaiting > div { width: 155px; height: 106px; position: relative; margin: 0 auto 8px; }
+.footprint-awaiting .footprint-stadium { width: 155px; }
+.footprint-awaiting > div > span { position: absolute; right: 3px; top: 0; color: #b2925c; font-size: 25px; transform: rotate(14deg); }
+.footprint-awaiting h2 { color: #88775f; font: 22px 'Wanwei Handwriting','Microsoft YaHei',sans-serif; }
+.footprint-awaiting p { color: #998973; font-size: 11px; line-height: 1.9; }
+@media (max-width: 380px) {
+  .footprint-artist { grid-template-columns: 36px 1fr; padding: 12px 8px; gap: 5px; }
+  .footprint-artist-disc { width: 35px; height: 35px; font-size: 8px; }
+  .footprint-artist-disc i { top: 5px; }
+  .footprint-artist strong { font-size: 14px; }
+  .footprint-artist small { font-size: 8px; }
+  .footprint-count { gap: 4px; }
+  .footprint-count span { max-width: 44px; line-height: 1.6; }
+  .footprints-intro h1 { font-size: 29px; }
+  .footprints-spark { right: 0; font-size: 39px; }
+  .footprint-pin { width: 102px; height: 100px; }
+  .footprint-stadium { width: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footprint-artist, .footprint-pin .footprint-stadium { transition: none; }
+}

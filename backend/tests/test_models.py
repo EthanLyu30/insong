@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
 
-def test_schema_has_six_tables(tmp_path):
+def test_schema_has_private_account_table_alongside_existing_tables(tmp_path):
     from app.database import create_sqlite_engine, initialize_database
 
     engine = create_sqlite_engine(f"sqlite:///{tmp_path / 'test.db'}")
@@ -19,6 +19,11 @@ def test_schema_has_six_tables(tmp_path):
         "tags",
         "memory_card_tags",
         "sessions",
+        "account_credentials",
+        "memory_receipts",
+        "public_stories",
+        "photos",
+        "footprints",
     }
 
 

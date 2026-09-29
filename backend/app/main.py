@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, StrictInt
 from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession, sessionmaker
@@ -19,6 +21,13 @@ from .auth import (
 )
 from .database import DEFAULT_DB_PATH, create_sqlite_engine, initialize_database
 from .models import MemoryCard, Song, User
+from .accounts import install_accounts
+from .memories import install_memories, serialize_memory
+from .media import AUDIO_ROOT, serialize_song
+from .recall import install_recall
+from .stories import install_stories
+from .photos import install_photos
+from .footprints import install_footprints
 
 
 class DemoSessionRequest(BaseModel):
@@ -35,18 +44,6 @@ def serialize_user(user: User | None) -> dict:
     }}
 
 
-def serialize_song(song: Song) -> dict:
-    return {
-        "id": song.id,
-        "title": song.title,
-        "artist": song.artist,
-        "version": song.version,
-        "source_label": song.source_label,
-        "is_demo": song.is_demo,
-        "audio_available": song.audio_available,
-    }
-
-
 def create_app(database_url: str | None = None) -> FastAPI:
     db_url = database_url or f"sqlite:///{DEFAULT_DB_PATH}"
 
@@ -61,6 +58,16 @@ def create_app(database_url: str | None = None) -> FastAPI:
             engine.dispose()
 
     app = FastAPI(title="歌里有我 Demo", lifespan=lifespan)
+    @app.middleware('http')
+    async def private_responses(request, call_next):
+        origin = request.headers.get('origin')
+        trusted = {'http://localhost:5173', 'http://127.0.0.1:5173', str(request.base_url).rstrip('/')}
+        if request.method in ('POST', 'PATCH', 'DELETE', 'PUT') and origin and origin not in trusted:
+            return JSONResponse({'detail': '请求来源不受支持。'}, status_code=403)
+        response = await call_next(request)
+        if request.url.path.startswith('/api/') and not request.url.path.startswith('/api/audio/'):
+            response.headers['Cache-Control'] = 'no-store'
+        return response
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -81,6 +88,14 @@ def create_app(database_url: str | None = None) -> FastAPI:
 
     def get_required_user(user: User | None = Depends(get_optional_user)) -> User:
         return require_user(user)
+
+    install_accounts(app, get_db, serialize_user)
+    install_memories(app, get_db, get_required_user)
+    install_recall(app, get_db, get_required_user)
+    install_stories(app, get_db, get_required_user)
+    install_photos(app, get_db, get_required_user, get_optional_user)
+    install_footprints(app, get_db, get_required_user)
+    app.mount('/api/audio', StaticFiles(directory=str(AUDIO_ROOT), check_dir=False), name='audio')
 
     @app.get("/api/me")
     def get_me(user: User | None = Depends(get_optional_user)) -> dict:
@@ -141,20 +156,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         card = db.get(MemoryCard, memory_id) if -(2**63) <= memory_id < 2**63 else None
         if card is None or not can_read_memory(card, user):
             raise HTTPException(status_code=404, detail="这段音乐记忆已经不可见。")
-        return {
-            "id": card.id,
-            "owner_id": card.owner_id,
-            "owner_display_name": card.owner.display_name,
-            "song_id": card.song_id,
-            "story": card.story,
-            "tags": [link.tag.name for link in card.tag_links],
-            "life_time": card.life_time,
-            "scene": card.scene,
-            "visibility": card.visibility,
-            "is_demo_sample": card.is_demo_sample,
-            "created_at": card.created_at.isoformat(),
-            "updated_at": card.updated_at.isoformat(),
-        }
+        return serialize_memory(card)
 
     return app
 
