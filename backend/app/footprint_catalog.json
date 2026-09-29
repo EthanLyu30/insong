@@ -1,0 +1,69 @@
+{
+  "verified_on": "2026-09-29",
+  "artists": [
+    {"id": "gem", "name": "邓紫棋", "initial": "G.E.M.", "color": "#b67a61", "description": "在歌声里，重逢那些闪光的夜晚。"},
+    {"id": "liu-yuxin", "name": "刘雨昕", "initial": "XIN", "color": "#738775", "description": "跟着节拍，收藏每一次热烈奔赴。"}
+  ],
+  "events": [
+    {
+      "id": "gem-sanya-20251207", "artist_id": "gem", "title": "邓紫棋2025世界巡回演唱会 · 三亚站",
+      "city": "三亚", "venue": "三亚市体育中心白鹭体育场", "date": "2025-12-07", "map_x": 31, "map_y": 67,
+      "source_url": "https://gaj.sanya.gov.cn/gajsite/gzdt/202512/7080de453e4c4fbea2d44bc7bce25b28.shtml",
+      "source_title": "三亚市公安局 · 演唱会安保完成记录", "source_kind": "report",
+      "songs": [
+        {"title": "泡沫", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_1k4v6d/", "platform": "酷狗音乐 · MV"},
+        {"title": "光年之外", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_cq5oc5/", "platform": "酷狗音乐 · MV"}
+      ]
+    },
+    {
+      "id": "gem-sanya-20251206", "artist_id": "gem", "title": "邓紫棋2025世界巡回演唱会 · 三亚站",
+      "city": "三亚", "venue": "三亚市体育中心白鹭体育场", "date": "2025-12-06", "map_x": 31, "map_y": 67,
+      "source_url": "https://gaj.sanya.gov.cn/gajsite/gzdt/202512/7080de453e4c4fbea2d44bc7bce25b28.shtml",
+      "source_title": "三亚市公安局 · 演唱会安保完成记录", "source_kind": "report",
+      "songs": [
+        {"title": "泡沫", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_1k4v6d/", "platform": "酷狗音乐 · MV"},
+        {"title": "光年之外", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_cq5oc5/", "platform": "酷狗音乐 · MV"}
+      ]
+    },
+    {
+      "id": "gem-ganzhou-20250803", "artist_id": "gem", "title": "邓紫棋2025巡回演唱会 · 赣州站",
+      "city": "赣州", "venue": "赣州市全民健身中心体育场", "date": "2025-08-03", "map_x": 66, "map_y": 36,
+      "source_url": "https://wlj.ganzhou.gov.cn/whgdxwcblyj/tzgg/202509/42b3aad8971d4124a5d64b409616a314.shtml",
+      "source_title": "赣州市文化广电旅游局 · 演唱会奖补公示", "source_kind": "report",
+      "songs": [
+        {"title": "泡沫", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_1k4v6d/", "platform": "酷狗音乐 · MV"},
+        {"title": "光年之外", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_cq5oc5/", "platform": "酷狗音乐 · MV"}
+      ]
+    },
+    {
+      "id": "gem-ganzhou-20250802", "artist_id": "gem", "title": "邓紫棋2025巡回演唱会 · 赣州站",
+      "city": "赣州", "venue": "赣州市全民健身中心体育场", "date": "2025-08-02", "map_x": 66, "map_y": 36,
+      "source_url": "https://wlj.ganzhou.gov.cn/whgdxwcblyj/tzgg/202509/42b3aad8971d4124a5d64b409616a314.shtml",
+      "source_title": "赣州市文化广电旅游局 · 演唱会奖补公示", "source_kind": "report",
+      "songs": [
+        {"title": "泡沫", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_1k4v6d/", "platform": "酷狗音乐 · MV"},
+        {"title": "光年之外", "artist": "邓紫棋", "url": "https://www.kugou.com/mvweb/html/mv_cq5oc5/", "platform": "酷狗音乐 · MV"}
+      ]
+    },
+    {
+      "id": "liu-yuxin-guangzhou-20251018", "artist_id": "liu-yuxin", "title": "刘雨昕2025仙那度2.0巡回演唱会 · 广州站",
+      "city": "广州", "venue": "宝能广州国际体育演艺中心", "date": "2025-10-18", "map_x": 35, "map_y": 65,
+      "source_url": "https://wglj.gz.gov.cn/gkmlpt/content/10/10271/post_10271189.html",
+      "source_title": "广州市文化广电旅游局 · 营业性演出许可", "source_kind": "announcement",
+      "songs": [
+        {"title": "原来那个人", "artist": "刘雨昕", "url": "https://music.apple.com/cn/music-video/%E5%8E%9F%E6%9D%A5%E9%82%A3%E4%B8%AA%E4%BA%BA/1774321739", "platform": "Apple Music · MV"},
+        {"title": "看着月亮想你", "artist": "刘雨昕", "url": "https://music.apple.com/cn/music-video/%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0/1766574796", "platform": "Apple Music · MV"}
+      ]
+    },
+    {
+      "id": "liu-yuxin-beijing-20250920", "artist_id": "liu-yuxin", "title": "2025刘雨昕仙那度2.0演唱会 · 北京站",
+      "city": "北京", "venue": "华熙LIVE·五棵松", "date": "2025-09-20", "map_x": 67, "map_y": 31,
+      "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/68b1476ca7428002b2636c2c.html",
+      "source_title": "北京市人民政府 · 市文旅局文化演出公告", "source_kind": "announcement",
+      "songs": [
+        {"title": "原来那个人", "artist": "刘雨昕", "url": "https://music.apple.com/cn/music-video/%E5%8E%9F%E6%9D%A5%E9%82%A3%E4%B8%AA%E4%BA%BA/1774321739", "platform": "Apple Music · MV"},
+        {"title": "看着月亮想你", "artist": "刘雨昕", "url": "https://music.apple.com/cn/music-video/%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0/1766574796", "platform": "Apple Music · MV"}
+      ]
+    }
+  ]
+}

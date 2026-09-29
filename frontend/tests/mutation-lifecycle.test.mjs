@@ -13,7 +13,7 @@ test('late save/delete responses cannot replace drafts after route or identity c
   const React = await import('react');
   const { createRoot } = await import('react-dom/client');
   const { MemoryRouter, useNavigate, useLocation } = await import('react-router');
-  const server = await createServer({server:{middlewareMode:true,hmr:false},appType:'custom'});
+  const server = await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const { default: App } = await server.ssrLoadModule('/src/App.tsx');
   let navigate, currentPath, finishSave, finishDelete;
   let user = {id:3,display_name:'测试',is_demo:false};

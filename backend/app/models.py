@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, Text, Integer, UniqueConstraint, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, LargeBinary, String, Text, Integer, UniqueConstraint, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -56,6 +56,9 @@ class MemoryCard(Base):
     life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
     scene: Mapped[str | None] = mapped_column(String(160), nullable=True)
     offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    photo_id: Mapped[str | None] = mapped_column(ForeignKey('photos.id'), nullable=True)
+    event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
@@ -97,6 +100,9 @@ class PublicStory(Base):
     anonymous: Mapped[bool] = mapped_column(Boolean, default=True)
     author_name: Mapped[str] = mapped_column(String(80))
     offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    photo_id: Mapped[str | None] = mapped_column(ForeignKey('photos.id'), nullable=True)
+    event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -153,3 +159,19 @@ class MemoryReceipt(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
     request_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
+
+
+class Photo(Base):
+    """Sanitized photo bytes; access is decided from ownership and live snapshots."""
+    __tablename__ = 'photos'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False, index=True)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class Footprint(Base):
+    __tablename__ = 'footprints'
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    event_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

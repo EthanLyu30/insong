@@ -22,6 +22,8 @@ def test_schema_has_private_account_table_alongside_existing_tables(tmp_path):
         "account_credentials",
         "memory_receipts",
         "public_stories",
+        "photos",
+        "footprints",
     }
 
 

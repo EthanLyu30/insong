@@ -1,34 +1,55 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { apiBaseUrl, type Song } from './api';
 import { formatPosition } from './memoryClient';
 
-export function AudioPlayer({ song, anchor = null, onMark }: { song: Song; anchor?: number | null; onMark?: (ms: number) => void }) {
-  const audio = useRef<HTMLAudioElement>(null);
-  const [current, setCurrent] = useState(0);
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState('');
-  const [playing, setPlaying] = useState(false);
-  useEffect(() => { setCurrent(0); setReady(false); setError(''); }, [song.id]);
-  if (!song.audio_url) return <p className="resource-note">这个录音暂时无法播放，仍可留下文字和歌曲。</p>;
-  const replay = async () => {
-    const player = audio.current;
-    if (!player) return;
-    setError('');
-    player.currentTime = (anchor ?? 0) / 1000;
-    try { await player.play(); } catch { setError('播放没有成功，请使用播放器重试。'); }
-  };
-  return <div className={`memory-player${playing ? ' is-playing' : ''}`}>
-    <div className="player-caption"><span className="sound-bars" aria-hidden="true"><i/><i/><i/><i/></span><span>{song.recording_label}</span><span>{formatPosition(current)} / {formatPosition(song.duration_ms)}</span></div>
-    <audio ref={audio} controls preload="metadata" src={apiBaseUrl + song.audio_url} aria-label={`试听《${song.title}》`}
-      onLoadedMetadata={() => {setReady(true); if (audio.current && anchor !== null) audio.current.currentTime = anchor / 1000;}}
-      onTimeUpdate={() => setCurrent(Math.round((audio.current?.currentTime ?? 0) * 1000))}
-      onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)}
-      onError={() => {setReady(false);setPlaying(false);setError('音频暂时无法加载，请稍后重新打开。');}} />
-    <div className="player-actions">
-      {anchor !== null && <button type="button" className="soft-button" disabled={!ready} onClick={() => void replay()}>从 {formatPosition(anchor)} 重听这一段</button>}
-      {onMark && <button type="button" className="soft-button" disabled={!ready} onClick={() => onMark(Math.min(Math.floor((audio.current?.currentTime ?? 0)) * 1000, (song.duration_ms ?? 1000) - 1000))}>留住当前 {formatPosition(current)}</button>}
-    </div>
-    {error && <p className="form-error" role="alert">{error}</p>}
-    <p className="resource-note">为本项目创作的48秒器乐样例，可真实播放与定位。</p>
+export function AudioPlayer({song,anchor=null,end=null,onMark,autoPlay=false,compact=false}: {
+  song:Song;anchor?:number|null;end?:number|null;onMark?:(ms:number)=>void;autoPlay?:boolean;compact?:boolean;
+}) {
+  const audio=useRef<HTMLAudioElement>(null);
+  const [current,setCurrent]=useState(0),[ready,setReady]=useState(false),[playing,setPlaying]=useState(false),[error,setError]=useState('');
+  const clipped=end!=null && anchor!=null && end>anchor;
+  const start=clipped?anchor:0;
+  const limit=clipped?end:null;
+  useEffect(()=>{setCurrent(start);setReady(false);setError('');},[song.id,start,limit]);
+  useLayoutEffect(()=>{
+    const player=audio.current;if(!player)return;
+    const pauseOthers=(event:Event)=>{if(event.target!==player)player.pause();};
+    document.addEventListener('play',pauseOthers,true);
+    if(autoPlay)void player.play().catch(()=>setError('轻点播放，继续听这一刻。'));
+    return ()=>{document.removeEventListener('play',pauseOthers,true);player.pause();};
+  },[song.audio_url,autoPlay]);
+  useEffect(()=>{
+    if(!playing||limit==null)return;
+    // Native timeupdate is sparse; also bound the last fraction of a selected clip.
+    const timer=window.setInterval(()=>{
+      const player=audio.current;if(player && player.currentTime>=limit/1000){player.pause();player.currentTime=limit/1000;setCurrent(limit);}
+    },40);
+    return ()=>window.clearInterval(timer);
+  },[playing,limit]);
+  async function replay(from:number) {
+    const player=audio.current;if(!player)return;setError('');player.currentTime=from/1000;
+    try{await player.play();}catch{setError('播放没有成功，请点播放器重试。');}
+  }
+  function update() {
+    const player=audio.current;if(!player)return;
+    if(limit!=null && player.currentTime>=limit/1000){player.pause();player.currentTime=limit/1000;}
+    setCurrent(Math.round(player.currentTime*1000));
+  }
+  if(!song.audio_url)return <p className="resource-note">这首歌暂未提供试听音源，可以先留下文字和照片。</p>;
+  return <div className={`memory-player${playing?' is-playing':''}${compact?' compact-player':''}`}>
+    <div className="player-caption"><span className="sound-bars" aria-hidden="true"><i/><i/><i/><i/></span><span>{clipped?`${formatPosition(start)} — ${formatPosition(limit)}`:'整首播放'}</span><span>{formatPosition(current)}</span></div>
+    <audio ref={audio} controls preload="metadata" src={apiBaseUrl+song.audio_url} aria-label={`试听《${song.title}》`}
+      onLoadedMetadata={()=>{setReady(true);if(audio.current)audio.current.currentTime=start/1000;}}
+      onTimeUpdate={update}
+      onSeeking={()=>{const player=audio.current;if(player&&clipped&&(player.currentTime<start/1000||player.currentTime>limit!/1000))player.currentTime=Math.min(limit!/1000,Math.max(start/1000,player.currentTime));}}
+      onPlay={()=>{const player=audio.current;if(player&&limit!=null&&player.currentTime>=limit/1000)player.currentTime=start/1000;setPlaying(true);setError('');}}
+      onPause={()=>setPlaying(false)} onEnded={()=>setPlaying(false)}
+      onError={()=>{setReady(false);setPlaying(false);setError('音频暂时无法加载，请稍后重试。');}}/>
+    {(anchor!==null||onMark)&&<div className="player-actions">
+      {anchor!==null&&<button type="button" className="soft-button" disabled={!ready} onClick={()=>void replay(anchor)}>{clipped?'重听这一段':`从 ${formatPosition(anchor)} 重听`}</button>}
+      {onMark&&<button type="button" className="soft-button" disabled={!ready} onClick={()=>onMark(Math.min(Math.floor(audio.current?.currentTime??0)*1000,(song.duration_ms??1000)-1000))}>留住当前 {formatPosition(current)}</button>}
+    </div>}
+    {error&&<p className="form-error" role="status">{error}</p>}
+    {!compact&&<p className="resource-note">{song.is_demo?'本项目原创器乐样例 · 可真实播放与定位':song.recording_label}</p>}
   </div>;
 }

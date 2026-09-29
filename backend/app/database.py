@@ -47,12 +47,17 @@ def initialize_database(engine: Engine) -> None:
         'revision': 'INTEGER NOT NULL DEFAULT 1', 'request_key': 'VARCHAR(80)',
         'reflections_json': "TEXT NOT NULL DEFAULT '[]'",
         'lyric_id': 'VARCHAR(40)', 'life_year': 'INTEGER', 'theme_id': 'VARCHAR(40)',
+        'photo_id': 'VARCHAR(36) REFERENCES photos(id)', 'end_ms': 'INTEGER', 'event_id': 'VARCHAR(100)',
     }
     with engine.begin() as connection:
         for name, declaration in additions.items():
             if name not in existing:
                 connection.execute(text(f'ALTER TABLE memory_cards ADD COLUMN {name} {declaration}'))
         connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_memory_request ON memory_cards(owner_id, request_key)'))
+        public_columns = {column['name'] for column in inspect(connection).get_columns('public_stories')}
+        for name in ('photo_id', 'end_ms', 'event_id'):
+            if name not in public_columns:
+                connection.execute(text(f'ALTER TABLE public_stories ADD COLUMN {name} {additions[name]}'))
     with OrmSession(engine) as db, db.begin():
         seed_demo_data(db)
         # Previously public cards already had publication consent (including samples).
@@ -62,7 +67,8 @@ def initialize_database(engine: Engine) -> None:
                 db.add(PublicStory(memory_id=card.id, excerpt=card.story,
                     life_time=card.life_time, life_year=card.life_year, share_life_time=True,
                     anonymous=False, author_name=card.owner.display_name, offset_ms=card.offset_ms,
-                    lyric_id=card.lyric_id, theme_id=card.theme_id, published=True))
+                    lyric_id=card.lyric_id, theme_id=card.theme_id, photo_id=card.photo_id,
+                    end_ms=card.end_ms, event_id=card.event_id, published=True))
             card.visibility = 'private'
     with engine.begin() as connection:
         # Explicit IDs advance SQLite's durable AUTOINCREMENT sequence, including

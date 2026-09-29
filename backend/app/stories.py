@@ -9,6 +9,7 @@ from .media import serialize_song
 from .memories import CreateMemory, owner_card, update_card
 from .models import MemoryCard, PublicStory, User, utc_now
 from .recall import SearchInput, keyword_score
+from .photos import photo_url
 
 
 class PublishInput(BaseModel):
@@ -35,6 +36,7 @@ class PublishInput(BaseModel):
 class PublicSearch(SearchInput):
     theme_id: str | None = Field(default=None, max_length=40)
     lyric_id: str | None = Field(default=None, max_length=40)
+    event_id: str | None = Field(default=None, max_length=100)
 
 
 def serialize_story(public):
@@ -44,13 +46,15 @@ def serialize_story(public):
         'song_id': card.song_id, 'song': serialize_song(card.song),
         'author_name': public.author_name, 'life_time': public.life_time,
         'life_year': public.life_year, 'offset_ms': public.offset_ms,
+        'end_ms': public.end_ms, 'photo_id': public.photo_id, 'photo_url': photo_url(public.photo_id),
+        'event_id': public.event_id,
         'lyric': selected_lyric(card.song, public.lyric_id), 'lyric_id': public.lyric_id,
         'theme_id': public.theme_id, 'is_demo_sample': card.is_demo_sample,
         'published_at': public.published_at.isoformat(),
     }
 
 
-def public_query(song_id=None, theme_id=None, lyric_id=None):
+def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None):
     query = select(PublicStory).join(MemoryCard).where(PublicStory.published.is_(True))
     if song_id is not None:
         query = query.where(MemoryCard.song_id == song_id)
@@ -58,6 +62,8 @@ def public_query(song_id=None, theme_id=None, lyric_id=None):
         query = query.where(PublicStory.theme_id == theme_id)
     if lyric_id is not None:
         query = query.where(PublicStory.lyric_id == lyric_id)
+    if event_id is not None:
+        query = query.where(PublicStory.event_id == event_id)
     return query.order_by(PublicStory.published_at.desc(), PublicStory.memory_id.desc())
 
 
@@ -82,6 +88,7 @@ def install_stories(app, get_db, get_user):
         public.anonymous = data.anonymous
         public.author_name = '匿名听友' if data.anonymous else user.display_name
         public.offset_ms, public.lyric_id, public.theme_id = card.offset_ms, card.lyric_id, card.theme_id
+        public.photo_id, public.end_ms, public.event_id = card.photo_id, card.end_ms, card.event_id
         public.published, public.published_at = True, utc_now()
         public.version += 1
         # Snapshot and revision claim commit atomically; a stale request rolls both back.
@@ -94,13 +101,13 @@ def install_stories(app, get_db, get_user):
 
     @app.get('/api/stories')
     def list_stories(song_id: int | None = Query(default=None, gt=0, lt=2**63),
-                     theme_id: str | None = None, lyric_id: str | None = None,
+                     theme_id: str | None = None, lyric_id: str | None = None, event_id: str | None = None,
                      db: OrmSession = Depends(get_db)):
-        return [serialize_story(public) for public in db.scalars(public_query(song_id, theme_id, lyric_id))]
+        return [serialize_story(public) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id))]
 
     @app.post('/api/stories/search')
     def search(data: PublicSearch, db: OrmSession = Depends(get_db)):
-        candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id)))
+        candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id)))
         versions = {public.memory_id: public.version for public in candidates}
         # Never pass private originals, reflections, or unshared life metadata to inference.
         texts = [public.excerpt + ' ' + (public.life_time or '') + ' ' + public.memory.song.title for public in candidates]

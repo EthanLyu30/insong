@@ -15,12 +15,15 @@ test('time input is explicit and rejects out of range or malformed values', () =
   assert.equal(formatPosition(null), '整首歌');
   assert.equal(parsePosition('00:12', 48000), 12000);
   assert.equal(parsePosition('', 48000), null);
+  assert.equal(parsePosition('00:48', 48000, true), 48000);
+  assert.throws(() => parsePosition('00:49', 48000, true));
   for (const value of ['-1', '0:60', '00:48', 'abc', '1:2:3']) {
     assert.throws(() => parsePosition(value, 48000));
   }
 });
 test('login destination cannot leave this app', () => {
   assert.equal(safeNext('/songs/1/write?at=12'), '/songs/1/write?at=12');
+  assert.equal(safeNext('/footprints?artist=gem&event=gem-sanya-20251207'), '/footprints?artist=gem&event=gem-sanya-20251207');
   assert.equal(safeNext('//evil.example'), '/memories');
   assert.equal(safeNext('https://evil.example'), '/memories');
   assert.equal(safeNext('/\\evil.example'), '/memories');

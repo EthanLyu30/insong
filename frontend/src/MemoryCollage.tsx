@@ -68,9 +68,10 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-export function MemoryCollage({ songs }: { songs: Song[] }) {
+export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]; intro?:boolean; onEnter?:()=>void }) {
   const [params] = useSearchParams();
-  const themeQuery = params.get('theme') ? `?theme=${encodeURIComponent(params.get('theme')!)}` : '';
+  const capture = new URLSearchParams();for(const key of ['theme','event'])if(params.get(key))capture.set(key,params.get(key)!);
+  const themeQuery = capture.size ? `?${capture}` : '';
   const [offset, setOffset] = useState(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -81,12 +82,12 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
   useLayoutEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
-    const resize = () => setScale(scene.getBoundingClientRect().width / 750);
+    const resize = () => {const box=scene.getBoundingClientRect();setScale(Math.min(box.width / 750, box.height / 1000));};
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(scene);
     return () => observer.disconnect();
-  }, [songs.length]);
+  }, [songs.length,intro]);
 
   useEffect(() => {
     if (isPaused || reducedMotion || songs.length < 2) return;
@@ -104,9 +105,10 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
   if (!selected) return null;
 
   return (
-    <section className="collage-section" aria-label="从演示歌曲中选一首">
+    <section className={`collage-section${intro?' collage-intro':' collage-entered'}`} aria-label="从演示歌曲中选一首">
       <div className={`collage-scene${isPaused || reducedMotion ? " is-paused" : ""}`} ref={sceneRef}>
-        <div className="collage-stage" style={{ transform: `scale(${scale})` }}>
+        {intro && <><button className="scene-enter" aria-label="进入我的音乐故事" onClick={onEnter}/><span className="scene-invitation" aria-hidden="true">轻触空白，翻开下一页 ↗</span></>}
+        <div className="collage-stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
           <img className="collage-backdrop" src="/collage-scene.png" alt="" draggable={false} />
           <span className="collage-scene-label">我的生活，有它的配乐。</span>
           {visibleSongs.map((song, index) => (
@@ -138,7 +140,7 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
         </div>
       </div>
 
-      <div className="collage-copy">
+      {!intro && <div className="collage-copy">
         <div className="collage-copy-topline">
           <span className="section-kicker">把故事留在旋律里</span>
           <button className="collage-motion-toggle" type="button" disabled={reducedMotion} aria-pressed={!isPaused && !reducedMotion} onClick={() => { setIsPaused((value) => !value); setSelectedId(null); }}>
@@ -149,8 +151,9 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
         <h1>有些时刻，<br /><em>会住在歌里。</em></h1>
         <p>把那时的自己，留在一句歌里。<br />愿意分享时，也许会有人在这里遇见共鸣。</p>
         <Link className="collage-primary" to={`/songs/${selected.id}${themeQuery}`}>从《{selected.title}》开始 <ArrowRight aria-hidden="true" /></Link>
+        <Link className="collage-secondary" to="/discover">翻开别人的音乐故事 ↗</Link>
         <span className="collage-disclaimer">原创器乐样例 · 可试听 · 记忆默认仅自己可见</span>
-      </div>
+      </div>}
     </section>
   );
 }

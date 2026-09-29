@@ -26,6 +26,8 @@ from .memories import install_memories, serialize_memory
 from .media import AUDIO_ROOT, serialize_song
 from .recall import install_recall
 from .stories import install_stories
+from .photos import install_photos
+from .footprints import install_footprints
 
 
 class DemoSessionRequest(BaseModel):
@@ -91,6 +93,8 @@ def create_app(database_url: str | None = None) -> FastAPI:
     install_memories(app, get_db, get_required_user)
     install_recall(app, get_db, get_required_user)
     install_stories(app, get_db, get_required_user)
+    install_photos(app, get_db, get_required_user, get_optional_user)
+    install_footprints(app, get_db, get_required_user)
     app.mount('/api/audio', StaticFiles(directory=str(AUDIO_ROOT), check_dir=False), name='audio')
 
     @app.get("/api/me")
