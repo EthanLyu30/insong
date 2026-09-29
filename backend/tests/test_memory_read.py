@@ -45,6 +45,7 @@ def test_public_card_is_readable_by_both_accounts_and_guest(tmp_path):
                 "id", "owner_id", "owner_display_name", "song_id", "story", "tags",
                 "life_time", "scene", "visibility", "is_demo_sample", "created_at",
                 "updated_at",
+                "offset_ms", "life_precision", "revision", "reflections", "song",
             }
 
 

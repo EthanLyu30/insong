@@ -21,7 +21,8 @@ def test_song_api_reads_persisted_data(tmp_path):
     assert list_response.json()[0]["title"] == "更新后的歌名"
     assert detail_response.json()["title"] == "更新后的歌名"
     assert set(detail_response.json()) == {
-        "id", "title", "artist", "version", "source_label", "is_demo", "audio_available"
+        "id", "title", "artist", "version", "source_label", "is_demo", "audio_available",
+        "audio_url", "duration_ms", "recording_label",
     }
 
 

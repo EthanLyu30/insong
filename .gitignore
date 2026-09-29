@@ -13,3 +13,4 @@ dist/
 *.pyc
 backend/data/*.db
 backend/data/*.db-*
+backend/models/

@@ -22,7 +22,8 @@ def test_home_can_load_five_clearly_labeled_demo_songs(tmp_path):
     assert len(songs) == 5
     assert songs[0]["title"] == "散场以后"
     assert all(song["is_demo"] is True for song in songs)
-    assert all(song["audio_available"] is False for song in songs)
+    assert all(song["audio_available"] is True for song in songs)
+    assert all(song["recording_label"] == "原创器乐样例 v1" for song in songs)
     assert all(song["source_label"] == "虚构演示曲目" for song in songs)
 
 

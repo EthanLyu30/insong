@@ -49,10 +49,10 @@ function PlayerDetails({ title }: { title: string }) {
     <span className="collage-player-details" aria-hidden="true">
       <span className="collage-track"><span><strong>{title}</strong><small>歌里有我 · 演示曲目</small></span><Heart size={15} /></span>
       <span className="collage-track-progress"><i /></span>
-      <span className="collage-track-times"><span>1:26</span><span>−2:18</span></span>
-      <span className="collage-track-controls"><Shuffle /><SkipBack weight="fill" /><Pause weight="fill" /><SkipForward weight="fill" /><Repeat /></span>
+      <span className="collage-track-times"><span>0:00</span><span>0:48</span></span>
+      <span className="collage-track-controls"><Shuffle /><SkipBack weight="fill" /><Play weight="fill" /><SkipForward weight="fill" /><Repeat /></span>
       <span className="collage-track-volume"><SpeakerHigh /><i /><SpeakerHigh weight="fill" /></span>
-      <span className="collage-track-footer">此刻，歌里有我</span>
+      <span className="collage-track-footer">点选这首歌</span>
     </span>
   );
 }
@@ -145,9 +145,9 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
           </button>
         </div>
         <h1>有些时刻，<br /><em>会住在歌里。</em></h1>
-        <p>选一首歌，留住它陪你经过的那一刻。<br />先私密收好，想分享时再公开一小段。</p>
+        <p>选一首歌，留住它陪你经过的那一刻。<br />以后，循着一句经历，再听见当时的自己。</p>
         <Link className="collage-primary" to={`/songs/${selected.id}`}>从《{selected.title}》开始 <ArrowRight aria-hidden="true" /></Link>
-        <span className="collage-disclaimer">虚构演示曲目 · 原创画面 · 暂无音频播放</span>
+        <span className="collage-disclaimer">原创器乐样例 · 可试听 · 记忆默认仅自己可见</span>
       </div>
     </section>
   );

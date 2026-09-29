@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, inspect, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.pool import StaticPool
@@ -40,5 +40,21 @@ def create_sqlite_engine(database_url: str) -> Engine:
 
 def initialize_database(engine: Engine) -> None:
     Base.metadata.create_all(engine)
+    # Additive migration for existing installations. Preserve every existing row.
+    existing = {column['name'] for column in inspect(engine).get_columns('memory_cards')}
+    additions = {
+        'offset_ms': 'INTEGER', 'life_precision': "VARCHAR(16) NOT NULL DEFAULT 'unknown'",
+        'revision': 'INTEGER NOT NULL DEFAULT 1', 'request_key': 'VARCHAR(80)',
+        'reflections_json': "TEXT NOT NULL DEFAULT '[]'",
+    }
+    with engine.begin() as connection:
+        for name, declaration in additions.items():
+            if name not in existing:
+                connection.execute(text(f'ALTER TABLE memory_cards ADD COLUMN {name} {declaration}'))
+        connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_memory_request ON memory_cards(owner_id, request_key)'))
     with OrmSession(engine) as db, db.begin():
         seed_demo_data(db)
+    with engine.begin() as connection:
+        # Explicit IDs advance SQLite's durable AUTOINCREMENT sequence, including
+        # on legacy databases. Keep receipts when the corresponding card is deleted.
+        connection.execute(text('INSERT OR IGNORE INTO memory_receipts(id, owner_id, request_key) SELECT id, owner_id, request_key FROM memory_cards'))
