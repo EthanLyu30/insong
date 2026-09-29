@@ -1,4 +1,4 @@
-import type { Song } from './api';
+import type { Song, Lyric } from './api';
 
 export type Reflection = { id: string; text: string; created_at: string };
 export type Memory = {
@@ -6,7 +6,22 @@ export type Memory = {
   life_time: string | null; life_precision: string; offset_ms: number | null;
   visibility: 'private' | 'public'; is_demo_sample: boolean; revision: number;
   created_at: string; updated_at: string; reflections: Reflection[]; tags: string[];
+  life_year?: number | null; lyric_id?: string | null; lyric?: Lyric | null; theme_id?: string | null;
+  publication?: { published: boolean; excerpt: string; share_life_time: boolean; anonymous: boolean } | null;
 };
+export type PublicStory = { id: number; excerpt: string; song_id: number; song: Song; author_name: string;
+  life_time: string | null; life_year: number | null; offset_ms: number | null; lyric: Lyric | null;
+  lyric_id: string | null; theme_id: string | null; is_demo_sample: boolean; published_at: string };
+export type PublicSearchResult = { items: { story: PublicStory; evidence: string; match_label: string }[]; mode: 'keyword' | 'semantic'; notice: string };
+export type Theme = { id: string; title: string; prompt: string; description: string };
+
+export function timelineGroups(cards: Memory[]): { year: number | null; cards: Memory[] }[] {
+  const years = [...new Set(cards.flatMap(card => card.life_year == null ? [] : [card.life_year]))].sort((a,b) => b-a);
+  const groups = years.map(year => ({year: year as number | null, cards: cards.filter(card => card.life_year === year)}));
+  const undated = cards.filter(card => card.life_year == null);
+  if (undated.length) groups.push({year:null, cards:undated});
+  return groups;
+}
 export type SearchResult = { items: { memory: Memory; evidence: string; match_label: string }[]; mode: 'keyword' | 'semantic'; notice: string };
 
 export function formatPosition(ms: number | null): string {

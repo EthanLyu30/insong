@@ -1,6 +1,6 @@
 import { ArrowRight, Heart, MusicNote, Pause, Play, Repeat, Shuffle, SkipBack, SkipForward, SpeakerHigh } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import type { Song } from "./api";
 
 type Point = readonly [number, number];
@@ -69,6 +69,8 @@ function useReducedMotion(): boolean {
 }
 
 export function MemoryCollage({ songs }: { songs: Song[] }) {
+  const [params] = useSearchParams();
+  const themeQuery = params.get('theme') ? `?theme=${encodeURIComponent(params.get('theme')!)}` : '';
   const [offset, setOffset] = useState(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -122,7 +124,7 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
               <PlayerDetails title={song.title} />
             </button>
           ))}
-          <Link className="collage-phone" to={`/songs/${selected.id}`} aria-label={`打开《${selected.title}》的记忆入口`} onFocus={() => setIsPaused(true)}>
+          <Link className="collage-phone" to={`/songs/${selected.id}${themeQuery}`} aria-label={`打开《${selected.title}》的记忆入口`} onFocus={() => setIsPaused(true)}>
             <span className="collage-phone-status" aria-hidden="true"><span>14:36</span><span>••• ▰</span></span>
             <span className="collage-phone-player">
               <Artwork songs={songs} activeId={selected.id} className="collage-phone-art" />
@@ -145,8 +147,8 @@ export function MemoryCollage({ songs }: { songs: Song[] }) {
           </button>
         </div>
         <h1>有些时刻，<br /><em>会住在歌里。</em></h1>
-        <p>选一首歌，留住它陪你经过的那一刻。<br />以后，循着一句经历，再听见当时的自己。</p>
-        <Link className="collage-primary" to={`/songs/${selected.id}`}>从《{selected.title}》开始 <ArrowRight aria-hidden="true" /></Link>
+        <p>把那时的自己，留在一句歌里。<br />愿意分享时，也许会有人在这里遇见共鸣。</p>
+        <Link className="collage-primary" to={`/songs/${selected.id}${themeQuery}`}>从《{selected.title}》开始 <ArrowRight aria-hidden="true" /></Link>
         <span className="collage-disclaimer">原创器乐样例 · 可试听 · 记忆默认仅自己可见</span>
       </div>
     </section>

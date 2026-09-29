@@ -1,6 +1,7 @@
 """Owner-scoped memory writes, optimistic concurrency, and exact original text."""
 import json
 from uuid import uuid4
+from datetime import datetime
 
 from fastapi import Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
@@ -9,10 +10,31 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
 from .media import serialize_song, song_audio
-from .models import MemoryCard, MemoryCardTag, MemoryReceipt, Song, User, utc_now
+from .models import MemoryCard, MemoryCardTag, MemoryReceipt, PublicStory, Song, User, utc_now
+from .content import selected_lyric, THEME_IDS
 
 
-class CreateMemory(BaseModel):
+class Coordinates(BaseModel):
+    lyric_id: str | None = Field(default=None, max_length=40)
+    life_year: int | None = Field(default=None, ge=1900, strict=True)
+    theme_id: str | None = Field(default=None, max_length=40)
+
+    @field_validator('life_year')
+    @classmethod
+    def past_year(cls, value):
+        if value is not None and value > datetime.now().year:
+            raise ValueError('请选择已经发生的年份')
+        return value
+
+    @field_validator('theme_id')
+    @classmethod
+    def known_theme(cls, value):
+        if value is not None and value not in THEME_IDS:
+            raise ValueError('找不到这个主题')
+        return value
+
+
+class CreateMemory(Coordinates):
     model_config = ConfigDict(extra='forbid')
     song_id: int = Field(gt=0, lt=2**63, strict=True)
     story: str = Field(min_length=1, max_length=500)
@@ -36,7 +58,7 @@ class CreateMemory(BaseModel):
         return value
 
 
-class EditMemory(BaseModel):
+class EditMemory(Coordinates):
     model_config = ConfigDict(extra='forbid')
     revision: int = Field(ge=1, strict=True)
     story: str | None = Field(default=None, min_length=1, max_length=500)
@@ -71,12 +93,17 @@ class ReflectionInput(BaseModel):
 def serialize_memory(card):
     return {key: getattr(card, key) for key in (
         'id', 'owner_id', 'song_id', 'story', 'life_time', 'life_precision', 'scene',
-        'visibility', 'is_demo_sample', 'offset_ms', 'revision',
+        'visibility', 'is_demo_sample', 'offset_ms', 'revision', 'lyric_id', 'life_year', 'theme_id',
     )} | {
         'owner_display_name': card.owner.display_name,
         'tags': [link.tag.name for link in card.tag_links],
         'created_at': card.created_at.isoformat(), 'updated_at': card.updated_at.isoformat(),
         'reflections': json.loads(card.reflections_json), 'song': serialize_song(card.song),
+        'lyric': selected_lyric(card.song, card.lyric_id),
+        'publication': None if card.publication is None else {
+            'published': card.publication.published, 'excerpt': card.publication.excerpt,
+            'share_life_time': card.publication.share_life_time, 'anonymous': card.publication.anonymous,
+        },
     }
 
 
@@ -97,21 +124,35 @@ def validate_anchor(song, offset):
         raise HTTPException(422, '这个版本的音乐位置不可用，请重新选择或仅保存歌曲。')
 
 
-def update_card(db, card, revision, values):
-    result = db.execute(update(MemoryCard).where(
-        MemoryCard.id == card.id, MemoryCard.owner_id == card.owner_id, MemoryCard.revision == revision,
-    ).values(**values, revision=revision + 1, updated_at=utc_now()), execution_options={'synchronize_session': False})
+def validate_lyric(song, lyric_id, offset):
+    if lyric_id is not None:
+        line = selected_lyric(song, lyric_id)
+        if line is None or line['start_ms'] != offset:
+            raise HTTPException(422, '词句与音乐位置不一致，请重新选择。')
+
+
+def update_card(db, card, revision, values, withdraw=False):
+    # Claim the revision before flushing a new publication. Two first publishers
+    # must conflict here rather than collide on the public_stories primary key.
+    with db.no_autoflush:
+        result = db.execute(update(MemoryCard).where(
+            MemoryCard.id == card.id, MemoryCard.owner_id == card.owner_id, MemoryCard.revision == revision,
+        ).values(**values, revision=revision + 1, updated_at=utc_now()), execution_options={'synchronize_session': False})
     if result.rowcount != 1:
         db.rollback()
         raise HTTPException(409, '这段记忆已在其他页面更新，请重新打开后再修改。')
+    if withdraw:
+        db.execute(update(PublicStory).where(PublicStory.memory_id == card.id).values(
+            published=False, version=PublicStory.version + 1), execution_options={'synchronize_session': False})
     db.commit()
+    db.expire_all()
     db.refresh(card)
     return serialize_memory(card)
 
 
 def install_memories(app, get_db, get_user):
     def retry_result(existing, data):
-        fields = ('song_id', 'story', 'offset_ms', 'life_time', 'life_precision')
+        fields = ('song_id', 'story', 'offset_ms', 'life_time', 'life_precision', 'lyric_id', 'life_year', 'theme_id')
         if any(getattr(existing, key) != getattr(data, key) for key in fields):
             raise HTTPException(409, '先前提交的内容已经保存。请先到“我的记忆”确认，再在那张卡上继续修改；这里的文字仍保留着。')
         return serialize_memory(existing)
@@ -143,6 +184,7 @@ def install_memories(app, get_db, get_user):
         if song is None:
             raise HTTPException(404, '找不到这首歌。')
         validate_anchor(song, data.offset_ms)
+        validate_lyric(song, data.lyric_id, data.offset_ms)
         try:
             receipt = MemoryReceipt(owner_id=user.id, request_key=data.request_key)
             db.add(receipt)
@@ -164,7 +206,11 @@ def install_memories(app, get_db, get_user):
         values = data.model_dump(exclude_unset=True, exclude={'revision'})
         if 'offset_ms' in values:
             validate_anchor(card.song, values['offset_ms'])
-        return update_card(db, card, data.revision, values)
+            if 'lyric_id' not in values and values['offset_ms'] != card.offset_ms:
+                values['lyric_id'] = None
+        validate_lyric(card.song, values.get('lyric_id', card.lyric_id), values.get('offset_ms', card.offset_ms))
+        changed = any(getattr(card, key) != value for key, value in values.items())
+        return update_card(db, card, data.revision, values, withdraw=changed)
 
     @app.post('/api/memories/{memory_id}/reflections')
     def reflect(memory_id: int, data: ReflectionInput, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):

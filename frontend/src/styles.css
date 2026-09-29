@@ -385,3 +385,76 @@ button:disabled { cursor: default; opacity: .5; }
   .recall-tools { gap: 5px; }
 }
 @media (prefers-reduced-motion: reduce) { .memory-player.is-playing .sound-bars i { animation: none; } }
+
+/* Music moment × life moment. Public stories share the warm paper vocabulary. */
+.discover-intro { position: relative; padding: 15px 0 23px; }
+.discover-intro h1 { font-size: 44px; line-height: 1.25; margin: 17px 0; font-family: 'Wanwei Handwriting', sans-serif; font-weight: 400; }
+.discover-intro h1 em { color: #a76b49; font-style: normal; }
+.discover-intro > p { font-size: 13px; line-height: 2; color: #7b6857; }
+.discover-doodle { position: absolute; right: 8px; top: 39px; font-size: 54px; color: #c3986670; transform: rotate(14deg); pointer-events: none; }
+.public-search { margin-top: 0; }
+.public-search .recall-tools { flex-wrap: wrap; }
+.public-story-list { margin: 27px 0; }
+.public-story { display: block; border: 1px solid #e4d6c4; background: #fffcf5; padding: 23px 21px 17px; border-radius: 3px 14px 14px 3px; margin: 17px 0; box-shadow: 3px 4px 0 #e9dec955; transition: border-color .2s, box-shadow .2s; }
+.public-story:hover { border-color: #c29e7d; box-shadow: 3px 7px 15px #8b705414; }
+.story-byline { display: flex; align-items: center; gap: 9px; color: #80634e; font-size: 12px; }
+.story-byline small { margin-left: auto; font-size: 9px; color: #857660; }
+.story-avatar { display: inline-grid; place-items: center; border-radius: 50%; width: 27px; height: 27px; background: #e8dcc4; font-size: 11px; color: #7b6348; flex: none; }
+.story-excerpt { font-size: 15px; line-height: 2.1; margin: 19px 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #654f3f; }
+.story-life { display: block; color: #847557; font-size: 11px; line-height: 1.8; margin: 9px 0 17px; }
+.story-record { display: flex; align-items: center; gap: 11px; border-top: 1px solid #eadfce; padding-top: 15px; }
+.story-record img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; flex: none; }
+.story-record > div { min-width: 0; flex: 1; }
+.story-record strong { display: block; font-size: 12px; font-weight: 500; }
+.story-record > div > span { display: block; font-size: 10px; color: #8c7861; line-height: 1.7; margin-top: 4px; }
+.story-position { color: #967052; font-size: 11px; white-space: nowrap; }
+.active-filter { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #eee9d9; border-radius: 8px; padding: 9px 12px; font-size: 11px; color: #756c48; }
+.theme-section { margin: 32px 0 18px; }
+.theme-links { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; margin-top: 16px; }
+.theme-link { position: relative; display: block; border: 1px solid #e0cda8; padding: 16px 12px 25px; background: #f0e1bf; border-radius: 4px; min-height: 160px; }
+.theme-link-1 { background: #e8ebd9; border-color: #d3d9bb; }
+.theme-link-2 { background: #f0ded2; border-color: #e5ccbc; }
+.theme-number { font-size: 10px; letter-spacing: .06em; color: #7f7057; }
+.theme-link h3 { font: 400 24px/1.3 'Wanwei Handwriting',sans-serif; color: #75553b; margin: 16px 0 8px; }
+.theme-link p { font-size: 10px; line-height: 1.9; color: #76634e; margin: 0; }
+.theme-arrow { position: absolute; bottom: 8px; right: 10px; color: #927253; }
+.theme-question { font: 400 30px/1.6 'Wanwei Handwriting',sans-serif; color: #906b4c; margin: 20px 0; }
+.home-discovery { padding-top: 5px; padding-bottom: 15px; }
+.home-discovery > a { display: flex; justify-content: center; }
+.home-theme-note { max-width: 640px; margin: 18px auto 0; padding: 12px 22px; color: #887050; font-size: 12px; line-height: 1.8; background: #f3e9d6; }
+.home-theme-note a { margin-left: 12px; text-decoration: underline; }
+.lyric-picker { margin: 22px 0; }
+.lyric-picker > .journal-eyebrow { display: block; margin: 12px 0; }
+.lyric-picker > button { display: flex; align-items: center; text-align: left; gap: 14px; width: 100%; border: 1px solid transparent; border-radius: 6px; color: #79624d; background: transparent; padding: 14px 12px; min-height: 50px; line-height: 1.8; }
+.lyric-picker > button > time { color: #967e63; font-size: 10px; flex: none; }
+.lyric-picker > button > span:first-of-type { flex: 1; font-size: 15px; }
+.lyric-picker > button > span:last-of-type { color: #b29472; }
+.lyric-picker > button[aria-pressed="true"] { background: #eee5d2; border-color: #d5bf9a; color: #704d31; }
+.lyric-picker .resource-note { margin: 12px 0 0; }
+.lyric-quote { border-left: 2px solid #c6aa7c; padding: 12px 18px; margin: 20px 0; color: #8a6b48; font: 400 23px/1.7 'Wanwei Handwriting',sans-serif; }
+.lyric-quote small { display: block; font: 10px/1.8 sans-serif; margin-top: 10px; color: #8a7862; }
+.memory-lyric { display: block; color: #937451; font: 400 20px/1.6 'Wanwei Handwriting',sans-serif; margin: -6px 0 20px; }
+.theme-writing-prompt { background: #ede6d4; padding: 15px 19px; border-left: 2px solid #baa071; margin: 20px 0; color: #856742; }
+.theme-writing-prompt > a { font-size: 11px; }
+.theme-writing-prompt p { margin: 8px 0 0; font: 400 22px/1.6 'Wanwei Handwriting',sans-serif; }
+.timeline-toggle { max-width: 260px; margin: 17px 0; }
+.timeline-year { position: relative; padding: 1px 0 5px 23px; border-left: 1px solid #d4bea0; margin: 24px 0 0 5px; }
+.timeline-year::before { content: ''; position: absolute; width: 9px; height: 9px; left: -5px; top: 12px; border-radius: 50%; background: #b7956c; box-shadow: 0 0 0 4px #f7f1e5; }
+.timeline-year > h3 { display: flex; align-items: center; justify-content: space-between; font: 400 29px/1.2 'Wanwei Handwriting',sans-serif; color: #99744d; margin: 0 0 14px; }
+.timeline-year > h3 > span { font: 10px/1.5 sans-serif; color: #8c7b65; }
+.publication-panel { border-top: 1px solid #ddcdb9; border-bottom: 1px solid #ddcdb9; padding: 26px 0; margin: 30px 0; }
+.publication-panel h2 { font: 400 27px/1.5 'Wanwei Handwriting',sans-serif; margin: 11px 0; }
+.publication-form { margin-top: 25px; }
+.check-option { display: flex!important; align-items: flex-start; gap: 10px; line-height: 1.8; color: #796149; font-size: 12px; cursor: pointer; }
+.check-option input { appearance: auto; width: 17px; min-height: 17px; height: 17px; flex: none; padding: 0; margin: 3px 0 0; accent-color: #9b7250; }
+.share-preview { padding: 24px 20px; background: #fffcf2; border: 1px solid #dec9a9; border-radius: 4px; box-shadow: 4px 4px 0 #e8dcc155; }
+.consent-option { padding: 12px 0; }
+.original-story, .reflection-note p { overflow-wrap: anywhere; }
+@media (max-width: 420px) {
+  .discover-intro h1 { font-size: 38px; }
+  .theme-links { gap: 7px; }
+  .theme-link { padding: 13px 9px 23px; }
+  .theme-link h3 { font-size: 22px; }
+  .public-story { padding: 20px 16px 15px; }
+  .lyric-picker > button { gap: 9px; padding-left: 5px; padding-right: 5px; }
+}

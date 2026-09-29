@@ -2,21 +2,13 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { apiBaseUrl, type Song } from './api';
 import { AudioPlayer } from './AudioPlayer';
-import { apiRequest, dayLabel, formatPosition, parsePosition, type Memory, type SearchResult } from './memoryClient';
+import { apiRequest, dayLabel, formatPosition, parsePosition, timelineGroups, type Memory, type SearchResult, type Theme } from './memoryClient';
 import { useSession } from './SessionContext';
 import { useLivePage } from './useLivePage';
-
-function useData<T>(path: string, version = 0) {
-  const [value, setValue] = useState<T | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    const control = new AbortController(); setValue(null); setError('');
-    apiRequest<T>(apiBaseUrl, path, {signal:control.signal}).then(data => {if (!control.signal.aborted) setValue(data);})
-      .catch(reason => {if (!control.signal.aborted) setError(reason instanceof Error ? reason.message : '加载失败，请重试。');});
-    return () => control.abort();
-  }, [path, version]);
-  return { value, error };
-}
+import { useData } from './useData';
+import { LyricPicker } from './LyricPicker';
+import { PublicStoryList } from './PublicPages';
+import { PublicationPanel } from './PublicationPanel';
 
 export function LoginGate() {
   const location = useLocation();
@@ -38,20 +30,25 @@ function SongHeading({ song }: { song: Song }) {
 
 export function SongPage() {
   const { songId } = useParams();
+  const [params] = useSearchParams();
   const [retry, setRetry] = useState(0);
   const { value: song, error } = useData<Song>(`/api/songs/${songId}`, retry);
   const [position, setPosition] = useState<number | null>(null);
+  const [lyricId, setLyricId] = useState<string|null>(null);
   const { user } = useSession();
   if (!song) return <LoadingError error={error} retry={() => setRetry(x => x + 1)} />;
+  const capture = new URLSearchParams(); if(params.get('theme')) capture.set('theme',params.get('theme')!);if(position!==null)capture.set('at',String(position));if(lyricId)capture.set('lyric',lyricId);
   return <section className="journal-page song-journal">
     <Link className="back-link" to="/">← 回到音乐里</Link>
     <div className="song-artwork"><img src={`/covers/song-${song.id}.png`} alt={`《${song.title}》原创画面`}/><span>给生活留一段配乐</span></div>
     <div className="song-journal-title"><span className="journal-eyebrow">{song.recording_label}</span><h1>{song.title}</h1><p>此刻的你，想起了什么？</p></div>
-    <AudioPlayer song={song} onMark={setPosition}/>
+    <AudioPlayer song={song} anchor={position} onMark={ms=>{setPosition(ms);setLyricId(null);}}/>
+    <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);}}/>
     {position !== null && <p className="anchor-notice" role="status">已选中 {formatPosition(position)}，这段音乐会和文字一起保存。</p>}
-    <Link className="primary-button" to={`/songs/${song.id}/write${position !== null ? `?at=${position}` : ''}`}>{position === null ? '留下一刻' : `把 ${formatPosition(position)} 留下来`} <span aria-hidden="true">↗</span></Link>
+    <Link className="primary-button" to={`/songs/${song.id}/write?${capture}`}>{lyricId ? '把我的经历，留在这一句' : position === null ? '留下一刻' : `把 ${formatPosition(position)} 留下来`} <span aria-hidden="true">↗</span></Link>
     <p className="quiet-caption">一句就好。先为自己收好。</p>
     {user && <SongMemories songId={song.id} />}
+    <PublicStoryList path={`/api/stories?song_id=${song.id}${lyricId?`&lyric_id=${encodeURIComponent(lyricId)}`:''}`} heading={lyricId?'同一句词，不同的人生':'这首歌里的其他人'}/>
   </section>;
 }
 
@@ -62,9 +59,10 @@ function SongMemories({ songId }: { songId: number }) {
 
 function MemoryEntry({ memory, evidence, matchLabel }: { memory: Memory; evidence?: string; matchLabel?: string }) {
   return <Link className="memory-entry" to={`/memories/${memory.id}`}>
-    <div className="memory-entry-top"><span>{memory.life_time || '一个未标日期的时刻'}</span><small>{memory.is_demo_sample ? '样例' : '仅自己可见'}</small></div>
+    <div className="memory-entry-top"><span>{[memory.life_year,memory.life_time].filter(Boolean).join(' · ') || '一个未标日期的时刻'}</span><small>{memory.is_demo_sample ? '样例 · ' : ''}{memory.publication?.published?'已分享片段':'仅自己可见'}</small></div>
     {matchLabel && <span className="match-label">{matchLabel} · 请确认是不是这一刻</span>}
     <p>{evidence || memory.story}</p>
+    {memory.lyric&&<span className="memory-lyric">“{memory.lyric.text}”</span>}
     <div className="memory-entry-song"><img src={`/covers/song-${memory.song_id}.png`} alt=""/><span><strong>{memory.song.title}</strong><small>{memory.offset_ms === null ? '未标记具体片段' : `留在 ${formatPosition(memory.offset_ms)}`}</small></span><span className="entry-arrow" aria-hidden="true">↗</span></div>
   </Link>;
 }
@@ -81,6 +79,7 @@ function CollectionContent() {
   const [songId, setSongId] = useState(''); const [result, setResult] = useState<SearchResult | null>(null);
   const [searchError, setSearchError] = useState(''); const [busy, setBusy] = useState(false);
   const [searchedQuery, setSearchedQuery] = useState('');
+  const [view,setView] = useState<'timeline'|'cards'>('timeline');
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
   function reset() { request.current?.abort();setResult(null);setSearchError('');setBusy(false); }
@@ -98,7 +97,7 @@ function CollectionContent() {
   const visible = memories?.filter(card => !songId || card.song_id === Number(songId)) ?? [];
   return <section className="journal-page">
     <div className="journal-title-row"><div><span className="journal-eyebrow">一首歌 一页生活</span><h1>我的音乐记忆</h1></div><Link className="round-action" to="/" aria-label="选择歌曲留下一刻">＋</Link></div>
-    <p className="page-intro">找回一段旋律，也找回当时的自己。</p><SampleNotice/>
+    <p className="page-intro">同一首歌，经过不同年份的你。把生活按自己的时间慢慢翻开。</p><SampleNotice/>
     <form className="recall-form" onSubmit={search}>
       <label htmlFor="memory-query">还记得那时发生了什么？</label>
       <div className="recall-input"><input id="memory-query" value={query} maxLength={200} onChange={e => {setQuery(e.target.value);reset();}} placeholder="比如：离开校园的那个晚上"/><button disabled={busy || !query.trim()} aria-label="找回这段记忆">{busy ? '…' : '找回'}</button></div>
@@ -108,7 +107,7 @@ function CollectionContent() {
     {busy && <p className="inline-status" role="status">正在沿着这条线索翻找…</p>}
     {searchError && <p className="form-error" role="alert">{searchError}</p>}
     {!memories && <LoadingError error={error} retry={() => setRetry(x => x + 1)}/>}
-    {result ? <section aria-live="polite"><div className="list-heading"><h2>关于“{searchedQuery}”</h2><button className="text-button" onClick={() => {setQuery('');reset();}}>回看全部</button></div><p className="resource-note">{result.notice || (result.mode === 'semantic' ? '这些原文可能和线索有关，由你确认。' : '正在按关键词查找原文与记录信息。')}</p>{result.items.length ? result.items.map(item => <MemoryEntry key={item.memory.id} memory={item.memory} evidence={item.evidence} matchLabel={item.match_label}/>) : <div className="empty-paper"><h3>这条线索，还没有找到。</h3><p>试试一个人物、地点或当时发生的事，也可以切换关键词，慢慢翻看。</p></div>}</section> : memories && !busy && <section><div className="list-heading"><h2>收好的时刻</h2><span>{visible.length} 段记忆</span></div>{visible.length ? visible.map(card => <MemoryEntry key={card.id} memory={card}/>) : <div className="empty-paper"><span aria-hidden="true">♪</span><h3>你的第一页，留给哪首歌？</h3><p>不必写成故事，一句话也能把这一刻留下。</p><Link className="soft-button" to="/">选一首歌</Link></div>}</section>}
+    {result ? <section aria-live="polite"><div className="list-heading"><h2>关于“{searchedQuery}”</h2><button className="text-button" onClick={() => {setQuery('');reset();}}>回看全部</button></div><p className="resource-note">{result.notice || (result.mode === 'semantic' ? '这些原文可能和线索有关，由你确认。' : '正在按关键词查找原文与记录信息。')}</p>{result.items.length ? result.items.map(item => <MemoryEntry key={item.memory.id} memory={item.memory} evidence={item.evidence} matchLabel={item.match_label}/>) : <div className="empty-paper"><h3>这条线索，还没有找到。</h3><p>试试一个人物、地点或当时发生的事，也可以切换关键词，慢慢翻看。</p></div>}</section> : memories && !busy && <section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 段记忆</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length ? view==='timeline'?<div className="memory-timeline"><p className="resource-note">按你填写的人生年份排列；同年按记录时间排列。记不清年份的，也会好好留着。</p>{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card => <MemoryEntry key={card.id} memory={card}/>) : <div className="empty-paper"><span aria-hidden="true">♪</span><h3>你的第一页，留给哪首歌？</h3><p>不必写成故事，一句话也能把这一刻留下。</p><Link className="soft-button" to="/">选一首歌</Link></div>}</section>}
   </section>;
 }
 
@@ -123,15 +122,21 @@ function CreateContent() {
   const { value: song, error } = useData<Song>(`/api/songs/${songId}`, retry);
   if (!song) return <LoadingError error={error} retry={() => setRetry(x => x + 1)}/>;
   const at = params.has('at') ? Number(params.get('at')) : null;
-  return <MemoryForm key={song.id} song={song} initialPosition={at !== null && Number.isFinite(at) && at >= 0 && at < (song.duration_ms ?? 0) ? at : null}/>;
+  return <MemoryForm key={song.id} song={song} initialLyric={params.get('lyric')} initialTheme={params.get('theme')} initialPosition={at !== null && Number.isFinite(at) && at >= 0 && at < (song.duration_ms ?? 0) ? at : null}/>;
 }
 
-function MemoryForm({ song, existing, initialPosition = null }: { song: Song; existing?: Memory; initialPosition?: number | null }) {
+function MemoryForm({ song, existing, initialPosition = null, initialLyric = null, initialTheme = null }: { song: Song; existing?: Memory; initialPosition?: number | null; initialLyric?:string|null;initialTheme?:string|null }) {
   const navigate = useNavigate();
   const live = useLivePage();
   const [story, setStory] = useState(existing?.story ?? '');
   const [lifeTime, setLifeTime] = useState(existing?.life_time ?? '');
-  const [position, setPosition] = useState<number | null>(existing ? existing.offset_ms : initialPosition);
+  const [lifeYear,setLifeYear] = useState(existing?.life_year?.toString() ?? '');
+  const initialLine = song.lyrics?.find(line=>line.id===(existing?existing.lyric_id:initialLyric));
+  const [lyricId,setLyricId] = useState<string|null>(initialLine?.id ?? null);
+  const [themeId,setThemeId] = useState(existing?.theme_id ?? initialTheme ?? '');
+  const {value:themes,error:themeError} = useData<Theme[]>('/api/themes');
+  const theme = themes?.find(item=>item.id===themeId);
+  const [position, setPosition] = useState<number | null>(initialLine?.start_ms ?? (existing ? existing.offset_ms : initialPosition));
   const [timeText, setTimeText] = useState(position === null ? '' : formatPosition(position));
   const [error, setError] = useState('');const [busy, setBusy] = useState(false);
   const lock = useRef(false);const requestKey = useRef(crypto.randomUUID());
@@ -143,7 +148,7 @@ function MemoryForm({ song, existing, initialPosition = null }: { song: Song; ex
     if (!story.trim()) {setError('写一句想留住的线索吧。');return;}
     lock.current = true;setBusy(true);
     try {
-      const body = {story:story.trim(),life_time:lifeTime.trim() || null,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : 'unknown',offset_ms:offset,...(existing ? {revision:existing.revision} : {song_id:song.id,request_key:requestKey.current})};
+      const body = {story:story.trim(),life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:theme?.id??null,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : 'unknown',offset_ms:offset,...(existing ? {revision:existing.revision} : {song_id:song.id,request_key:requestKey.current})};
       const saved = await apiRequest<Memory>(apiBaseUrl, existing ? `/api/memories/${existing.id}` : '/api/memories', {method:existing ? 'PATCH' : 'POST',body:JSON.stringify(body)});
       if (!live.current) return;
       navigate(`/memories/${saved.id}`, {replace:true,state:{saved:true}});
@@ -154,15 +159,20 @@ function MemoryForm({ song, existing, initialPosition = null }: { song: Song; ex
     <Link className="back-link" to={existing ? `/memories/${existing.id}` : `/songs/${song.id}`}>← {existing ? '回到这段记忆' : '回到这首歌'}</Link>
     <span className="journal-eyebrow">{existing ? '整理这一页' : '先留给自己'}</span><h1>{existing ? '把记忆补完整。' : '这一刻，值得留下。'}</h1>
     <SampleNotice/><SongHeading song={song}/>
-    <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));}}/>
+    {theme&&<aside className="theme-writing-prompt"><Link to={`/themes/${theme.id}`}>{theme.title} ↗</Link><p>{theme.prompt}</p></aside>}
+    <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/>
+    <LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/>
     <form className="memory-form paper-panel" onSubmit={save}>
       <fieldset className="memory-form form-fields" disabled={busy}>
       <label htmlFor="memory-story">听到这里，你想起了什么？<textarea id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="比如：散场后，和朋友在路边坐到很晚。"/></label><span className="character-count">一句就好 · {story.length}/500</span>
-      <label>音乐里的位置 <small>可留空，只保存歌曲</small><div className="inline-field"><input aria-label="音乐里的位置" value={timeText} onChange={e => setTimeText(e.target.value)} placeholder="00:12" disabled={!song.audio_available} inputMode="text"/><button className="text-button" type="button" onClick={() => {setPosition(null);setTimeText('');}}>仅保存歌曲</button></div></label>
+      <label>音乐里的位置 <small>{lyricId?'已关联所选词句':'可留空，只保存歌曲'}</small><div className="inline-field"><input aria-label="音乐里的位置" value={timeText} onChange={e => {setTimeText(e.target.value);setLyricId(null);}} placeholder="00:12" disabled={!song.audio_available} inputMode="text"/><button className="text-button" type="button" onClick={() => {setPosition(null);setTimeText('');setLyricId(null);}}>仅保存歌曲</button></div></label>
+      <label>人生里的年份 <small>选填，用于时间轴</small><input aria-label="人生里的年份" type="number" min="1900" max={new Date().getFullYear()} step="1" value={lifeYear} onChange={e=>setLifeYear(e.target.value)} placeholder="比如 2022"/></label>
       <label>那是什么时候？ <small>选填，记不清也没关系</small><input value={lifeTime} onChange={e => setLifeTime(e.target.value)} maxLength={80} placeholder="毕业那年、去年夏天，或者今天"/></label>
-      <p className="privacy-line">{existing?.visibility === 'public' ? '这是一张原有的公开样例卡。' : '仅自己可见 · 这一页先为你保管'}</p>
+      <label>从哪个主题开始？ <small>选填</small><select value={themeId} onChange={e=>setThemeId(e.target.value)}><option value="">只记录自己的这一刻</option>{themes?.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>{themeError&&<p className="form-error" role="alert">主题暂时无法加载，请稍后重新打开。</p>}
+      <p className="privacy-line">默认仅自己可见 · 保存后可以挑一段原文，自愿分享</p>
+      {existing?.publication?.published&&<p className="sample-notice">修改原文或坐标后，会先撤回旧的公开片段。保存后可重新预览并分享。</p>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <button className="primary-button" disabled={busy || !story.trim()}>{busy ? '正在收好…' : existing ? '保存修改' : '只为我保存这一刻'}</button>
+      <button className="primary-button" disabled={busy || !story.trim() || (!!themeId&&!theme)}>{busy ? '正在收好…' : existing ? '保存修改' : '只为我保存这一刻'}</button>
       </fieldset>
     </form>
   </section>;
@@ -197,10 +207,12 @@ function DetailContent({ edit }: { edit: boolean }) {
   return <section className="journal-page memory-detail">
     <Link className="back-link" to="/memories">← 回到我的记忆</Link>
     {location.state?.saved && <p className="saved-notice" role="status">这一刻，已经好好收下了。</p>}
-    <SampleNotice/><span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '只属于我'}</span><h1>{card.life_time || '那个有音乐的时刻'}</h1>
+    <SampleNotice/><span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}{card.life_year?` · ${card.life_year}`:''}</span><h1>{card.life_time || '那个有音乐的时刻'}</h1>
     <article className="keepsake-paper"><span className="paper-date">当时的我 · 记录于 {dayLabel(card.created_at)}</span><p className="original-story">{card.story}</p><span className="paper-caption">{card.offset_ms === null ? '这首歌，陪我经过。' : `这一页，留在音乐的 ${formatPosition(card.offset_ms)}。`}</span></article>
+    {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句 · 歌曲里的这一刻</small></blockquote>}
     <SongHeading song={card.song}/><AudioPlayer song={card.song} anchor={card.offset_ms}/>
     <div className="inline-actions detail-actions"><Link className="text-button" to={`/memories/${card.id}/edit`}>整理这段记忆</Link><Link className="text-button" to={`/songs/${card.song_id}`}>这首歌里的其他时刻 →</Link></div>
+    <PublicationPanel key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
     <section className="reflection-section"><h2>今天的我，想补一句</h2><p className="page-intro">让新的心情留下，当时的文字仍在。</p>{card.reflections.map(item => <article className="reflection-note" key={item.id}><small>{dayLabel(item.created_at)}</small><p>{item.text}</p></article>)}
       <form onSubmit={append} className="memory-form"><label className="sr-only" htmlFor="new-reflection">今天想补充的话</label><textarea id="new-reflection" disabled={busy} value={note} onChange={e => setNote(e.target.value)} maxLength={500} rows={3} placeholder="重新听到这里，现在的我……"/><button className="soft-button" disabled={busy || !note.trim()}>把今天的这句也留下</button></form>
     </section>

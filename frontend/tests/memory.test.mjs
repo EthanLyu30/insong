@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { formatPosition, parsePosition, safeNext, apiRequest } from '../src/memoryClient.ts';
+import { formatPosition, parsePosition, safeNext, apiRequest, timelineGroups } from '../src/memoryClient.ts';
+
+test('life timeline uses explicit years and never guesses from vague life labels', () => {
+  const cards = [{id:1,life_year:null,life_time:'去年夏天'}, {id:2,life_year:2021}, {id:3,life_year:2024}, {id:4,life_year:2021}];
+  const groups = timelineGroups(cards);
+  assert.deepEqual(groups.map(group=>group.year), [2024,2021,null]);
+  assert.deepEqual(groups[1].cards.map(card=>card.id),[2,4]);
+  assert.equal(groups[2].cards[0].id,1);
+});
 
 test('time input is explicit and rejects out of range or malformed values', () => {
   assert.equal(formatPosition(12300), '00:12');

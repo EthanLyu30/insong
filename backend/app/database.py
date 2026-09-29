@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine, event, inspect, text
+from sqlalchemy import Engine, create_engine, event, inspect, text, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.pool import StaticPool
 
-from .models import Base
+from .models import Base, MemoryCard, PublicStory
 from .seed import seed_demo_data
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
@@ -46,6 +46,7 @@ def initialize_database(engine: Engine) -> None:
         'offset_ms': 'INTEGER', 'life_precision': "VARCHAR(16) NOT NULL DEFAULT 'unknown'",
         'revision': 'INTEGER NOT NULL DEFAULT 1', 'request_key': 'VARCHAR(80)',
         'reflections_json': "TEXT NOT NULL DEFAULT '[]'",
+        'lyric_id': 'VARCHAR(40)', 'life_year': 'INTEGER', 'theme_id': 'VARCHAR(40)',
     }
     with engine.begin() as connection:
         for name, declaration in additions.items():
@@ -54,6 +55,15 @@ def initialize_database(engine: Engine) -> None:
         connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_memory_request ON memory_cards(owner_id, request_key)'))
     with OrmSession(engine) as db, db.begin():
         seed_demo_data(db)
+        # Previously public cards already had publication consent (including samples).
+        # Move that existing public text once; never publish a private record.
+        for card in db.scalars(select(MemoryCard).where(MemoryCard.visibility == 'public')):
+            if db.get(PublicStory, card.id) is None:
+                db.add(PublicStory(memory_id=card.id, excerpt=card.story,
+                    life_time=card.life_time, life_year=card.life_year, share_life_time=True,
+                    anonymous=False, author_name=card.owner.display_name, offset_ms=card.offset_ms,
+                    lyric_id=card.lyric_id, theme_id=card.theme_id, published=True))
+            card.visibility = 'private'
     with engine.begin() as connection:
         # Explicit IDs advance SQLite's durable AUTOINCREMENT sequence, including
         # on legacy databases. Keep receipts when the corresponding card is deleted.

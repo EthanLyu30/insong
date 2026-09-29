@@ -63,6 +63,4 @@ def require_user(user: User | None) -> User:
 
 
 def can_read_memory(card: MemoryCard, user: User | None) -> bool:
-    return card.visibility == "public" or (
-        user is not None and user.id == card.owner_id
-    )
+    return user is not None and user.id == card.owner_id

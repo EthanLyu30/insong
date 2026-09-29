@@ -24,7 +24,7 @@ def test_seed_counts_and_labels(tmp_path):
         assert all(song.source_label == "虚构演示曲目" for song in songs)
         assert all(song.audio_available is False and song.is_demo is True for song in songs)
         assert len(cards) >= 5
-        assert all(card.visibility == "public" for card in cards)
+        assert all(card.visibility == "private" and card.publication.published for card in cards)
         assert all(card.is_demo_sample is True for card in cards)
         assert all(10 <= len(card.story) <= 500 for card in cards)
         assert all(len(card.tag_links) <= 3 for card in cards)

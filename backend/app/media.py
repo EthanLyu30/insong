@@ -1,4 +1,5 @@
 from pathlib import Path
+from .content import song_lyrics
 
 AUDIO_ROOT = Path(__file__).resolve().parents[1] / 'media'
 DURATION_MS = 48000
@@ -18,4 +19,5 @@ def song_audio(song):
 def serialize_song(song):
     return {key: getattr(song, key) for key in (
         'id', 'title', 'artist', 'version', 'source_label', 'is_demo'
-    )} | song_audio(song)
+    )} | song_audio(song) | {'lyrics': song_lyrics(song),
+        'lyrics_note': '原创示例词句 · 配合器乐演示逐句定位，无人声演唱'}

@@ -56,6 +56,9 @@ class MemoryCard(Base):
     life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
     scene: Mapped[str | None] = mapped_column(String(160), nullable=True)
     offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     life_precision: Mapped[str] = mapped_column(String(16), default='unknown', server_default='unknown')
     revision: Mapped[int] = mapped_column(Integer, default=1, server_default='1')
     request_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
@@ -80,6 +83,26 @@ class MemoryCard(Base):
     tag_links: Mapped[list["MemoryCardTag"]] = relationship(
         back_populates="memory_card", cascade="all, delete-orphan"
     )
+    publication: Mapped["PublicStory | None"] = relationship(back_populates='memory', cascade='all, delete-orphan', uselist=False)
+
+
+class PublicStory(Base):
+    """Only fields explicitly approved for discovery; originals remain owner-only."""
+    __tablename__ = 'public_stories'
+    memory_id: Mapped[int] = mapped_column(ForeignKey('memory_cards.id', ondelete='CASCADE'), primary_key=True)
+    excerpt: Mapped[str] = mapped_column(Text)
+    life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    share_life_time: Mapped[bool] = mapped_column(Boolean, default=False)
+    anonymous: Mapped[bool] = mapped_column(Boolean, default=True)
+    author_name: Mapped[str] = mapped_column(String(80))
+    offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    published: Mapped[bool] = mapped_column(Boolean, default=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    memory: Mapped[MemoryCard] = relationship(back_populates='publication')
 
 
 class Tag(Base):

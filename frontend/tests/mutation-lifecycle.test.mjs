@@ -13,7 +13,7 @@ test('late save/delete responses cannot replace drafts after route or identity c
   const React = await import('react');
   const { createRoot } = await import('react-dom/client');
   const { MemoryRouter, useNavigate, useLocation } = await import('react-router');
-  const server = await createServer({server:{middlewareMode:true},appType:'custom'});
+  const server = await createServer({server:{middlewareMode:true,hmr:false},appType:'custom'});
   const { default: App } = await server.ssrLoadModule('/src/App.tsx');
   let navigate, currentPath, finishSave, finishDelete;
   let user = {id:3,display_name:'测试',is_demo:false};
@@ -21,6 +21,7 @@ test('late save/delete responses cannot replace drafts after route or identity c
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options={}) => {
     if (url === '/api/me') return Response.json({user});
+    if (url === '/api/themes') return Response.json([]);
     if (/^\/api\/songs\/\d+$/.test(url)) return Response.json(song(Number(url.split('/').at(-1))));
     if (url === '/api/memories' && options.method === 'POST') return new Promise(resolve => {finishSave = () => resolve(Response.json({id:99}));});
     if (url === '/api/memories/88?revision=1' && options.method === 'DELETE') return new Promise(resolve => {finishDelete = () => resolve(new Response(null,{status:204}));});

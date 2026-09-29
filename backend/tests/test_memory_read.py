@@ -28,25 +28,22 @@ def test_private_card_direct_url_is_owner_only(tmp_path):
             assert response.json() == HIDDEN
 
 
-def test_public_card_is_readable_by_both_accounts_and_guest(tmp_path):
+def test_public_snapshot_is_readable_but_private_original_is_owner_only(tmp_path):
     app = create_app(f"sqlite:///{tmp_path / 'public.db'}")
     with TestClient(app) as owner, TestClient(app) as other, TestClient(app) as guest:
         owner.post("/api/demo/sessions", json={"user_id": 2})
         other.post("/api/demo/sessions", json={"user_id": 1})
         for client in (owner, other, guest):
-            response = client.get("/api/memories/2")
+            response = client.get("/api/stories/2")
             assert response.status_code == 200
             card = response.json()
-            assert card["owner_id"] == 2
-            assert card["owner_display_name"] == "阿远"
+            assert card["author_name"] == "阿远"
             assert card["song_id"] == 2
-            assert card["visibility"] == "public"
-            assert set(card) == {
-                "id", "owner_id", "owner_display_name", "song_id", "story", "tags",
-                "life_time", "scene", "visibility", "is_demo_sample", "created_at",
-                "updated_at",
-                "offset_ms", "life_precision", "revision", "reflections", "song",
-            }
+            assert 'excerpt' in card
+            assert not {'owner_id', 'story', 'reflections', 'scene', 'tags'} & set(card)
+        assert owner.get('/api/memories/2').status_code == 200
+        assert other.get('/api/memories/2').status_code == 404
+        assert guest.get('/api/memories/2').status_code == 404
 
 
 def test_missing_and_overflow_memory_ids_look_the_same(tmp_path):
