@@ -5,6 +5,7 @@ export type AtlasEvent = {
   id: string; artist_id: string; title: string; city: string; venue: string; date: string; time?: string;
   source_url: string; source_title: string; source_kind?: 'report' | 'announcement';
   setlist_kind?: 'confirmed' | 'partial' | 'artist_collection'; setlist_note?: string;
+  venue_lng?: number; venue_lat?: number;
   songs: AtlasSong[];
 };
 export type AtlasCatalog = { artists: AtlasArtist[]; cities: AtlasCity[]; events: AtlasEvent[]; verified_on?: string; today?: string };

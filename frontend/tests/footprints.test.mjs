@@ -44,7 +44,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {FootprintsPage}=await server.ssrLoadModule('/src/FootprintsPage.tsx');const {SessionProvider}=await server.ssrLoadModule('/src/SessionContext.tsx');
   const root=createRoot(document.getElementById('root')); const previousFetch=globalThis.fetch;
-  let user={id:3,display_name:'听友',is_demo:false},saved=[],writes=0,finishWrite,expired=false;
+  let user={id:3,display_name:'听友',is_demo:false},saved=[],writes=0,finishWrite,expired=false,playlists=[],collections=0,finishCollection;
   const catalog={verified_on:'2026-09-30',today:'2026-09-30',artists:[{id:'gem',name:'邓紫棋',aliases:['GEM']},{id:'liu',name:'刘雨昕',aliases:['刘雨欣']}],cities:[{id:'shenzhen',name:'深圳',lng:114.06,lat:22.54},{id:'beijing',name:'北京',lng:116.4,lat:39.9},{id:'lhasa',name:'拉萨',lng:91.1,lat:29.6}],events:[
     {id:'gem-test',artist_id:'gem',title:'测试演唱会',city:'深圳',venue:'大运体育场',date:'2026-09-11',source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[{title:'泡沫',artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w=泡沫'}]},
     {id:'gem-future',artist_id:'gem',title:'下一晚',city:'深圳',venue:'大运体育场',date:'2026-10-01',source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[]},
@@ -52,6 +52,8 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   ]};
   globalThis.fetch=async(url,options={})=>{
     if(url==='/api/me')return Response.json({user});if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/footprints')return expired?Response.json({detail:'请先登录，再操作你的记忆。'},{status:401}):Response.json(saved);
+    if(url==='/api/playlists')return expired?Response.json({detail:'请先登录，再操作你的记忆。'},{status:401}):Response.json(playlists);
+    if(url==='/api/playlists/concerts/gem-test' && options.method==='PUT'){collections++;return new Promise(resolve=>{finishCollection=()=>{const item={id:7,event_id:'gem-test',name:'深圳现场',songs:catalog.events[0].songs};playlists=[item];resolve(Response.json(item));};});}
     if(String(url).startsWith('/api/stories?'))return Response.json([]);
     if(url==='/api/footprints/gem-test' && options.method==='PUT'){writes++;return new Promise(resolve=>{finishWrite=()=>{saved=JSON.parse(options.body).attended?['gem-test']:[];resolve(Response.json(saved));};});}
     throw new Error('Unexpected request '+url);
@@ -60,14 +62,15 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   try{
     await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
-    await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.match(document.querySelector('.atlas-map-camera').getAttribute('style'),/scale\(1.85\)/); await click('返回全国'); assert.match(document.querySelector('.atlas-map-camera').getAttribute('style'),/scale\(1\)/);
+    await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,7); await click('返回全国'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,3);
     await click('邓紫棋'); assert.equal(writes,0);
     await click('深圳'); await click('进入大运体育场');
     assert.ok(document.querySelector('[data-scene="venue"]'));
     await click('2026.10.01'); assert.ok(document.querySelector('[data-scene="sky"]'));
     assert.ok([...document.querySelectorAll('button')].some(b=>b.disabled && b.textContent.includes('演出后')));
     await click('返回场馆'); await click('2026.09.11');
-    await click('泡沫'); const qq=document.querySelector('a[data-qq-song]');assert.ok(qq);assert.equal(new URL(qq.href).hostname,'y.qq.com');
+    await click('泡沫'); assert.ok(document.querySelector('.concert-song-list'));assert.equal(document.querySelector('a[data-qq-song]'),null);assert.equal(document.querySelector('.atlas-event-source'),null);
+    await click('收藏为歌单');await click('正在收藏');assert.equal(collections,1);await React.act(async()=>finishCollection());assert.match(document.querySelector('.concert-collect').textContent,/已收藏/);assert.equal(document.querySelector('.concert-collect a').getAttribute('href'),'/playlists?list=7');
     await click('我去过'); await click('保存中'); assert.equal(writes,1);
     await React.act(async()=>finishWrite());assert.match(document.body.textContent,/取消到场/);
     await click('取消到场'); await React.act(async()=>finishWrite());
@@ -77,9 +80,9 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await React.act(async()=>{user=null;window.dispatchEvent(new window.StorageEvent('storage',{key:'memory-session-change'}));});
     assert.ok([...document.querySelectorAll('a')].some(a=>a.textContent.includes('登录') && decodeURIComponent(a.href).includes('liu-test')));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'event',initialEntries:['/footprints?event=gem-test']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
-    assert.ok(document.querySelector('[data-scene="sky"]'));assert.match(document.body.textContent,/测试演唱会/);
+    assert.ok(document.querySelector('[data-scene="sky"]'));assert.match(document.body.textContent,/2026.09.11/);
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'city-link',initialEntries:['/footprints?artist=gem&city=shenzhen']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
-    assert.match(document.querySelector('.atlas-map-camera').getAttribute('style'),/scale\(1.85\)/);
+    assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,7);
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'inconsistent-link',initialEntries:['/footprints?artist=liu&city=beijing&event=gem-test']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
     await click('返回场馆');assert.ok(document.querySelector('[data-scene="venue"]'));assert.match(document.body.textContent,/大运体育场/);
     catalog.events[0].songs=Array.from({length:16},(_,i)=>({title:'曲目'+(i+1),artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w='+i}));

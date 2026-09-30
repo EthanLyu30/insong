@@ -365,7 +365,10 @@
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。"
+      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "venue_lng": 113.47819539,
+      "venue_lat": 23.17985089,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "liu-yuxin-beijing-20250920",
@@ -394,7 +397,10 @@
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。"
+      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "venue_lng": 116.27192047,
+      "venue_lat": 39.90828826,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260911",
@@ -465,7 +471,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260912",
@@ -536,7 +545,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260913",
@@ -607,7 +619,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260919",
@@ -678,7 +693,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260920",
@@ -749,7 +767,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260925",
@@ -820,7 +841,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260926",
@@ -891,7 +915,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20260927",
@@ -962,7 +989,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20261001",
@@ -1033,7 +1063,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20261002",
@@ -1104,7 +1137,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20261004",
@@ -1175,7 +1211,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-shenzhen-20261005",
@@ -1246,7 +1285,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-hangzhou-20260710",
@@ -1317,7 +1359,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-hangzhou-20260711",
@@ -1388,7 +1433,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-hangzhou-20260712",
@@ -1459,7 +1507,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-tianjin-20260724",
@@ -1530,7 +1581,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 117.16947032,
+      "venue_lat": 39.07351889,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-tianjin-20260725",
@@ -1601,7 +1655,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 117.16947032,
+      "venue_lat": 39.07351889,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-tianjin-20260726",
@@ -1672,7 +1729,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 117.16947032,
+      "venue_lat": 39.07351889,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-nanchang-20260808",
@@ -1743,7 +1803,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-chongqing-20260822",
@@ -1814,7 +1877,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 106.4996508,
+      "venue_lat": 29.5260436,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "gem-xiamen-20260501",
@@ -2422,7 +2488,10 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:12"
+      "time": "19:12",
+      "venue_lng": 117.1219533,
+      "venue_lat": 36.6552825,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "tnt-shanghai-20260802",
@@ -2465,7 +2534,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "tnt-shanghai-20260803",
@@ -2508,7 +2580,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "tnt-shanghai-20260805",
@@ -2551,7 +2626,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     },
     {
       "id": "tnt-shanghai-20260806",
@@ -2594,7 +2672,10 @@
           "platform": "QQ音乐",
           "link_kind": "search"
         }
-      ]
+      ],
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
     }
   ],
   "cities": [

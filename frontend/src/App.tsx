@@ -8,6 +8,7 @@ import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from '
 import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
 import './footprints.css';
 const FootprintsPage = lazy(() => import('./FootprintsPage').then(module => ({default:module.FootprintsPage})));
+const PlaylistsPage = lazy(() => import('./ConcertPlaylist').then(module => ({default:module.PlaylistsPage})));
 
 function Glyph({ name }: { name: 'home' | 'search' | 'bookmark' | 'map' }) {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{name === 'home' ? <><path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/></> : name === 'search' ? <><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.4 4.4"/></> : name === 'map' ? <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/></> : <path d="M6 3h12v18l-6-4-6 4V3Z"/>}</svg>;
@@ -54,6 +55,7 @@ function Shell() {
           <Route path="/songs/:songId/write" element={<CreateMemoryPage/>}/>
           <Route path="/discover" element={<DiscoverPage/>}/>
           <Route path="/footprints" element={<Suspense fallback={<section className="atlas-page atlas-loading" role="status">正在展开山河与歌声…</section>}><FootprintsPage/></Suspense>}/>
+          <Route path="/playlists" element={<Suspense fallback={<p role="status">正在翻开歌单…</p>}><PlaylistsPage/></Suspense>}/>
           <Route path="/stories/:storyId" element={<StoryPage/>}/>
           <Route path="/themes/:themeId" element={<ThemePage/>}/>
           <Route path="/memories" element={<MemoryCollection/>}/>
