@@ -1,6 +1,6 @@
 """Verified event catalog and owner-scoped attendance."""
 import json
-from datetime import date
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import Depends, HTTPException
@@ -17,7 +17,9 @@ CATALOG_PATH = Path(__file__).with_name('footprint_catalog.json')
 def load_catalog():
     if not CATALOG_PATH.is_file():
         return {'artists': [], 'events': []}
-    return json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
+    value = json.loads(CATALOG_PATH.read_text(encoding='utf-8'))
+    value['today'] = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+    return value
 
 
 def validate_event(event_id, *, past=False):
@@ -26,7 +28,7 @@ def validate_event(event_id, *, past=False):
     event = next((item for item in load_catalog()['events'] if item['id'] == event_id), None)
     if event is None:
         raise HTTPException(422, '找不到这个场次，请重新选择。')
-    if past and date.fromisoformat(event['date']) > date.today():
+    if past and event['date'] > datetime.now(timezone(timedelta(hours=8))).date().isoformat():
         raise HTTPException(422, '演出发生后才能标记到场。')
 
 

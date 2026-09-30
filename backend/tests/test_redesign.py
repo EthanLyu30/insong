@@ -3,7 +3,7 @@ import base64
 import io
 import json
 import sqlite3
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -175,7 +175,7 @@ def test_footprints_persist_per_owner_and_events_filter_snapshots(tmp_path, monk
     catalog_path = tmp_path / 'catalog.json'
     catalog = {'artists': [{'id': 'fixture', 'name': '测试歌手'}], 'events': [
         {'id': 'past-event', 'artist_id': 'fixture', 'title': '测试场次', 'date': '2020-01-01', 'songs': []},
-        {'id': 'future-event', 'artist_id': 'fixture', 'title': '未来测试', 'date': (date.today() + timedelta(days=1)).isoformat(), 'songs': []},
+        {'id': 'future-event', 'artist_id': 'fixture', 'title': '未来测试', 'date': (datetime.now(timezone(timedelta(hours=8))).date() + timedelta(days=1)).isoformat(), 'songs': []},
     ]}
     catalog_path.write_text(json.dumps(catalog), encoding='utf-8')
     monkeypatch.setattr(footprints, 'CATALOG_PATH', catalog_path)
@@ -186,7 +186,7 @@ def test_footprints_persist_per_owner_and_events_filter_snapshots(tmp_path, monk
         other = TestClient(app)
         register(other, 'listener_b')
         guest = TestClient(app)
-        assert guest.get('/api/footprints/catalog').json() == catalog
+        assert guest.get('/api/footprints/catalog').json() == catalog | {'today': datetime.now(timezone(timedelta(hours=8))).date().isoformat()}
         assert guest.get('/api/footprints').status_code == 401
         assert guest.put('/api/footprints/past-event', json={'attended': True}).status_code == 401
         assert owner.put('/api/footprints/unknown', json={'attended': True}).status_code == 422
@@ -242,3 +242,25 @@ def test_additive_migration_preserves_existing_snapshot_and_reflection(tmp_path)
             public = client.get('/api/stories/99').json()
             assert public['excerpt'] == '散场后舍不得回家。'
             assert public['photo_url'] is None
+
+
+def test_footprint_dates_use_china_midnight_for_catalog_and_attendance(tmp_path, monkeypatch):
+    from app import footprints
+    from fastapi import HTTPException
+
+    class ChinaMidnight(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 9, 30, 16, 30, tzinfo=timezone.utc).astimezone(tz)
+
+    monkeypatch.setattr(footprints, 'datetime', ChinaMidnight)
+    catalog_path = tmp_path / 'china-midnight.json'
+    catalog_path.write_text(json.dumps({'artists': [], 'events': [
+        {'id': 'today', 'date': '2026-10-01'}, {'id': 'tomorrow', 'date': '2026-10-02'}
+    ]}), encoding='utf-8')
+    monkeypatch.setattr(footprints, 'CATALOG_PATH', catalog_path)
+    assert footprints.load_catalog()['today'] == '2026-10-01'
+    footprints.validate_event('today', past=True)
+    with pytest.raises(HTTPException) as error:
+        footprints.validate_event('tomorrow', past=True)
+    assert error.value.status_code == 422
