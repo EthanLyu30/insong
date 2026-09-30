@@ -48,6 +48,6 @@
 
 ## 清理与保留
 
-保留源代码、锁文件、说明及[最终实际页面预览](footprints-cinematic-preview.png)。未触碰个人数据库、照片、模型、用户文档及之前未提交的 private-memory 计划。此前自动审批拒绝清理 `.codex-atlas-qa-waYTmm`、构建/测试缓存，本次没有换工具绕过；这些未入 Git 的中间产物仍留在本地。
+保留源代码、锁文件、说明及[最终实际页面预览](footprints-cinematic-preview.png)。服务启动在现有数据库增量创建歌单表，没有重置或删除已有记录；照片、模型、用户文档及之前未提交的 private-memory 计划均保留。此前自动审批拒绝清理 `.codex-atlas-qa-waYTmm`、构建/测试缓存，本次没有换工具绕过；这些未入 Git 的中间产物仍留在本地。
 
 本次新建 `.codex-cinematic-proof-20260930`，包含 `map.png`、`venue.png`、`night.png` 三张原始截图。合成最终预览并校验后，检查了三项绝对路径均在工作区内且没有其他文件；使用 PowerShell 原生 Remove-Item 清理仍被自动审批拒绝，返回“blocked by policy”，没有更具体说明。没有改用其他工具绕过，三张中间截图留在上述本地目录且不入 Git。临时生产预览进程在验收后关闭，原本前后端开发服务继续运行。
