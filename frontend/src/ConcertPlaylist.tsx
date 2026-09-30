@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Link,useSearchParams} from 'react-router';
+import {BookmarkSimple,Check} from '@phosphor-icons/react';
 import {useSession} from './SessionContext';
 import {apiBaseUrl} from './api';
 import {apiRequest} from './memoryClient';
@@ -23,7 +24,7 @@ export function CollectConcert({event,next}:{event:AtlasEvent;next:string}){
     finally{if(!controller.signal.aborted){request.current=null;setBusy(false);}}
   }
   const needsLogin=!user||error.includes('请先登录');
-  return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}>＋ 登录收藏歌单</Link>:saved?<Link className="collect-button is-saved" to={`/playlists?list=${saved.id}`}>✓ 已收藏 · 查看歌单</Link>:<button className="collect-button" type="button" disabled={busy||checking||!event.songs.length} onClick={()=>void collect()}>{busy?'正在收藏…':checking?'读取歌单…':event.songs.length?'＋ 收藏为歌单':'曲目尚未收录'}</button>}{error&&!needsLogin&&<p role="alert">{error}</p>}</div>;
+  return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}><BookmarkSimple size={19} weight="light"/>登录收藏歌单</Link>:saved?<Link className="collect-button is-saved" to={`/playlists?list=${saved.id}`}><Check size={19}/>已收藏 · 查看歌单</Link>:<button className="collect-button" type="button" disabled={busy||checking||!event.songs.length} onClick={()=>void collect()}>{!busy&&!checking&&event.songs.length>0&&<BookmarkSimple size={19} weight="light"/>}{busy?'正在收藏…':checking?'读取歌单…':event.songs.length?'收藏为歌单':'曲目尚未收录'}</button>}{error&&!needsLogin&&<p role="alert">{error}</p>}</div>;
 }
 export function SongList({songs,selected,onSong}:{songs:Pick<AtlasSong,'title'|'artist'>[];selected?:string;onSong?:(index:number)=>void}){
   const list=useRef<HTMLOListElement>(null);

@@ -7,6 +7,8 @@ import { AccountPage } from './AccountPage';
 import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from './MemoryPages';
 import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
 import './footprints.css';
+import {House,MagnifyingGlass,BookmarkSimple,MapTrifold} from '@phosphor-icons/react';
+function AtlasGlyph({name}:{name:'home'|'search'|'bookmark'|'map'}){const Icon={home:House,search:MagnifyingGlass,bookmark:BookmarkSimple,map:MapTrifold}[name];return <Icon size={25} weight="light" aria-hidden="true"/>;}
 const FootprintsPage = lazy(() => import('./FootprintsPage').then(module => ({default:module.FootprintsPage})));
 const PlaylistsPage = lazy(() => import('./ConcertPlaylist').then(module => ({default:module.PlaylistsPage})));
 
@@ -66,7 +68,7 @@ function Shell() {
     </main>
     {!intro && <nav className="bottom-nav" aria-label="主导航">{([
       ['/', 'home', '听见'], ['/discover', 'search', '共鸣'], ['/memories', 'bookmark', '我的记忆'], ['/footprints', 'map', '足迹'],
-    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}><Glyph name={icon}/><span>{label}</span></NavLink>)}</nav>}
+    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>{atlas?<AtlasGlyph name={icon}/>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
   </div>;
 }
 

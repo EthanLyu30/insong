@@ -1,87 +1,112 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from 'react';
+import {ArrowClockwise,ArrowRight,Minus,Plus,StarFour} from '@phosphor-icons/react';
 import type {AtlasEvent,AtlasSong} from './footprintAtlas';
-import type * as Three from 'three';
-import {SceneFlight} from './atlasCamera';
+import {clampSceneView,isSceneTap,type SceneView} from './sceneInteraction';
 
-type Runtime={resume:()=>void;pause:()=>void;home:()=>void;zoom:(value:number)=>void;location:(event?:AtlasEvent)=>void};
-type Props={scene:string;visible:boolean;event?:AtlasEvent;venueName?:string;city?:string;selected:AtlasSong|null;onSong:(song:AtlasSong)=>void};
+type Runtime={wake:()=>void;pause:()=>void;home:()=>void;zoom:(amount:number)=>void;pan:(x:number,y:number)=>void};
+type Props={scene:string;visible:boolean;event?:AtlasEvent;venueName?:string;city?:string;artistName?:string;selected:AtlasSong|null;onSong:(song:AtlasSong)=>void;onEnter:()=>void};
+const exterior='/scenes/stadium-exterior.webp',interior='/scenes/stadium-interior.webp';
+const constellation=[[14,14],[39,24],[63,6],[88,22],[23,62],[48,80],[67,49],[88,70]];
+
 export function CinematicStage(props:Props){
-  const {scene,event,venueName,city,selected,onSong}=props;
+  const {scene,event,venueName,city,artistName,selected,onSong,onEnter}=props;
   const host=useRef<HTMLDivElement>(null),runtime=useRef<Runtime|null>(null),latest=useRef(props);latest.current=props;
-  const [started,setStarted]=useState(scene!=='map'),[failed,setFailed]=useState(false),[ready,setReady]=useState(false);
+  const [started,setStarted]=useState(scene!=='map'),[ready,setReady]=useState(false),[failed,setFailed]=useState(false);
+  const gesture=useRef<{start:[number,number];last:[number,number];enter:boolean;handled:boolean;moved:boolean}|null>(null);
   useEffect(()=>{if(scene!=='map')setStarted(true);},[scene]);
   useEffect(()=>{
-    if(!started)return;let disposed=false,cleanup=()=>{};
+    if(!started)return;
+    let disposed=false,cleanup=()=>{};
     if(typeof window.WebGL2RenderingContext==='undefined'){setFailed(true);return;}
-    void Promise.all([import('three'),import('three/addons/controls/OrbitControls.js'),import('./stadiumModel'),import('three/addons/environments/RoomEnvironment.js')]).then(([THREE,{OrbitControls},{buildStadium},{RoomEnvironment}])=>{
+    void import('three').then(async THREE=>{
       if(disposed||!host.current)return;
-      const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
-      renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.setClearColor('#b9c9c7');host.current.prepend(renderer.domElement);
-      const world=new THREE.Scene();world.background=new THREE.Color('#b9c9c7');world.fog=new THREE.FogExp2('#b9c9c7',.0009);
-      const environment=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer),environmentMap=pmrem.fromScene(environment,.04);world.environment=environmentMap.texture;environment.dispose();pmrem.dispose();
-      const model=buildStadium();world.add(model.root);
-      const satelliteMaterial=new THREE.MeshStandardMaterial({roughness:1});const satelliteGround=new THREE.Mesh(new THREE.PlaneGeometry(1,1),satelliteMaterial);satelliteGround.rotation.x=-Math.PI/2;satelliteGround.position.y=-3.8;satelliteGround.receiveShadow=true;satelliteGround.visible=false;world.add(satelliteGround);
-      let locationVersion=0;
-      const location=(point?:AtlasEvent)=>{
-        const version=++locationVersion;satelliteGround.visible=false;satelliteMaterial.map?.dispose();satelliteMaterial.map=null;
-        if(!Number.isFinite(point?.venue_lng)||!Number.isFinite(point?.venue_lat))return;
-        const lng=point!.venue_lng!,lat=point!.venue_lat!,n=32768,x=Math.floor((lng+180)/360*n),y=Math.floor((1-Math.asinh(Math.tan(lat*Math.PI/180))/Math.PI)/2*n);
-        const width=40075016.686*Math.cos(lat*Math.PI/180)/n,centerLng=(x+.5)/n*360-180,centerLat=Math.atan(Math.sinh(Math.PI*(1-2*(y+.5)/n)))*180/Math.PI;
-        new THREE.TextureLoader().load('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/15/'+y+'/'+x,texture=>{
-          if(disposed||version!==locationVersion){texture.dispose();return;}texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);satelliteMaterial.map=texture;satelliteMaterial.needsUpdate=true;satelliteGround.scale.set(width,width,1);satelliteGround.position.set((centerLng-lng)*111319.49*Math.cos(lat*Math.PI/180),-3.8,-(centerLat-lat)*111319.49);satelliteGround.visible=true;
-        },undefined,()=>{});
+      // Photographic depth surfaces preserve the chosen art direction. They are not survey models.
+      const renderer=new THREE.WebGLRenderer({antialias:false,alpha:true,powerPreference:'low-power'});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setClearColor(0,0);host.current.prepend(renderer.domElement);
+      const world=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,1,.1,20);
+      camera.position.z=3.2;
+      const geometry=new THREE.PlaneGeometry(390/844,1,32,64),position=geometry.attributes.position,uv=geometry.attributes.uv;
+      for(let i=0;i<position.count;i++)position.setZ(i,.15*Math.pow(1-uv.getY(i),1.7));
+      geometry.computeVertexNormals();
+      const materials=[0,1].map(()=>new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthTest:false,depthWrite:false,toneMapped:false}));
+      const surfaces=materials.map((material,i)=>{const mesh=new THREE.Mesh(geometry,material);mesh.renderOrder=i;world.add(mesh);return mesh;});
+      let raf=0,last=0,paused=true,night=latest.current.scene==='sky'?1:0,phase='',flightStarted=0,photoRise=0;
+      let view:SceneView={x:0,y:0,zoom:1},target:SceneView={...view};
+      const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
+      const resize=()=>{
+        const w=host.current?.clientWidth||390,h=host.current?.clientHeight||844;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();
+        const height=2*3.2*Math.tan(THREE.MathUtils.degToRad(17.5))*1.08*Math.max(1,camera.aspect/(390/844));
+        photoRise=height*(h<=720?.09:.035);
+        surfaces.forEach(mesh=>mesh.scale.set(height,height,1));wake();
       };
-      const camera=new THREE.PerspectiveCamera(39,1,1,7000);camera.position.set(700,800,1100);
-      const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,8,0);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=260;controls.maxDistance=1000;controls.maxPolarAngle=Math.PI*.48;controls.minPolarAngle=.25;controls.enablePan=false;controls.autoRotateSpeed=.25;
-      const ambient=new THREE.HemisphereLight('#e7edf8','#51493d',2.8);world.add(ambient);
-      const sun=new THREE.DirectionalLight('#ffedcc',3);sun.position.set(-320,500,160);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-250;sun.shadow.camera.right=250;sun.shadow.camera.top=230;sun.shadow.camera.bottom=-230;sun.shadow.camera.far=1000;sun.shadow.bias=-.0003;world.add(sun);
-      const stageLight=new THREE.PointLight('#ffb76a',0,480,1.2);stageLight.position.set(0,90,-30);world.add(stageLight);
-      const starPositions:number[]=[];const random=(seed:number)=>{const value=Math.sin(seed)*43758.5453;return value-Math.floor(value);};for(let i=0;i<1500;i++){const a=random(i*78.233+1)*Math.PI*2,e=.12+random(i*31.773+2)*1.3,r=1200+random(i*12.9898+3)*900;starPositions.push(Math.cos(a)*Math.cos(e)*r,Math.sin(e)*r-100,Math.sin(a)*Math.cos(e)*r);}
-      const starMaterial=new THREE.PointsMaterial({color:'#e5eefb',size:2.5,transparent:true,opacity:0,depthWrite:false,fog:false});const stars=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3)),starMaterial);world.add(stars);
-      const daytime=new THREE.Color('#bac9c7'),nighttime=new THREE.Color('#071424');const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
-      let raf=0,paused=true,last=0,night=0,userOrbit=false,finishedFlight=false;
-      const flightPlan=new SceneFlight();
-      const width=()=>host.current?.clientWidth||390,height=()=>host.current?.clientHeight||844;
-      const resize=()=>{const w=width(),h=height();renderer.setSize(w,h);camera.aspect=w/h;camera.fov=Math.max(39,THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(25))/camera.aspect)));camera.setViewOffset(w,h,0,h*.1,w,h);camera.updateProjectionMatrix();};resize();
-      const observer=new ResizeObserver(resize);observer.observe(host.current);
-      const flight=()=>{flightPlan.replay();finishedFlight=false;controls.enabled=false;userOrbit=false;};
-      controls.addEventListener('start',()=>{userOrbit=true;controls.autoRotate=false;});
       const render=(now:number)=>{
-        if(paused||disposed)return;const dt=Math.min((now-last)/1000||.016,.05);last=now;
-        const targetNight=latest.current.scene==='sky'?1:0;
-        const frame=flightPlan.sample(latest.current.scene,now,[camera.position.x,camera.position.y,camera.position.z],mq.matches);
-        if(frame.started)finishedFlight=false;
-        if(frame.moving){finishedFlight=false;controls.enabled=false;camera.position.set(...frame.position);camera.lookAt(controls.target);}else{if(!finishedFlight){camera.position.set(...frame.position);camera.lookAt(controls.target);finishedFlight=true;}controls.enabled=true;controls.autoRotate=!mq.matches&&!userOrbit;controls.update();}
-        night=mq.matches?targetNight:night+(targetNight-night)*(1-Math.exp(-dt*2.3));model.night(night);
-        world.background=(world.background as Three.Color).copy(daytime).lerp(nighttime,night);(world.fog as Three.FogExp2).color.copy(world.background as Three.Color);
-        world.environmentIntensity=.6-night*.575;(world.fog as Three.FogExp2).density=.00035-night*.00023;
-        ambient.intensity=1.5-night*1.4;sun.intensity=2.4-night*2.38;stageLight.intensity=night*55;starMaterial.opacity=night*.88;
-        controls.target.y=8+night*72;
-        if(!mq.matches)model.lights.rotation.y=Math.sin(now*.0004)*.12;
-        renderer.render(world,camera);raf=requestAnimationFrame(render);
+        if(paused||disposed)return;
+        const dt=Math.min((now-last)/1000||.016,.05);last=now;
+        if(phase!==latest.current.scene){phase=latest.current.scene;flightStarted=now;target={x:0,y:0,zoom:1};}
+        const t=motion.matches?1:Math.min((now-flightStarted)/1450,1),ease=t*t*(3-2*t);
+        const mix=motion.matches?1:1-Math.exp(-dt*7);
+        view={x:view.x+(target.x-view.x)*mix,y:view.y+(target.y-view.y)*mix,zoom:view.zoom+(target.zoom-view.zoom)*mix};
+        const targetNight=phase==='sky'?1:0;night=motion.matches?targetNight:night+(targetNight-night)*(1-Math.exp(-dt*3));
+        materials[0].opacity=1;materials[1].opacity=night;
+        surfaces[1].position.y=photoRise;
+        camera.position.set(motion.matches?0:view.x,motion.matches?0:view.y,3.2/(view.zoom*(.94+.06*ease)));
+        camera.lookAt(0,0,0);renderer.render(world,camera);
+        if(host.current)host.current.dataset.view=`${view.x.toFixed(3)},${view.y.toFixed(3)},${view.zoom.toFixed(3)}`;
+        const moving=t<1||Math.abs(night-targetNight)>.001||Math.abs(view.x-target.x)+Math.abs(view.y-target.y)+Math.abs(view.zoom-target.zoom)>.0003;
+        if(moving)raf=requestAnimationFrame(render);else{paused=true;raf=0;}
       };
-      const pause=()=>{paused=true;cancelAnimationFrame(raf);flightPlan.deactivate();finishedFlight=false;};
-      const resume=()=>{if(disposed||!latest.current.visible||latest.current.scene==='map'||document.hidden)return;if(paused){paused=false;last=performance.now();camera.position.set(700,800,1100);userOrbit=false;raf=requestAnimationFrame(render);}};
-      const visibility=()=>document.hidden?pause():resume();document.addEventListener('visibilitychange',visibility);
-      runtime.current={resume,pause,home:flight,location,zoom:value=>{userOrbit=true;controls.autoRotate=false;camera.position.sub(controls.target).multiplyScalar(value).clampLength(260,1000).add(controls.target);controls.update();}};
-      cleanup=()=>{pause();observer.disconnect();document.removeEventListener('visibilitychange',visibility);controls.dispose();const geometries=new Set<Three.BufferGeometry>(),materials=new Set<Three.Material>(),textures=new Set<Three.Texture>();world.traverse(object=>{const mesh=object as Three.Mesh;if(mesh.geometry)geometries.add(mesh.geometry);if(mesh.material)(Array.isArray(mesh.material)?mesh.material:[mesh.material]).forEach(material=>{materials.add(material);const mapped=material as Three.MeshStandardMaterial;if(mapped.map)textures.add(mapped.map);});});geometries.forEach(geometry=>geometry.dispose());materials.forEach(material=>material.dispose());textures.forEach(texture=>texture.dispose());environmentMap.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();runtime.current=null;};
-      // Compile while the map is approaching, before the first visible 3D frame.
-      void renderer.compileAsync(world,camera).then(()=>{if(!disposed){setReady(true);resume();}},()=>{if(!disposed){setReady(true);resume();}});
+      const pause=()=>{paused=true;cancelAnimationFrame(raf);raf=0;phase='';};
+      function wake(){if(disposed||!latest.current.visible||latest.current.scene==='map'||document.hidden)return;if(paused){paused=false;last=performance.now();raf=requestAnimationFrame(render);}}
+      const home=()=>{target={x:0,y:0,zoom:1};phase='';wake();};
+      const visibility=()=>document.hidden?pause():wake();document.addEventListener('visibilitychange',visibility);
+      const observer=new ResizeObserver(resize);observer.observe(host.current);resize();
+      runtime.current={wake,pause,home,zoom:amount=>{target=clampSceneView({...target,zoom:target.zoom+amount});wake();},pan:(x,y)=>{target=clampSceneView({...target,x:target.x+x,y:target.y+y});wake();}};
+      let cleaned=false;
+      cleanup=()=>{if(cleaned)return;cleaned=true;pause();observer.disconnect();document.removeEventListener('visibilitychange',visibility);geometry.dispose();materials.forEach(material=>{material.map?.dispose();material.dispose();});renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();runtime.current=null;};
+      try{
+        const results=await Promise.allSettled([exterior,interior].map(src=>new THREE.TextureLoader().loadAsync(src)));
+        const textures=results.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
+        if(disposed||textures.length!==2){textures.forEach(texture=>texture.dispose());if(!disposed){cleanup();setFailed(true);}return;}
+        textures.forEach((texture,i)=>{texture.colorSpace=THREE.SRGBColorSpace;materials[i].map=texture;materials[i].needsUpdate=true;});
+        await renderer.compileAsync(world,camera);
+        if(!disposed){setReady(true);phase='';wake();}
+      }catch{if(!disposed){cleanup();setFailed(true);}}
     }).catch(()=>{if(!disposed)setFailed(true);});
     return()=>{disposed=true;cleanup();};
   },[started]);
-  useEffect(()=>{if(scene==='map'||!props.visible)runtime.current?.pause();else runtime.current?.resume();},[scene,props.visible,ready]);
-  useEffect(()=>{runtime.current?.location(event);},[event?.venue_lng,event?.venue_lat,ready]);
-  return <div className={'cinematic-stage '+(scene==='map'?'is-hidden':'')+(scene==='sky'?' is-night':'')} aria-hidden={scene==='map'} inert={scene==='map'}>
-    <div ref={host} className="cinematic-canvas" aria-label="可拖动环绕的三维场馆" role="region"/>
-    <div className="cinematic-haze" aria-hidden="true"/>
-    {scene==='venue'&&<div className="cinematic-location"><span>{city} / LIVE VENUE</span><h1>{venueName}</h1><p>拖动环绕 · 双指调整视角</p></div>}
+  useEffect(()=>{if(scene==='map'||!props.visible)runtime.current?.pause();else runtime.current?.wake();},[scene,props.visible,ready]);
+  useEffect(()=>{runtime.current?.home();},[event?.venue]);
+  function pointerDown(e:ReactPointerEvent<HTMLDivElement>){
+    if((e.target as HTMLElement).closest('.cinematic-controls,.atlas-song-stars')||e.button!==0)return;
+    gesture.current={start:[e.clientX,e.clientY],last:[e.clientX,e.clientY],enter:!!(e.target as HTMLElement).closest('.cinematic-enter'),handled:false,moved:false};
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }
+  function pointerMove(e:ReactPointerEvent<HTMLDivElement>){
+    const g=gesture.current;if(!g||g.handled)return;
+    g.moved=g.moved||!isSceneTap(g.start,[e.clientX,e.clientY]);
+    runtime.current?.pan((e.clientX-g.last[0])*.0006,-(e.clientY-g.last[1])*.0005);g.last=[e.clientX,e.clientY];
+  }
+  function pointerUp(e:ReactPointerEvent<HTMLDivElement>){
+    const g=gesture.current;if(!g)return;g.handled=true;
+    if(scene==='venue'&&g.enter&&isSceneTap(g.start,[e.clientX,e.clientY],g.moved))onEnter();
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+  }
+  return <div className={'cinematic-stage '+(scene==='map'?'is-hidden':'')+(scene==='sky'?' is-night':'')} aria-hidden={scene==='map'} inert={scene==='map'} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={()=>{gesture.current=null;}}>
+    {started&&<div className="cinematic-photographs" aria-hidden="true"><img src={exterior} alt=""/><img src={interior} alt="" className="cinematic-night-photo"/></div>}
+    <div ref={host} className={'cinematic-canvas '+(ready?'is-ready':'')} aria-label="可拖动调整景深视角的场馆概念场景" role="region"/>
+    {scene==='venue'&&<>
+      <div className="cinematic-location"><h1>{venueName?.match(/体育[场馆]$/)?<>{venueName.slice(0,-3)}<br/>{venueName.slice(-3)}</>:venueName}</h1><p>歌声即将抵达</p></div>
+      <button className="cinematic-enter" type="button" aria-label="进入这座场馆" onClick={e=>{if(e.detail===0||!gesture.current?.handled)onEnter();}}><span>点击场馆，走进这一晚 <ArrowRight size={16}/></span></button>
+    </>}
+    {scene==='sky'&&event&&<>
+      <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {city}</p><span>把歌声，留在星光里。</span></div>
+      <div className={'atlas-song-stars '+(event.songs.length>constellation.length?'is-long':'')} aria-label="歌曲星空">{event.songs.map((song,i)=>{
+        const [x,y]=constellation[i%constellation.length];
+        return <button key={i} type="button" className={'atlas-song-star '+(selected?.title===song.title?'is-selected':'')} style={{left:`${x}%`,top:`${y}%`}} aria-label={`第${i+1}颗星 · ${song.title}`} aria-pressed={selected?.title===song.title} onClick={()=>onSong(song)}><StarFour size={18} weight="fill"/><span>{song.title}</span></button>;
+      })}</div>
+    </>}
     {!ready&&!failed&&scene!=='map'&&<span className="cinematic-loading" role="status">正在抵达现场…</span>}
-    {failed&&scene!=='map'&&<p className="cinematic-loading">当前设备无法显示三维场馆，仍可选择场次和收藏歌单。</p>}
-    {scene==='sky'&&event&&<div className={'atlas-song-stars '+(event.songs.length>12?'is-long':'')} aria-label="歌曲星空">{event.songs.map((song,i)=>{
-      const x=12+(i%4)*25+(Math.floor(i/4)%2?4:0),y=20+Math.floor(i/4)*26+(i%2?9:0);
-      return <button key={i} type="button" className={'atlas-song-star '+(selected===song?'is-selected':'')} style={{left:`${Math.min(x,88)}%`,top:`${y}%`}} aria-label={`第${i+1}颗星 · ${song.title}`} aria-pressed={selected===song} onClick={()=>onSong(song)}><i/><span>{song.title}</span><small>{String(i+1).padStart(2,'0')}</small></button>;
-    })}</div>}
-    {scene!=='map'&&<div className="cinematic-controls"><button type="button" onClick={()=>runtime.current?.zoom(.88)} aria-label="拉近场馆">＋</button><button type="button" onClick={()=>runtime.current?.zoom(1.12)} aria-label="拉远场馆">−</button><button type="button" onClick={()=>runtime.current?.home()} aria-label="重新运镜">↺</button></div>}
+    {scene==='venue'&&<div className="cinematic-controls"><button type="button" onClick={()=>runtime.current?.zoom(.04)} aria-label="拉近场馆"><Plus size={24} weight="light"/></button><button type="button" onClick={()=>runtime.current?.zoom(-.04)} aria-label="拉远场馆"><Minus size={24} weight="light"/></button><button type="button" onClick={()=>runtime.current?.home()} aria-label="重新运镜"><ArrowClockwise size={21} weight="light"/></button></div>}
+    {scene!=='map'&&<span className="cinematic-demo-label">场景示意{failed?' · 静态视角':''}</span>}
   </div>;
 }
