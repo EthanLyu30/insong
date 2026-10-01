@@ -29,7 +29,7 @@
 .real-city-pin.is-selected span{font-weight:700}
 .atlas-map-controls,.cinematic-controls{position:absolute;right:22px;z-index:5;display:flex;flex-direction:column;gap:8px}
 .atlas-map-controls{bottom:310px}
-.atlas-map-controls button,.cinematic-controls button,.atlas-scene-toolbar>button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffffb0;border-radius:50%;background:#f8f3e9ea;color:#302e2b;box-shadow:0 3px 14px #3b2a2317;backdrop-filter:blur(14px)}
+.atlas-map-controls button,.cinematic-controls button,.atlas-scene-toolbar>button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #ffffffb0;border-radius:50%;background:#f8f3e9f5;color:#302e2b;box-shadow:0 2px 7px #3b2a2317}
 .atlas-map-controls button:hover,.cinematic-controls button:hover,.atlas-scene-toolbar>button:hover{background:#fffcf6}
 .atlas-searchbar{position:absolute;z-index:8;top:0;left:0;right:0;padding:max(22px,env(safe-area-inset-top)) max(24px,calc((100vw - 712px)/2)) 16px;background:linear-gradient(#f7f3e9ef 20%,#f7f3e9bd 76%,#f7f3e900);pointer-events:none}
 .atlas-searchbar input,.atlas-searchbar button,.atlas-searchbar a,.atlas-search-results{pointer-events:auto}
@@ -256,14 +256,50 @@
 .atlas-night-actions summary{padding:4px 0}
 .atlas-night-actions{margin-top:2px}
 
+/* Opaque control surfaces avoid backdrop compositing trails over the moving GL canvas. */
+.cinematic-controls{top:47%;gap:9px}
+.cinematic-controls button{width:44px;height:44px;background:#4c4b45d9;border-color:#fff7e466;color:#fffaf1;box-shadow:0 2px 5px #17241d25;backdrop-filter:none}
+.cinematic-controls button:hover{background:#56554fe8}
+.cinematic-controls button:active{background:#393b36f0}
+.cinematic-controls button svg{width:23px;height:23px;pointer-events:none}
+.is-night .cinematic-controls{top:auto;bottom:calc(64px + var(--concert-sheet-height,226px) + 12px);flex-direction:row}
+.atlas-song-stars,.atlas-song-stars.is-long{height:min(210px,calc(100dvh - 64px - var(--concert-sheet-height,226px) - 231px))}
+.cinematic-orbit-hint{position:absolute;top:64%;left:20px;right:20px;display:flex;align-items:center;justify-content:center;gap:10px;color:#fffaf0;font-size:13px;font-weight:400;letter-spacing:.02em;text-shadow:0 1px 6px #18281c;pointer-events:none}
+.cinematic-orbit-hint>span{width:7px;height:7px;border-radius:50%;background:#fffaf0}
+.cinematic-enter>span{font-size:11px;bottom:-14px;opacity:.88}
+.cinematic-gesture-surface{cursor:grab}
+.cinematic-stage:active .cinematic-gesture-surface{cursor:grabbing}
+.concert-player{margin:4px 0 6px;border-bottom:1px solid #c9bba633;padding:4px 0 7px}
+.concert-player-line{display:flex;align-items:center;gap:9px}
+.concert-player-line>button{width:32px;height:32px;flex:none;display:grid;place-items:center;border:1px solid #c6ad9080;border-radius:50%;padding:0;color:#9a613d;background:#efe4d6}
+.concert-player-line>div{flex:1;min-width:0}
+.concert-player strong{font-size:13px;display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.concert-player span{display:block;font-size:11px;color:#8a7664;margin-top:3px}
+.concert-player small{font-size:10px;color:#8a7664;white-space:nowrap;font-variant-numeric:tabular-nums}
+.concert-player input{display:block;width:100%;height:14px;margin:4px 0 0;accent-color:#a66a40}
+.concert-player.is-unavailable .concert-player-line>button{display:none}
+.concert-player.is-unavailable .concert-player-line{gap:0}
+.concert-player.is-unavailable strong{display:none}
+.concert-player.is-unavailable span{margin:0;font-size:12px}
+.concert-song-list button>svg{color:#a27a55;flex:none}
+.atlas-song-star.is-playing svg{animation:concert-star-breathe 2s ease-in-out infinite}
+.concert-loading{animation:concert-spin 1s linear infinite}
+@keyframes concert-spin{to{transform:rotate(360deg)}}
+@keyframes concert-star-breathe{50%{opacity:.65;filter:drop-shadow(0 0 10px #ffe4ae)}}
+@media(prefers-reduced-motion:reduce){.atlas-song-star.is-playing svg,.concert-loading{animation:none}}
+@media(max-height:720px){.cinematic-orbit-hint{top:auto;bottom:251px}.cinematic-enter>span{bottom:0}.concert-player{padding:3px 0 6px}.atlas-song-stars,.atlas-song-stars.is-long{height:min(153px,calc(100dvh - 64px - var(--concert-sheet-height,226px) - 189px))}}
+
 .cinematic-stage{touch-action:auto}
 .cinematic-gesture-surface{position:absolute;inset:0;touch-action:none}
 .cinematic-enter{touch-action:none}
 .atlas-song-stars.is-long{touch-action:pan-y}
 .real-city-pin.is-selected i{width:12px;height:12px;background:#fff4d4;box-shadow:0 0 0 5px #ba8c3780,0 0 0 7px #ffe4a5,0 0 24px #ffb545}
 .real-city-pin.is-selected span{font-size:15px}
+.atlas-street-view .real-city-pin{color:#4e6358;text-shadow:0 1px 3px #fffcf1,0 0 6px #fffcf1}
+.atlas-street-view .real-city-pin i{background:#bd895a;box-shadow:0 0 0 2px #fffcf1}
+.atlas-street-view .real-city-pin.is-selected i{background:#bc8148;box-shadow:0 0 0 4px #e7ccac,0 0 0 6px #fffcf1}
 @media(max-height:720px){
   .is-night .cinematic-controls{top:20px;bottom:auto;right:76px;flex-direction:row;gap:7px}
-  .cinematic-controls button{width:36px;height:36px}.cinematic-controls button svg{width:19px;height:19px}
+  .cinematic-controls button{width:44px;height:44px}.cinematic-controls button svg{width:23px;height:23px}
   .is-night .cinematic-demo-label{bottom:276px}
 }

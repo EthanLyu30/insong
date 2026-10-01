@@ -9,6 +9,7 @@ import {Plus,Minus,MapPinArea} from '@phosphor-icons/react';
 import {atlasMapStyle} from './atlasMapStyle';
 import {orbitScene,pinchScene,type SceneController} from './sceneInteraction';
 import type {VenueLayer} from './venueMapLayer';
+import {MapResourceStatus,resourceTileKey} from './mapResourceStatus';
 
 type Props={cities:AtlasCity[];events:AtlasEvent[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;onCity:(city:AtlasCity)=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
 function nationalPadding(height:number){return {top:height<=720?160:220,bottom:height<=720?192:208,left:12,right:12};}
@@ -40,14 +41,20 @@ export function AtlasMap(props:Props){
       const map=new gl.Map({container:container.current,center:[104,35],zoom:3,renderWorldCopies:false,minZoom:1,maxZoom:21,maxPitch:85,centerClampedToGround:false,pixelRatio:Math.min(window.devicePixelRatio||1,1.5),fadeDuration:160,maxTileCacheSize:120,attributionControl:false,canvasContextAttributes:{antialias:true},style:atlasMapStyle()});
       engine.current=map;
       map.addControl(new gl.AttributionControl({compact:true,customAttribution:'省界 DataV'}),'bottom-left');
+      const resources=new MapResourceStatus();
+      const showResourceError=()=>{if(!cancelled)setImageryError(resources.unavailable(map.getZoom()));};
       map.on('load',()=>{if(!cancelled){
         const credit=map.getContainer().querySelector<HTMLDetailsElement>('.maplibregl-ctrl-attrib');
         if(credit){credit.open=false;credit.classList.remove('maplibregl-compact-show');}
-        setReady(true);setImageryError(false);
+        setReady(true);showResourceError();
       }});
-      map.on('error',event=>{if(!cancelled){if('sourceId' in event&&event.sourceId==='satellite')setImageryError(true);if(container.current)container.current.dataset.mapError=event.error.message;}});
-      map.on('sourcedata',event=>{if(event.sourceId==='satellite'&&event.isSourceLoaded&&!cancelled)setImageryError(false);});
-      map.on('zoom',()=>container.current?.classList.toggle('atlas-detail-zoom',map.getZoom()>5));
+      map.on('error',event=>{if(!cancelled){if('sourceId' in event&&['satellite','openmaptiles'].includes(String(event.sourceId))){resources.failed(String(event.sourceId),resourceTileKey(event));showResourceError();}if(container.current)container.current.dataset.mapError=event.error.message;}});
+      map.on('sourcedata',event=>{
+        if(cancelled||!['satellite','openmaptiles'].includes(event.sourceId))return;
+        const tile=(event as unknown as {tile?:{state?:string}}).tile;
+        if(tile?.state==='loaded'||event.sourceDataType==='metadata'){resources.loaded(event.sourceId,resourceTileKey(event));showResourceError();}
+      });
+      map.on('zoom',()=>{container.current?.classList.toggle('atlas-detail-zoom',map.getZoom()>5);container.current?.classList.toggle('atlas-street-view',map.getZoom()>=7.5);showResourceError();});
       latest.current.cities.forEach(city=>{
         const button=document.createElement('button');button.type='button';button.className='real-city-pin';button.dataset.city=city.id;
         button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=city.name;
@@ -108,7 +115,7 @@ export function AtlasMap(props:Props){
     const project=(now:number)=>{const t=reduced?1:Math.min((now-start)/2600,1),ease=t*t*(3-2*t);map.setVerticalFieldOfView(fromFov+(toFov-fromFov)*ease);if(t<1||map.isMoving())projectionFrame=requestAnimationFrame(project);else map.once('idle',settleProjection);};
     if(reduced)map.setVerticalFieldOfView(toFov);else projectionFrame=requestAnimationFrame(project);
     venueLayer.current?.location(venueEvent);venueLayer.current?.scene(scene);
-    map.setPaintProperty('buildings','fill-extrusion-opacity',scene==='map'?.32:0);
+    map.setPaintProperty('buildings','fill-extrusion-opacity',scene==='map'?.85:0);
     map.setSky({'sky-color':scene==='sky'?'#17304a':'#c8d8dc','horizon-color':scene==='sky'?'#a88470':'#f9dec0','fog-color':scene==='sky'?'#243a4b':'#e7dfd0','sky-horizon-blend':.8,'horizon-fog-blend':.65,'fog-ground-blend':.25,'atmosphere-blend':0});
     // Do not unmount or swap surfaces: every step uses the same native map camera.
     const localVenues=events.filter(event=>event.city===selectedCity?.name&&Number.isFinite(event.venue_lng)&&Number.isFinite(event.venue_lat));

@@ -1,6 +1,6 @@
 export type AtlasArtist = { id: string; name: string; initial?: string; color?: string; aliases?: string[] };
 export type AtlasCity = { id: string; name: string; lng: number; lat: number; capital?: boolean };
-export type AtlasSong = { title: string; artist: string; url: string; platform?: string; link_kind?: 'search' | 'song' };
+export type AtlasSong = { title: string; artist: string; url: string; platform?: string; link_kind?: 'search' | 'song'; audio_url?: string; audio_label?: string };
 export type AtlasEvent = {
   id: string; artist_id: string; title: string; city: string; venue: string; date: string; time?: string;
   source_url: string; source_title: string; source_kind?: 'report' | 'announcement';

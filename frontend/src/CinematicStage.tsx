@@ -1,13 +1,13 @@
 import {useRef,type PointerEvent as ReactPointerEvent,type RefObject} from 'react';
-import {ArrowClockwise,ArrowRight,Minus,Plus,StarFour} from '@phosphor-icons/react';
+import {ArrowRight,Minus,Plus,StarFour} from '@phosphor-icons/react';
 import type {AtlasEvent,AtlasSong} from './footprintAtlas';
 import {isSceneTap,type SceneController} from './sceneInteraction';
 
-type Props={scene:string;controller:RefObject<SceneController|null>;event?:AtlasEvent;venueName?:string;city?:string;artistName?:string;selected:AtlasSong|null;onSong:(song:AtlasSong)=>void;onEnter:()=>void};
+type Props={scene:string;controller:RefObject<SceneController|null>;event?:AtlasEvent;venueName?:string;city?:string;artistName?:string;selected:AtlasSong|null;playing?:string;onSong:(song:AtlasSong)=>void;onEnter:()=>void};
 const constellation=[[14,14],[39,24],[63,6],[88,22],[23,62],[48,80],[67,49],[88,70]];
 
 // Shared input: geographic approach, then the restored portrait depth camera.
-export function CinematicStage({scene,controller,event,venueName,city,artistName,selected,onSong,onEnter}:Props){
+export function CinematicStage({scene,controller,event,venueName,city,artistName,selected,playing,onSong,onEnter}:Props){
   const located=Number.isFinite(event?.venue_lng)&&Number.isFinite(event?.venue_lat);
   const points=useRef(new Map<number,[number,number]>());
   const gesture=useRef<{start:[number,number];enter:boolean;moved:boolean;handled:boolean}|null>(null);
@@ -35,16 +35,17 @@ export function CinematicStage({scene,controller,event,venueName,city,artistName
     {scene==='venue'&&<>
       <div className="cinematic-location"><h1>{venueName?.match(/体育[场馆]$/)?<>{venueName.slice(0,-3)}<br/>{venueName.slice(-3)}</>:venueName}</h1><p>{located?'歌声即将抵达':'场馆位置待核实 · 先看看这座城'}</p></div>
       <button className="cinematic-enter" type="button" aria-label="进入这座场馆" onClick={e=>{if(e.detail===0||!gesture.current?.handled)onEnter();}}><span>点击场馆，走进这一晚 <ArrowRight size={16}/></span></button>
+      <div className="cinematic-orbit-hint"><span aria-hidden="true"/>拖动，环绕现场</div>
     </>}
     {scene==='sky'&&event&&<>
       <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {venueName??city}</p><span>把歌声，留在星光里。</span></div>
       <div className={'atlas-song-stars '+(event.songs.length>constellation.length?'is-long':'')} aria-label="歌曲星空">
         {event.songs.map((song,i)=>{
         const [x,y]=constellation[i%constellation.length];
-        return <button key={i} type="button" className={'atlas-song-star '+(selected?.title===song.title?'is-selected':'')} style={{left:`${x}%`,top:`${y}%`}} aria-label={`第${i+1}颗星 · ${song.title}`} aria-pressed={selected?.title===song.title} onClick={()=>onSong(song)}><StarFour size={18} weight="fill"/><span>{song.title}</span></button>;
+        return <button key={i} type="button" className={'atlas-song-star '+(selected?.title===song.title?'is-selected':'')+(playing===song.title?' is-playing':'')} style={{left:`${x}%`,top:`${y}%`}} aria-label={`第${i+1}颗星 · ${song.title} · ${playing===song.title?'暂停':'播放'}`} aria-pressed={playing===song.title} onClick={()=>onSong(song)}><StarFour size={18} weight="fill"/><span>{song.title}</span></button>;
       })}</div>
     </>}
-    {scene!=='map'&&<div className="cinematic-controls"><button type="button" onClick={()=>controller.current?.zoom(.3)} aria-label="拉近场馆"><Plus size={24} weight="light"/></button><button type="button" onClick={()=>controller.current?.zoom(-.3)} aria-label="拉远场馆"><Minus size={24} weight="light"/></button><button type="button" onClick={()=>controller.current?.home()} aria-label="重新运镜"><ArrowClockwise size={21} weight="light"/></button></div>}
+    {scene!=='map'&&<div className="cinematic-controls"><button type="button" onClick={()=>controller.current?.zoom(.3)} aria-label="拉近场馆"><Plus size={23} weight="light"/></button><button type="button" onClick={()=>controller.current?.zoom(-.3)} aria-label="拉远场馆"><Minus size={23} weight="light"/></button></div>}
     {scene!=='map'&&<span className="cinematic-demo-label">{located?'场景示意':'城市位置 · 场景示意'}</span>}
   </div>;
 }

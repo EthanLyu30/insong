@@ -40,13 +40,17 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   globalThis.Date=class extends ActualDate{constructor(...args){super(...(args.length?args:[fixedTime]));}static now(){return fixedTime;}};
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  let playCalls=0;
+  dom.window.HTMLMediaElement.prototype.play=function(){playCalls++;this.dispatchEvent(new dom.window.Event('playing'));return Promise.resolve();};
+  dom.window.HTMLMediaElement.prototype.pause=function(){};
+  dom.window.HTMLMediaElement.prototype.load=function(){};
   const React=await import('react'); const {createRoot}=await import('react-dom/client'); const {MemoryRouter}=await import('react-router');
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {FootprintsPage}=await server.ssrLoadModule('/src/FootprintsPage.tsx');const {SessionProvider}=await server.ssrLoadModule('/src/SessionContext.tsx');
   const root=createRoot(document.getElementById('root')); const previousFetch=globalThis.fetch;
   let user={id:3,display_name:'听友',is_demo:false},saved=[],writes=0,finishWrite,expired=false,playlists=[],collections=0,finishCollection;
   const catalog={verified_on:'2026-09-30',today:'2026-09-30',artists:[{id:'gem',name:'邓紫棋',aliases:['GEM']},{id:'liu',name:'刘雨昕',aliases:['刘雨欣']}],cities:[{id:'shenzhen',name:'深圳',lng:114.06,lat:22.54},{id:'beijing',name:'北京',lng:116.4,lat:39.9},{id:'lhasa',name:'拉萨',lng:91.1,lat:29.6}],events:[
-    {id:'gem-test',artist_id:'gem',title:'测试演唱会',city:'深圳',venue:'大运体育场',date:'2026-09-11',source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[{title:'泡沫',artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w=泡沫'}]},
+    {id:'gem-test',artist_id:'gem',title:'测试演唱会',city:'深圳',venue:'大运体育场',date:'2026-09-11',source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[{title:'泡沫',artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w=泡沫',audio_url:'/api/audio/test.wav',audio_label:'测试音源'}]},
     {id:'gem-future',artist_id:'gem',title:'下一晚',city:'深圳',venue:'大运体育场',date:'2026-10-01',source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[]},
     {id:'liu-test',artist_id:'liu',title:'仙那度',city:'北京',venue:'五棵松',date:'2025-09-20',source_url:'https://www.beijing.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[]}
   ]};
@@ -66,6 +70,8 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('邓紫棋'); assert.equal(writes,0);
     await click('深圳'); await click('进入大运体育场');
     assert.ok(document.querySelector('[data-scene="venue"]'));
+    assert.equal(document.querySelectorAll('.cinematic-controls button').length,2);
+    assert.match(document.querySelector('.cinematic-orbit-hint').textContent,/拖动，环绕现场/);
     await React.act(async()=>{
       const entrance=document.querySelector('.cinematic-enter');
       for(const [type,x,y] of [['pointerdown',100,300],['pointermove',140,310],['pointermove',103,304],['pointerup',103,304]]){
@@ -77,6 +83,11 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     assert.ok([...document.querySelectorAll('button')].some(b=>b.disabled && b.textContent.includes('演出后')));
     await click('返回场馆'); await click('全部场次'); await click('2026.09.11');
     await click('泡沫'); assert.ok(document.querySelector('.concert-song-list'));assert.equal(document.querySelector('a[data-qq-song]'),null);assert.equal(document.querySelector('.atlas-event-source'),null);
+    assert.equal(playCalls,1,'clicking the song star starts its audio');
+    await React.act(async()=>document.querySelector('.concert-song-list button').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
+    assert.match(document.querySelector('.concert-player').className,/is-paused/,'clicking the same row toggles the shared player');
+    await React.act(async()=>document.querySelector('.concert-song-list button').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
+    assert.equal(playCalls,2,'clicking the row resumes audio through the same player');
     await click('收藏为歌单');await click('正在收藏');assert.equal(collections,1);await React.act(async()=>finishCollection());assert.match(document.querySelector('.concert-collect').textContent,/已收藏/);assert.equal(document.querySelector('.concert-collect a').getAttribute('href'),'/playlists?list=7');
     await click('我去过'); await click('保存中'); assert.equal(writes,1);
     await React.act(async()=>finishWrite());assert.match(document.body.textContent,/取消到场/);

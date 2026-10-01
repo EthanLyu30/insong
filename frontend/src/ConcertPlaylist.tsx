@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Link,useSearchParams} from 'react-router';
-import {BookmarkSimple,Check} from '@phosphor-icons/react';
+import {BookmarkSimple,Check,Play,Pause} from '@phosphor-icons/react';
 import {useSession} from './SessionContext';
 import {apiBaseUrl} from './api';
 import {apiRequest} from './memoryClient';
@@ -26,10 +26,10 @@ export function CollectConcert({event,next}:{event:AtlasEvent;next:string}){
   const needsLogin=!user||error.includes('请先登录');
   return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}><BookmarkSimple size={19} weight="light"/>登录收藏歌单</Link>:saved?<Link className="collect-button is-saved" to={`/playlists?list=${saved.id}`}><Check size={19}/>已收藏 · 查看歌单</Link>:<button className="collect-button" type="button" disabled={busy||checking||!event.songs.length} onClick={()=>void collect()}>{!busy&&!checking&&event.songs.length>0&&<BookmarkSimple size={19} weight="light"/>}{busy?'正在收藏…':checking?'读取歌单…':event.songs.length?'收藏为歌单':'曲目尚未收录'}</button>}{error&&!needsLogin&&<p role="alert">{error}</p>}</div>;
 }
-export function SongList({songs,selected,onSong}:{songs:Pick<AtlasSong,'title'|'artist'>[];selected?:string;onSong?:(index:number)=>void}){
+export function SongList({songs,selected,playing,onSong}:{songs:Pick<AtlasSong,'title'|'artist'>[];selected?:string;playing?:string;onSong?:(index:number)=>void}){
   const list=useRef<HTMLOListElement>(null);
   useEffect(()=>{const index=songs.findIndex(song=>song.title===selected),element=list.current,row=element?.children[index] as HTMLElement|undefined;if(!onSong||!element||!row)return;const top=row.getBoundingClientRect().top-element.getBoundingClientRect().top+element.scrollTop;const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; element.scrollTo?.({top:Math.max(0,top-8),behavior:reduced?'instant':'smooth'});},[selected,songs]);
-  return <ol ref={list} className="concert-song-list">{songs.map((song,index)=><li key={index}><button type="button" className={selected===song.title?'is-selected':''} onClick={()=>onSong?.(index)} disabled={!onSong}><span>{String(index+1).padStart(2,'0')}</span><div><strong>{song.title}</strong><small>{song.artist}</small></div><i aria-hidden="true">{selected===song.title?'✦':'·'}</i></button></li>)}</ol>;
+  return <ol ref={list} className="concert-song-list">{songs.map((song,index)=><li key={index}><button type="button" className={selected===song.title?'is-selected':''} aria-label={`${playing===song.title?'暂停':'播放'}${song.title}`} onClick={()=>onSong?.(index)} disabled={!onSong}><span>{String(index+1).padStart(2,'0')}</span><div><strong>{song.title}</strong><small>{song.artist}</small></div>{onSong&&(playing===song.title?<Pause size={14} weight="fill" aria-hidden="true"/>:<Play size={14} weight="fill" aria-hidden="true"/>)}</button></li>)}</ol>;
 }
 export function PlaylistsPage(){
   const {user}=useSession();const [params]=useSearchParams();const [items,setItems]=useState<SavedPlaylist[]|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);

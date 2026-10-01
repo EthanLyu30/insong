@@ -115,7 +115,7 @@ export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLa
   return {
     location(event){if(event)located=Number.isFinite(event.venue_lng)&&Number.isFinite(event.venue_lat);map.triggerRepaint();},
     scene(value){if(mode===value)return;departing=value==='map';departureInterrupted=0;fromNight=night;mode=value;changed=lastFrame=performance.now();target={...HOME_PHOTO_VIEW};sized='';map.triggerRepaint();},
-    orbit(dx,dy){move({...target,yaw:target.yaw-dx*.065,pitch:target.pitch+dy*.035});},
+    orbit(dx,dy){move({...target,yaw:target.yaw-dx*.1,pitch:target.pitch+dy*.055});},
     pinch(from,to){move({...target,zoom:target.zoom*Math.max(to,1)/Math.max(from,1)});},
     zoom(delta){move({...target,zoom:target.zoom*2**(delta*.4)});},
     home(){move({...HOME_PHOTO_VIEW});},dispose,

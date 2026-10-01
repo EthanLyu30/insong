@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import {ArrowLeft,ArrowRight,BookmarkSimple,CaretDown,CaretRight,MapPinArea,MagnifyingGlass,X} from '@phosphor-icons/react';
 import { apiBaseUrl } from './api';
@@ -10,6 +10,7 @@ import { AtlasMap } from './AtlasMap';
 import { CinematicStage } from './CinematicStage';
 import type {SceneController} from './sceneInteraction';
 import { CollectConcert, SongList } from './ConcertPlaylist';
+import {ConcertPlayer,useConcertPlayer} from './ConcertPlayer';
 import { chinaToday, dateLabel, eventPhase, filterArtists, groupVenues, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong, type AtlasVenue } from './footprintAtlas';
 import './footprints.css';
 
@@ -37,6 +38,7 @@ export function FootprintsPage() {
   const {user}=useSession();const [params,setParams]=useSearchParams();const [retry,setRetry]=useState(0);const {value:catalog,error}=useData<AtlasCatalog>('/api/footprints/catalog',retry);
   const sceneController=useRef<SceneController|null>(null);const [listOpen,setListOpen]=useState(true);
   const storyTrigger=useRef<HTMLButtonElement>(null);const storyClose=useRef<HTMLButtonElement>(null);
+  const nightPanel=useRef<HTMLElement>(null);
 
   const [query,setQuery]=useState('');const [searchOpen,setSearchOpen]=useState(false);const [expanded,setExpanded]=useState(false);const [selectedSong,setSelectedSong]=useState<AtlasSong|null>(null);const [stories,setStories]=useState(false);
   useEffect(()=>{if(!stories)return;storyClose.current?.focus();const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')setStories(false);};window.addEventListener('keydown',escape);return()=>{window.removeEventListener('keydown',escape);storyTrigger.current?.focus();};},[stories]);
@@ -47,6 +49,14 @@ export function FootprintsPage() {
   const venues=groupVenues(events.filter(event=>event.city===city?.name));
   const venue=venues.find(item=>item.events.some(event=>event.id===linkedEvent?.id))??venues.find(item=>item.id===params.get('venue'));
   const scene=linkedEvent && params.get('scene')!=='venue'?'sky':venue && params.get('scene')==='venue'?'venue':'map';
+  const player=useConcertPlayer(scene==='sky'?linkedEvent?.id??null:null);
+  useLayoutEffect(()=>{
+    const panel=nightPanel.current,page=panel?.closest<HTMLElement>('.atlas-page');if(scene!=='sky'||!panel||!page)return;
+    const measure=()=>page.style.setProperty('--concert-sheet-height',`${panel.getBoundingClientRect().height}px`);
+    measure();if(typeof ResizeObserver==='undefined')return;
+    const observer=new ResizeObserver(measure);observer.observe(panel);return()=>observer.disconnect();
+  },[scene,linkedEvent?.id]);
+  function playSong(song:AtlasSong){setSelectedSong(song);player.select(song);}
   const today=catalog?.today??chinaToday();
   const recent=[...events].sort((a,b)=>{
     const ap=eventPhase(a,today)!=='past',bp=eventPhase(b,today)!=='past';return ap!==bp?ap?-1:1:ap?a.date.localeCompare(b.date):b.date.localeCompare(a.date);
@@ -73,7 +83,7 @@ export function FootprintsPage() {
   return <section className={`atlas-page atlas-${scene}`} data-scene={scene}>
     <div className="atlas-scene">
       <AtlasMap cities={cities} events={events} today={today} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
-      <CinematicStage scene={scene} controller={sceneController} event={stageEvent} venueName={venue?.name} city={city?.name} artistName={catalog.artists.find(item=>item.id===stageEvent?.artist_id)?.name} selected={selectedSong} onSong={setSelectedSong} onEnter={()=>{if(stageEvent)openEvent(stageEvent);}}/>
+      <CinematicStage scene={scene} controller={sceneController} event={stageEvent} venueName={venue?.name} city={city?.name} artistName={catalog.artists.find(item=>item.id===stageEvent?.artist_id)?.name} selected={selectedSong} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={playSong} onEnter={()=>{if(stageEvent)openEvent(stageEvent);}}/>
     </div>
     {scene==='map'?<header className="atlas-searchbar">
       <div className="atlas-wordmark"><div><span>足迹</span><small>跟着歌声，去远方。</small></div><Link to="/playlists" aria-label="我的现场歌单"><BookmarkSimple size={23} weight="light"/></Link></div>
@@ -88,9 +98,10 @@ export function FootprintsPage() {
       <div className="atlas-schedule-list">{(expanded?venueEvents:[stageEvent]).map(event=><button type="button" key={event.id} aria-label={`${dateLabel(event.date)} ${catalog.artists.find(item=>item.id===event.artist_id)?.name} ${event.title}`} onClick={()=>openEvent(event)}><time><span>{event.date.slice(5).replace('-','.')}</span><small>{event.date.slice(0,4)}{event.time&&` · ${event.time}`}</small></time><span><strong>{catalog.artists.find(item=>item.id===event.artist_id)?.name}</strong><small>{event.title}</small></span><em className={eventPhase(event,today)}>{eventPhase(event,today)==='upcoming'?'待演':eventPhase(event,today)==='today'?'今天':'往期'}</em></button>)}</div>
       <button className="atlas-primary-action" type="button" onClick={()=>openEvent(stageEvent)}>走进这一晚 <ArrowRight size={20}/></button>
     </section>}
-    {scene==='sky'&&linkedEvent&&<section className="atlas-panel atlas-night-panel">
+    {scene==='sky'&&linkedEvent&&<section ref={nightPanel} className="atlas-panel atlas-night-panel">
       <header className="atlas-night-event"><h2>这一晚的歌单</h2><button type="button" className="song-list-toggle" aria-expanded={listOpen} onClick={()=>setListOpen(!listOpen)}>{linkedEvent.songs.length} 首 <CaretDown size={18}/></button></header>
-      {listOpen&&<SongList songs={linkedEvent.songs} selected={selectedSong?.title} onSong={index=>setSelectedSong(linkedEvent.songs[index])}/>}
+      <ConcertPlayer player={player}/>
+      {listOpen&&<SongList songs={linkedEvent.songs} selected={selectedSong?.title} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={index=>playSong(linkedEvent.songs[index])}/>}
       {!linkedEvent.songs.length&&<p className="atlas-no-songs">曲目尚未收录。</p>}
       <CollectConcert key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} next={next}/>
       <div className="atlas-night-actions"><Link to={`/?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><details><summary>同场记录</summary><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>同场故事</button></div></details></div>
