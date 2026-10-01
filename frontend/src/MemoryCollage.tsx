@@ -2,6 +2,8 @@ import { ArrowRight, Heart, MusicNote, Pause, Play, Repeat, Shuffle, SkipBack, S
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Song } from "./api";
+import type {PublicStory} from './memoryClient';
+import {cardCover,songCover} from './cardMedia';
 
 type Point = readonly [number, number];
 type Quad = readonly [Point, Point, Point, Point];
@@ -34,25 +36,25 @@ function cardProjection([p0, p1, p2, p3]: Quad): string {
 }
 const projections = slots.map((slot) => cardProjection(slot.corners));
 
-function Artwork({ songs, activeId, className }: { songs: Song[]; activeId: number; className: string }) {
+function Artwork({ songs, activeId, className, stories }: { songs: Song[]; activeId: number; className: string; stories:PublicStory[] }) {
   return (
     <span className={className} aria-hidden="true">
       {songs.map((song) => (
-        <img key={song.id} src={`/covers/song-${song.id}.png`} alt="" className={song.id === activeId ? "is-visible" : ""} draggable={false} />
+        <img key={song.id} src={stories.find(story=>story.song_id===song.id)?cardCover(stories.find(story=>story.song_id===song.id)!):songCover(song)} alt="" className={song.id === activeId ? "is-visible" : ""} draggable={false} />
       ))}
     </span>
   );
 }
 
-function PlayerDetails({ title }: { title: string }) {
+function PlayerDetails({ song, story }: { song:Song;story?:PublicStory }) {
   return (
     <span className="collage-player-details" aria-hidden="true">
-      <span className="collage-track"><span><strong>{title}</strong><small>歌里有我 · 演示曲目</small></span><Heart size={15} /></span>
+      <span className="collage-track"><span><strong>{song.title}</strong><small>{song.artist}</small><span className="collage-story-title">{story?.title??story?.excerpt??'这一首，唱进了我的生活'}</span></span><Heart size={15} /></span>
       <span className="collage-track-progress"><i /></span>
-      <span className="collage-track-times"><span>0:00</span><span>0:48</span></span>
+      <span className="collage-track-times"><span>{song.audio_available?'0:00':'音乐记忆'}</span><span>{song.audio_available?'0:48':'故事样例'}</span></span>
       <span className="collage-track-controls"><Shuffle /><SkipBack weight="fill" /><Play weight="fill" /><SkipForward weight="fill" /><Repeat /></span>
       <span className="collage-track-volume"><SpeakerHigh /><i /><SpeakerHigh weight="fill" /></span>
-      <span className="collage-track-footer">点选这首歌</span>
+      <span className="collage-track-footer">翻开这一晚</span>
     </span>
   );
 }
@@ -68,12 +70,11 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]; intro?:boolean; onEnter?:()=>void }) {
+export function MemoryCollage({ songs, stories=[], intro = false, onEnter }: { songs: Song[]; stories?:PublicStory[]; intro?:boolean; onEnter?:()=>void }) {
   const [params] = useSearchParams();
   const capture = new URLSearchParams();for(const key of ['theme','event'])if(params.get(key))capture.set(key,params.get(key)!);
   const themeQuery = capture.size ? `?${capture}` : '';
   const [offset, setOffset] = useState(0);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [scale, setScale] = useState(0.5);
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -101,36 +102,34 @@ export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]
     () => slots.map((_, index) => songs[(index + offset) % songs.length]).filter((song): song is Song => Boolean(song)),
     [offset, songs],
   );
-  const selected = songs.find((song) => song.id === selectedId) ?? visibleSongs[0];
+  const selected = visibleSongs[0];
   if (!selected) return null;
 
   return (
-    <section className={`collage-section${intro?' collage-intro':' collage-entered'}`} aria-label="从演示歌曲中选一首">
+    <section className={`collage-section${intro?' collage-intro':' collage-entered'}`} aria-label="翻开一张音乐卡片">
       <div className={`collage-scene${isPaused || reducedMotion ? " is-paused" : ""}`} ref={sceneRef}>
         {intro && <><button className="scene-enter" aria-label="进入我的音乐故事" onClick={onEnter}/><span className="scene-invitation" aria-hidden="true">轻触空白，翻开下一页 ↗</span></>}
         <div className="collage-stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
           <img className="collage-backdrop" src="/collage-scene.png" alt="" draggable={false} />
           <span className="collage-scene-label">我的生活，有它的配乐。</span>
           {visibleSongs.map((song, index) => (
-            <button
+            <Link
               className={`collage-card collage-card--${slots[index].name}${selected.id === song.id ? " is-selected" : ""}`}
               style={{ transform: projections[index] }}
-              type="button"
+              to={stories.find(story=>story.song_id===song.id)?`/stories/${stories.find(story=>story.song_id===song.id)!.id}`:`/songs/${song.id}${themeQuery}`}
               key={slots[index].name}
-              aria-label={`选择演示歌曲《${song.title}》`}
-              aria-pressed={selected.id === song.id}
+              aria-label={`翻开《${song.title}》的音乐卡片`}
               onFocus={() => setIsPaused(true)}
-              onClick={() => { setSelectedId(song.id); setIsPaused(true); }}
             >
-              <Artwork songs={songs} activeId={song.id} className="collage-card-art" />
-              <PlayerDetails title={song.title} />
-            </button>
+              <Artwork songs={songs} stories={stories} activeId={song.id} className="collage-card-art" />
+              <PlayerDetails song={song} story={stories.find(story=>story.song_id===song.id)} />
+            </Link>
           ))}
-          <Link className="collage-phone" to={`/songs/${selected.id}${themeQuery}`} aria-label={`打开《${selected.title}》的记忆入口`} onFocus={() => setIsPaused(true)}>
+          <Link className="collage-phone" to={stories.find(story=>story.song_id===selected.id)?`/stories/${stories.find(story=>story.song_id===selected.id)!.id}`:`/songs/${selected.id}${themeQuery}`} aria-label={`打开《${selected.title}》的记忆入口`} onFocus={() => setIsPaused(true)}>
             <span className="collage-phone-status" aria-hidden="true"><span>14:36</span><span>••• ▰</span></span>
             <span className="collage-phone-player">
-              <Artwork songs={songs} activeId={selected.id} className="collage-phone-art" />
-              <PlayerDetails title={selected.title} />
+              <Artwork songs={songs} stories={stories} activeId={selected.id} className="collage-phone-art" />
+              <PlayerDetails song={selected} story={stories.find(story=>story.song_id===selected.id)} />
             </span>
           </Link>
           <span className="collage-year" aria-hidden="true">2026</span>
@@ -140,10 +139,10 @@ export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]
         </div>
       </div>
 
-      {!intro && <div className="collage-copy">
+      {intro?<div className="intro-copy"><h1>追过的光，<em>留在歌里。</em></h1><button type="button" className="collage-primary" onClick={onEnter}>翻开我们的音乐故事 <ArrowRight size={20}/></button></div>:<div className="collage-copy">
         <div className="collage-copy-topline">
           <span className="section-kicker">把故事留在旋律里</span>
-          <button className="collage-motion-toggle" type="button" disabled={reducedMotion} aria-pressed={!isPaused && !reducedMotion} onClick={() => { setIsPaused((value) => !value); setSelectedId(null); }}>
+          <button className="collage-motion-toggle" type="button" disabled={reducedMotion} aria-pressed={!isPaused && !reducedMotion} onClick={() => setIsPaused((value) => !value)}>
             {isPaused || reducedMotion ? <Play weight="fill" /> : <Pause weight="fill" />}
             {reducedMotion ? "静止画面" : isPaused ? "继续轮播" : "暂停轮播"}
           </button>

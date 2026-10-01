@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.pool import StaticPool
 
 from .models import Base, MemoryCard, PublicStory
-from .seed import seed_demo_data
+from .seed import seed_demo_data, seed_fandom_showcase
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
 
@@ -48,16 +48,22 @@ def initialize_database(engine: Engine) -> None:
         'reflections_json': "TEXT NOT NULL DEFAULT '[]'",
         'lyric_id': 'VARCHAR(40)', 'life_year': 'INTEGER', 'theme_id': 'VARCHAR(40)',
         'photo_id': 'VARCHAR(36) REFERENCES photos(id)', 'end_ms': 'INTEGER', 'event_id': 'VARCHAR(100)',
+        'title': 'VARCHAR(80)', 'tags_json': 'TEXT',
+        'photo_ids_json': "TEXT NOT NULL DEFAULT '[]'",
     }
     with engine.begin() as connection:
         for name, declaration in additions.items():
             if name not in existing:
                 connection.execute(text(f'ALTER TABLE memory_cards ADD COLUMN {name} {declaration}'))
         connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_memory_request ON memory_cards(owner_id, request_key)'))
+        song_columns = {column['name'] for column in inspect(connection).get_columns('songs')}
+        if 'cover_url' not in song_columns:
+            connection.execute(text('ALTER TABLE songs ADD COLUMN cover_url VARCHAR(240)'))
         public_columns = {column['name'] for column in inspect(connection).get_columns('public_stories')}
-        for name in ('photo_id', 'end_ms', 'event_id'):
+        for name in ('photo_id', 'end_ms', 'event_id', 'title', 'tags_json', 'photo_ids_json'):
             if name not in public_columns:
-                connection.execute(text(f'ALTER TABLE public_stories ADD COLUMN {name} {additions[name]}'))
+                declaration = "TEXT NOT NULL DEFAULT '[]'" if name == 'tags_json' else additions[name]
+                connection.execute(text(f'ALTER TABLE public_stories ADD COLUMN {name} {declaration}'))
     with OrmSession(engine) as db, db.begin():
         seed_demo_data(db)
         # Previously public cards already had publication consent (including samples).
@@ -70,7 +76,8 @@ def initialize_database(engine: Engine) -> None:
                     lyric_id=card.lyric_id, theme_id=card.theme_id, photo_id=card.photo_id,
                     end_ms=card.end_ms, event_id=card.event_id, published=True))
             card.visibility = 'private'
-    with engine.begin() as connection:
+        db.flush()
         # Explicit IDs advance SQLite's durable AUTOINCREMENT sequence, including
         # on legacy databases. Keep receipts when the corresponding card is deleted.
-        connection.execute(text('INSERT OR IGNORE INTO memory_receipts(id, owner_id, request_key) SELECT id, owner_id, request_key FROM memory_cards'))
+        db.execute(text('INSERT OR IGNORE INTO memory_receipts(id, owner_id, request_key) SELECT id, owner_id, request_key FROM memory_cards'))
+        seed_fandom_showcase(db)

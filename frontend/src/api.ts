@@ -9,6 +9,7 @@ export type Song = {
   audio_url: string | null;
   duration_ms: number | null;
   recording_label: string;
+  cover_url?: string;
   lyrics?: Lyric[];
   lyrics_note?: string;
 };

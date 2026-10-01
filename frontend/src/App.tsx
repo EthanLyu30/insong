@@ -1,6 +1,9 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router';
 import { getSongs, type Song } from './api';
+import {useData} from './useData';
+import type {PublicStory} from './memoryClient';
+import {songCover} from './cardMedia';
 import { MemoryCollage } from './MemoryCollage';
 import { AccountControl, SessionProvider, useSession } from './SessionContext';
 import { AccountPage } from './AccountPage';
@@ -22,6 +25,7 @@ function HomePage({intro,onEnter}:{intro:boolean;onEnter:()=>void}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [requestKey, setRequestKey] = useState(0);
+  const {value:stories}=useData<PublicStory[]>('/api/stories');
   useEffect(() => {
     const controller = new AbortController(); setLoading(true); setError('');
     getSongs(controller.signal).then(setSongs).catch((reason: unknown) => {
@@ -29,12 +33,13 @@ function HomePage({intro,onEnter}:{intro:boolean;onEnter:()=>void}) {
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [requestKey]);
+  if(!intro&&!params.has('theme')&&!params.has('event')&&!params.has('choose'))return <DiscoverPage home/>;
   return <div className="home-page">
     {!intro && params.get('theme') && <aside className="home-theme-note">选一首属于这个时刻的歌，主题会和记忆一起留下。<Link to={`/themes/${encodeURIComponent(params.get('theme')!)}`}>回看主题 →</Link></aside>}
     {!intro && params.get('event') && <aside className="home-theme-note">选一首歌，把这场现场留进记忆。当前可试听的是原创样例配乐。<Link to="/footprints">回到足迹 →</Link></aside>}
     {loading && <div className="status-card" role="status">正在布置你的音乐记忆…</div>}
     {error && <div className="status-card error-card" role="alert">{error}<button onClick={() => setRequestKey(x => x + 1)}>重新加载</button></div>}
-    {!loading && !error && <MemoryCollage songs={songs} intro={intro} onEnter={onEnter}/>}
+    {!loading && !error && (intro?<MemoryCollage songs={songs.filter(song=>!song.is_demo).length?songs.filter(song=>!song.is_demo):songs} stories={stories??[]} intro onEnter={onEnter}/>:<section className="journal-page song-selection"><h1>这一晚，你想留下哪首歌？</h1><p>从喜欢的歌开始，写自己的音乐卡片。</p><div>{songs.map(song=><Link key={song.id} to={`/songs/${song.id}/write?${params}`}><img src={songCover(song)} alt=""/><span><strong>{song.title}</strong><small>{song.artist}</small></span></Link>)}</div></section>)}
   </div>;
 }
 
@@ -47,7 +52,7 @@ function Shell() {
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   useEffect(() => {if(location.pathname !== '/')setEntered(true);},[location.pathname]);
   return <div className={`site-shell${intro?' intro-shell':''}${atlas?' atlas-shell':''}`}>
-    {!intro && !atlas && <header className="topbar"><Link to="/" className="brand" aria-label="歌里有我，返回首页"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
+    {!atlas && <header className="topbar"><Link to="/" className="brand" aria-label="歌里有我，返回首页"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
       {loading ? <div className="status-card" role="status">正在打开你的空间…</div> : error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
         <Routes key={`${user?.id ?? 'guest'}:${location.pathname}`}>
@@ -66,7 +71,7 @@ function Shell() {
           <Route path="*" element={<section className="journal-page empty-journal"><h1>这一页，还没有写下。</h1><Link className="soft-button" to="/">回到音乐里</Link></section>}/>
         </Routes>}
     </main>
-    {!intro && <nav className="bottom-nav" aria-label="主导航">{([
+    {<nav className="bottom-nav" aria-label="主导航">{([
       ['/', 'home', '听见'], ['/discover', 'search', '共鸣'], ['/memories', 'bookmark', '我的记忆'], ['/footprints', 'map', '足迹'],
     ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>{atlas?<AtlasGlyph name={icon}/>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
   </div>;

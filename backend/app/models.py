@@ -35,6 +35,7 @@ class Song(Base):
     source_label: Mapped[str] = mapped_column(String(100), nullable=False)
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     audio_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    cover_url: Mapped[str | None] = mapped_column(String(240), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )
@@ -53,6 +54,9 @@ class MemoryCard(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), nullable=False)
     story: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    tags_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    photo_ids_json: Mapped[str] = mapped_column(Text, default='[]', server_default='[]')
     life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
     scene: Mapped[str | None] = mapped_column(String(160), nullable=True)
     offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -94,6 +98,9 @@ class PublicStory(Base):
     __tablename__ = 'public_stories'
     memory_id: Mapped[int] = mapped_column(ForeignKey('memory_cards.id', ondelete='CASCADE'), primary_key=True)
     excerpt: Mapped[str] = mapped_column(Text)
+    title: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    tags_json: Mapped[str] = mapped_column(Text, default='[]', server_default='[]')
+    photo_ids_json: Mapped[str] = mapped_column(Text, default='[]', server_default='[]')
     life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
     life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     share_life_time: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -159,6 +166,12 @@ class MemoryReceipt(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
     request_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
+
+
+class SeedMigration(Base):
+    """Durable one-time sample receipt; deletion or withdrawal never reseeds it."""
+    __tablename__ = 'seed_migrations'
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
 
 
 class Photo(Base):

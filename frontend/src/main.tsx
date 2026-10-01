@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router";
 import App from "./App";
 import "./styles.css";
 import "./redesign.css";
+import './fanCards.css';
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

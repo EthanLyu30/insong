@@ -18,6 +18,6 @@ def song_audio(song):
 
 def serialize_song(song):
     return {key: getattr(song, key) for key in (
-        'id', 'title', 'artist', 'version', 'source_label', 'is_demo'
+        'id', 'title', 'artist', 'version', 'source_label', 'is_demo', 'cover_url'
     )} | song_audio(song) | {'lyrics': song_lyrics(song),
-        'lyrics_note': '原创示例词句 · 配合器乐演示逐句定位，无人声演唱'}
+        'lyrics_note': '原创示例词句 · 配合器乐演示逐句定位，无人声演唱' if song.is_demo else '曲目资料 · 暂无授权音频与歌词'}
