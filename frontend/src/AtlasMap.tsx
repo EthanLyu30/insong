@@ -120,10 +120,24 @@ export function AtlasMap(props:Props){
     else if(scene==='map'&&!selectedCity)fitNation(map,container.current?.clientHeight??844,reduced?0:1800);
     else map.flyTo({...cameraTarget(scene,selectedCity,venueEvent,reduced),elevation:scene==='sky'?32:0,essential:false,curve:1.2,padding:{top:scene==='map'?190:scene==='sky'?145:170,bottom:scene==='map'?230:scene==='sky'?230:200,left:20,right:20}});
     latest.current.controller.current={
-      orbit(dx,dy){stopProjection();map.stop();map.jumpTo(orbitScene({bearing:map.getBearing(),pitch:map.getPitch(),zoom:map.getZoom()},dx,dy,latest.current.scene??'venue'));},
-      pinch(from,to){stopProjection();map.stop();if(latest.current.scene==='sky')map.setVerticalFieldOfView(Math.max(65,Math.min(135,map.getVerticalFieldOfView()*Math.max(from,1)/Math.max(to,1))));const located=Number.isFinite(latest.current.venueEvent?.venue_lng)&&Number.isFinite(latest.current.venueEvent?.venue_lat);if(located)map.jumpTo({zoom:pinchScene(map.getZoom(),from,to,latest.current.scene??'venue')});else if(latest.current.scene==='venue')map.jumpTo({zoom:Math.max(9,Math.min(12,map.getZoom()+Math.log2(Math.max(to,1)/Math.max(from,1))))});},
-      zoom(delta){stopProjection();if(latest.current.scene==='sky')map.setVerticalFieldOfView(Math.max(65,Math.min(135,map.getVerticalFieldOfView()*2**(-delta*.4))));const located=Number.isFinite(latest.current.venueEvent?.venue_lng)&&Number.isFinite(latest.current.venueEvent?.venue_lat);if(located)map.easeTo({zoom:pinchScene(map.getZoom(),1,2**delta,latest.current.scene??'venue'),duration:180});else if(latest.current.scene==='venue')map.easeTo({zoom:Math.max(9,Math.min(12,map.getZoom()+delta)),duration:180});},
-      home(){stopProjection();map.setTransformCameraUpdate(null);map.setCenterElevation(latest.current.scene==='sky'?32:0);map.setVerticalFieldOfView(latest.current.scene==='sky'?110:36.87);map.flyTo({...cameraTarget(latest.current.scene??'venue',latest.current.selectedCity,latest.current.venueEvent,reduced),elevation:latest.current.scene==='sky'?32:0,padding:{top:170,bottom:200,left:20,right:20},duration:reduced?0:1500});},
+      orbit(dx,dy){
+        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.orbit(dx,dy);return;}
+        stopProjection();map.stop();map.jumpTo(orbitScene({bearing:map.getBearing(),pitch:map.getPitch(),zoom:map.getZoom()},dx,dy,latest.current.scene??'venue'));
+      },
+      pinch(from,to){
+        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.pinch(from,to);return;}
+        stopProjection();map.stop();map.jumpTo({zoom:pinchScene(map.getZoom(),from,to,latest.current.scene??'venue')});
+      },
+      zoom(delta){
+        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.zoom(delta);return;}
+        stopProjection();map.stop();map.easeTo({zoom:pinchScene(map.getZoom(),1,2**delta,latest.current.scene??'venue'),duration:180});
+      },
+      home(){
+        venueLayer.current?.home();
+        if(Number(canvas.dataset.sceneArrival)>.95)return;
+        stopProjection();map.setTransformCameraUpdate(null);map.setCenterElevation(latest.current.scene==='sky'?32:0);map.setVerticalFieldOfView(latest.current.scene==='sky'?110:36.87);
+        map.flyTo({...cameraTarget(latest.current.scene??'venue',latest.current.selectedCity,latest.current.venueEvent,reduced),elevation:latest.current.scene==='sky'?32:0,padding:{top:170,bottom:200,left:20,right:20},duration:reduced?0:1500});
+      },
     };
     return()=>{stopProjection();map.off('idle',settleProjection);map.stop();map.setTransformCameraUpdate(null);};
   },[ready,modelReady,selectedCity?.id,scene,venueEvent?.venue,artistSelected]);

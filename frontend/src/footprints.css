@@ -18,6 +18,7 @@
 .real-map-canvas .maplibregl-ctrl-bottom-left{bottom:auto;top:211px;left:auto;right:22px;max-width:88%;z-index:11}
 .is-travelling .real-map-canvas .maplibregl-ctrl-bottom-left{top:76px}
 .real-map-canvas .maplibregl-ctrl-attrib{background:#f5f0e7d9;font-size:9px;line-height:16px}
+.real-map-canvas.is-portrait-view .maplibregl-ctrl-attrib{display:none}
 .real-city-pin{display:block;width:44px;min-width:44px;height:44px;padding:0;border:0;background:transparent;color:#534f45;font:12px "Microsoft YaHei",sans-serif;white-space:nowrap;text-shadow:0 1px 3px #fffdf4}
 .real-city-pin i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:5px;height:5px;border-radius:50%;background:#f2ead1b0;box-shadow:0 0 0 2px #ffffff18}
 .real-city-pin span{position:absolute;left:calc(50% + 10px);top:50%;transform:translateY(-50%);opacity:0;transition:opacity .25s}
@@ -208,16 +209,16 @@
 .atlas-show-sheet .atlas-schedule-list time small{font-size:9px;margin-top:1px}
 .atlas-show-sheet h2{font-size:16px}
 .cinematic-stage:not(.is-hidden):not(.is-night){background:none}
-.cinematic-location{top:103px;text-shadow:0 1px 9px #fff2d38c}
-.cinematic-location h1{font-size:36px;line-height:1.3;max-width:330px;font-weight:700;text-wrap:initial}
-.cinematic-location p{color:#584f30;margin-top:8px}
+.cinematic-location{top:97px;text-shadow:none}
+.cinematic-location h1{font-size:31px;line-height:1.4;max-width:310px;font-weight:650;text-wrap:balance}
+.cinematic-location p{color:#776a51;margin-top:9px}
 .cinematic-enter>span{color:#fff8e9;text-shadow:0 1px 8px #142b1e;bottom:0}
-.cinematic-controls{top:auto;bottom:280px;gap:7px}
-.cinematic-controls button{width:36px;height:36px;background:#fbf7efdf}
-.cinematic-controls button svg{width:19px;height:19px}
+.cinematic-controls{top:48%;bottom:auto;gap:8px}
+.cinematic-controls button{width:44px;height:44px;background:#f6f1e2d9}
+.cinematic-controls button svg{width:24px;height:24px}
 .cinematic-demo-label{bottom:236px;font-size:9px;color:#fff0da}
 .is-night .cinematic-demo-label{bottom:292px}
-.is-night .cinematic-controls{bottom:303px}
+.is-night .cinematic-controls{top:auto;bottom:303px}
 .atlas-night-panel{padding-top:14px;padding-bottom:10px}
 .atlas-night-panel .concert-song-list{max-height:86px}
 .atlas-night-panel .concert-song-list button{min-height:29px;padding:5px 10px}
@@ -248,7 +249,6 @@
 .atlas-sky-canopy{opacity:calc(1 - var(--scene-arrival,0));transition:opacity .25s}
 .is-travelling .atlas-sky-canopy{opacity:0;transition:opacity .7s}
 .atlas-cloud-canopy{opacity:calc(.24 * (1 - var(--scene-arrival,0)))}
-.cinematic-location p{color:#363721;font-weight:500;text-shadow:0 1px 8px #fff1cc}
 .atlas-night-panel{padding-top:12px;padding-bottom:8px}
 .atlas-night-panel:before{margin-bottom:7px}
 .atlas-night-panel>header{margin-bottom:2px}
@@ -256,26 +256,14 @@
 .atlas-night-actions summary{padding:4px 0}
 .atlas-night-actions{margin-top:2px}
 
-/* Star positions and links use the same song coordinates. */
-.atlas-song-stars{top:208px;height:170px}
-.atlas-song-star{width:110px;gap:4px}
-.atlas-song-star span{text-wrap:nowrap;font-weight:500}
-.atlas-song-star svg{color:#fff9e9;opacity:1;filter:drop-shadow(0 0 3px #fff7df) drop-shadow(0 0 10px #ffd3a0)}
-.atlas-constellation{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.atlas-constellation line{stroke:#fff4dd;stroke-width:.4;stroke-opacity:.43;vector-effect:non-scaling-stroke}
-@media(max-height:720px){.atlas-song-stars{top:177px;height:153px}.atlas-song-star{width:104px}.atlas-song-star span{font-size:12px}}
 .cinematic-stage{touch-action:auto}
 .cinematic-gesture-surface{position:absolute;inset:0;touch-action:none}
 .cinematic-enter{touch-action:none}
 .atlas-song-stars.is-long{touch-action:pan-y}
-.cinematic-location h1{font-size:34px;line-height:1.14}
-.cinematic-location p{color:#383828;margin-top:7px}
 .real-city-pin.is-selected i{width:12px;height:12px;background:#fff4d4;box-shadow:0 0 0 5px #ba8c3780,0 0 0 7px #ffe4a5,0 0 24px #ffb545}
 .real-city-pin.is-selected span{font-size:15px}
-@media(max-height:720px){.cinematic-location h1{font-size:29px}}
-.atlas-song-star:before{content:'';position:absolute;top:14px;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#fff9e8;box-shadow:0 0 5px 2px #ffedce,0 0 17px 6px #eec1877d;pointer-events:none}
-.atlas-song-stars.is-long .atlas-song-star:before{display:none}
 @media(max-height:720px){
   .is-night .cinematic-controls{top:20px;bottom:auto;right:76px;flex-direction:row;gap:7px}
+  .cinematic-controls button{width:36px;height:36px}.cinematic-controls button svg{width:19px;height:19px}
   .is-night .cinematic-demo-label{bottom:276px}
 }

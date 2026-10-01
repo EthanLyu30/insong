@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 
-test('a venue drag never enters the concert and can orbit through a full revolution',async()=>{
+test('dragging never enters the concert and the geographic approach camera can rotate freely',async()=>{
   const {isSceneTap,orbitScene}=await import('../src/sceneInteraction.ts');
   assert.equal(isSceneTap([100,300],[103,304]),true);
   assert.equal(isSceneTap([100,300],[140,310]),false);
@@ -9,7 +9,7 @@ test('a venue drag never enters the concert and can orbit through a full revolut
   assert.equal(isSceneTap([100,300],[103,304],true),false);
   assert.equal(typeof orbitScene,'function');
   const turned=orbitScene({bearing:0,pitch:64,zoom:17.5},1200,0,'venue');
-  assert.ok(Math.abs(turned.bearing)>=360,'dragging is a full orbit, not a small photo shift');
+  assert.ok(Math.abs(turned.bearing)>=360,'the native map approach bearing is not restricted by portrait framing');
   assert.equal(orbitScene(turned,0,-10000,'venue').pitch,82);
   assert.equal(orbitScene(turned,0,10000,'venue').pitch,35);
   assert.equal(orbitScene({...turned,pitch:80},0,10000,'sky').pitch,65);
