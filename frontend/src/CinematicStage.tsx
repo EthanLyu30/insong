@@ -1,10 +1,10 @@
 import {useRef,type PointerEvent as ReactPointerEvent,type RefObject} from 'react';
-import {ArrowRight,StarFour} from '@phosphor-icons/react';
+import {ArrowRight} from '@phosphor-icons/react';
 import {eventPhase,type AtlasEvent,type AtlasSong} from './footprintAtlas';
 import {isSceneTap,type SceneController} from './sceneInteraction';
+import {SongConstellation} from './SongConstellation';
 
 type Props={scene:string;controller:RefObject<SceneController|null>;event?:AtlasEvent;venueName?:string;city?:string;artistName?:string;selected:AtlasSong|null;playing?:string;onSong:(song:AtlasSong)=>void;onEnter:()=>void};
-const constellation=[[14,14],[39,24],[63,6],[88,22],[23,62],[48,80],[67,49],[88,70]];
 
 // Shared input: geographic approach, then the restored portrait depth camera.
 export function CinematicStage({scene,controller,event,venueName,city,artistName,selected,playing,onSong,onEnter}:Props){
@@ -39,11 +39,7 @@ export function CinematicStage({scene,controller,event,venueName,city,artistName
     </>}
     {scene==='sky'&&event&&<>
       <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {venueName??city}</p>{event.event_status==='cancelled'?<span>这场演出已取消 · 仅保留记录</span>:<span>把歌声，留在星光里。</span>}</div>
-      <div className={'atlas-song-stars '+(event.songs.length>constellation.length?'is-long':'')} aria-label="歌曲星空">
-        {event.songs.map((song,i)=>{
-        const [x,y]=constellation[i%constellation.length];
-        return <button key={i} type="button" className={'atlas-song-star '+(selected?.title===song.title?'is-selected':'')+(playing===song.title?' is-playing':'')} style={{left:`${x}%`,top:`${y}%`}} aria-label={`第${i+1}颗星 · ${song.title} · ${playing===song.title?'暂停':'播放'}`} aria-pressed={playing===song.title} onClick={()=>onSong(song)}><StarFour size={18} weight="fill"/><span>{song.title}</span></button>;
-      })}</div>
+      <SongConstellation eventId={event.id} songs={event.songs} selected={selected} playing={playing} onSong={onSong}/>
     </>}
     {scene!=='map'&&<span className="cinematic-demo-label">{located?'场景示意':'城市位置 · 场景示意'}</span>}
   </div>;

@@ -17,6 +17,9 @@
 - 本人记忆关键词查找和本地 E5 语义检索；返回原文候选，用户自行确认。模型缺失、忙碌或超时会明确降级到关键词。
 - 服务端按账号限制列表、搜索、修改、删除；切换身份会清空当前页面数据。小林、阿远仍是**所有体验者可进入的共享样例账号**，请只输入虚构文字。
 
+- 足迹歌曲星群按场次生成稳定的错落位置，星点大小和闪烁节奏有变化，保留歌名之间的间距；点击播放和展开歌单不会重新打乱位置。小屏可轻滑浏览剩余星点，系统减少动态效果时关闭闪烁。
+- 本地资料维护工具可预览新增、改期、取消、场馆、歌单及音源变化，核对后按旧版本SHA写入并保留审核记录。旧ID不能删除；真实歌单必须有对应场次证据，音源需另附来源。尚未启用自动采集或AI提取，详见[资料维护](docs/footprints-data-maintenance.md)。
+
 [双坐标音乐记忆 v3](docs/双坐标音乐记忆_v3.md) 保留产品主轴；本次交互和页面以用户提供的《9.29修改建议.docx》、[9.29 改版说明](docs/2026-09-29-product-redesign.md)及本 README 为准。[PRD v2](docs/歌里有我_PRD_v2_差异化方案.md) 保留为历史方案。新增日期、场馆和取消记录的证据见[目录来源核对](docs/footprints-catalog-sources.md)，模块评价与下一步取舍见[足迹评审](docs/footprints-review-20261001.md)。
 
 ## 体验路径
@@ -91,4 +94,4 @@ npm run build
 
 检索结果始终保留作者原文及关键词入口；功能检查与模型候选不代表真实用户价值实验。部署为公共服务前仍需补齐内容举报/处理、滥用防护及资源授权等运营能力。
 
-页面改版历史见 [9.29 改版说明](docs/2026-09-29-product-redesign.md)、[9.30 全国足迹改版](docs/2026-09-30-footprints-atlas.md)及[足迹写实重构](docs/2026-09-30-footprints-cinematic.md)。当前“全国 → 真实场馆地图 → 独立外景 → 夜场”的实际四屏见 [10.01 预览](docs/footprints-venue-journey-20261001.png)，上一轮所选两屏对照继续保留在[场馆对照](docs/footprints-cinematic-comparison.png)，实现和验收证据见 [验收记录](design-qa.md)。检索模型和正版资源接入范围未因这次 UI 改版而扩展。
+页面改版历史见 [9.29 改版说明](docs/2026-09-29-product-redesign.md)、[9.30 全国足迹改版](docs/2026-09-30-footprints-atlas.md)及[足迹写实重构](docs/2026-09-30-footprints-cinematic.md)。“全国 → 真实场馆地图 → 独立外景 → 夜场”的实际四屏见 [10.01 预览](docs/footprints-venue-journey-20261001.png)，最新错落星群见[星群实录](docs/footprints-starfield-20261001.jpg)，上一轮所选两屏对照继续保留在[场馆对照](docs/footprints-cinematic-comparison.png)，实现和验收证据见 [验收记录](design-qa.md)。检索模型和正版资源接入范围未因这次 UI 改版而扩展。

@@ -1,0 +1,63 @@
+# 足迹资料维护：先核对，再更新
+
+## 是否需要AI
+
+持续更新首先需要稳定来源、场次匹配、变更记录和审核规则。结构化公告／接口可直接用程序整理；不同格式的网页、图片海报和长文，可以让AI提取候选字段。AI不负责自行确认演出、推断缺失时间，或把歌手作品拼成某场真实歌单。
+
+建议流程：官方／主办方／场馆来源 → 提取候选 → 匹配现有场次ID → 比较新增、改期、换场馆、取消和歌单 → 核对证据 → 写入版本。先维护有限歌手和场馆，测量漏录、误匹配及变更延迟，再扩大采集。自动采集失败应保持旧数据并标明待复核，不把“没抓到”解释成取消。
+
+现场歌单与音频是两类资源。歌单需要精确匹配日期、城市、场馆；整场录像或官方资料可用于核对曲目。社区歌单可以提供线索，但不能直接升级为完整确认。比如[setlist.fm的官方API文档](https://api.setlist.fm/docs/1.0/index.html)提供歌单及版本标识，需要API key；其数据按wiki方式维护，只能作为候选来源，不能自动视为完整官方证据。当前没有配置该接口。
+
+音频需要可播放资源和可使用的来源。QQ音乐搜索页不能当成音频地址；获取歌单不等于获得歌曲音源。本轮仍不提供歌手实际播放，也不把原创样例填入歌手目录。
+
+## 当前工具
+
+`backend/app/catalog_update.py`是本地维护工具，不是自动爬虫或已经运行的定时任务。它读取候选目录，校验数据并预览差异；默认只读。明确写入时记录审核人、旧版本SHA-256、修改前后字段和更新时间，使用文件锁与原子替换，防止部分写入；目录变化后必须重新预览。
+
+已有ID不能删除，改期保留原ID；取消保留记录及公告，不能标记真实现场歌单。缺失实际开演时间要保留未知说明；城市名称不能重复，城市坐标必须有效，同一城市同一场馆的坐标应一致，场馆坐标必须标明WGS84及来源。所有证据元数据校验仅验证格式，不能代替阅读来源或确认授权。新场馆的场景图需要另外制作，工具不会虚构地图或替换背景。
+
+## 用法（维护者）
+
+1. 在仓库外或自行指定的工作文件中准备完整候选JSON，保留原artists／cities／events及ID；修改相应记录，给新增记录附完整来源。
+2. 在backend目录预览：
+
+```powershell
+.venv/Scripts/python.exe -X utf8 -m app.catalog_update D:/your-path/candidate.json
+```
+
+3. 检查输出`changes`、`structure_changes`、`metadata_changes`、`order_changes`。字段差异用`before_present`／`after_present`区分缺失与null；数组顺序改变也会列出并保存到变更记录。打开公告核对日期、场馆、状态和歌单，复制本次输出的`base_sha256`。
+4. 核对后写入：
+
+```powershell
+.venv/Scripts/python.exe -X utf8 -m app.catalog_update D:/your-path/candidate.json --apply --expect-sha 本次预览的SHA256 --reviewer lxy
+```
+
+未提供`--apply`不会修改目录；SHA不匹配、旧ID缺失、重复场次或证据不完整都会拒绝。`--catalog`可指定测试文件，默认更新本项目目录。不会读写用户账号、照片、记忆数据库，也不会自动推送Git。变更记录在目录的`change_history`中，版本控制仍由既定main→lxy流程负责。
+
+## 真实歌单证据字段
+
+由`artist_collection`改为`partial`或`confirmed`，需要在场次中提供`setlist_evidence`：
+
+```json
+{
+  "setlist_evidence": {
+    "event_id": "保持原场次ID",
+    "url": "https://真实来源地址",
+    "title": "对应这一天、这座场馆的资料标题",
+    "kind": "recording",
+    "verified_on": "2026-10-01"
+  }
+}
+```
+
+`kind`可为`official`、`recording`或`community`；社区线索只能标partial。未演出的日期不能确认真实现场歌单。`songs`保存核对后的顺序，`setlist_note`明确缺失和核对范围，避免只改标签而仍沿用关联作品列表。
+
+## 音源字段
+
+每首曲目的`audio_url`只能填写本站`/api/audio/…`或HTTPS音频资源，另附`audio_source_url`、`audio_source_title`和`audio_authorization_note`。写入前核对真实歌名、录音版本、使用范围、Content-Type、Range和实际播放。不要填写秘钥、账号Cookie或需要保密的签名地址：目录通过公开API提供。
+
+## 后续接入
+
+- 先接固定官方来源的采集适配器，保留原始URL、资料时间与抓取状态，输出候选JSON。
+- 有需要时再接AI提取：缺字段输出未知；冲突、取消、改期和歌单确认进入人工复核；AI输出仍经过相同工具校验。
+- 数据质量稳定后考虑定时采集、审核入口和用户通知。本轮未创建自动任务、没有申请接口账号或调用付费AI。

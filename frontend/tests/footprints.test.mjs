@@ -112,7 +112,8 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('返回场馆');assert.ok(document.querySelector('[data-scene="venue"]'));assert.match(document.body.textContent,/大运体育场/);
     catalog.events[0].songs=Array.from({length:12},(_,i)=>({title:'曲目'+(i+1),artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w='+i}));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'twelve-songs',initialEntries:['/footprints?event=gem-test']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
-    assert.ok(document.querySelector('.atlas-song-stars.is-long'),'songs beyond the eight distinct stars need the scrollable layout');
+    assert.ok(document.querySelector('.atlas-star-space'),'long lists keep a scrollable scatter field');
+    assert.equal(new Set([...document.querySelectorAll('.atlas-song-star')].map(star=>star.style.left+':'+star.style.top)).size,12,'every song has its own position, rather than repeating eight coordinates');
     catalog.events[0].songs=Array.from({length:16},(_,i)=>({title:'曲目'+(i+1),artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w='+i}));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'long-setlist',initialEntries:['/footprints?event=gem-test']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
     assert.equal(document.querySelectorAll('.atlas-song-star').length,16);
