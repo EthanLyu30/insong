@@ -25,6 +25,8 @@ def test_schema_has_private_account_table_alongside_existing_tables(tmp_path):
         "photos",
         "footprints",
         "concert_playlists",
+        "artist_follows",
+        "event_wishes",
     }
 
 

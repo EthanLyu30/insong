@@ -11,7 +11,7 @@ import {orbitScene,pinchScene,type SceneController} from './sceneInteraction';
 import type {VenueLayer} from './venueMapLayer';
 import {MapResourceStatus,resourceTileKey} from './mapResourceStatus';
 
-type Props={cities:AtlasCity[];events:AtlasEvent[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
+type Props={cities:AtlasCity[];events:AtlasEvent[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
 function nationalPadding(height:number){return {top:height<=720?160:220,bottom:height<=720?192:208,left:12,right:12};}
 function fitNation(map:GLMap,height:number,duration:number){
   // MapLibre adds retained camera padding when fitting bounds; venue padding must be cleared.
@@ -58,7 +58,12 @@ export function AtlasMap(props:Props){
         const tile=(event as unknown as {tile?:{state?:string}}).tile;
         if(tile?.state==='loaded'||event.sourceDataType==='metadata'){resources.loaded(event.sourceId,resourceTileKey(event));showResourceError();}
       });
-      map.on('zoom',()=>{container.current?.classList.toggle('atlas-detail-zoom',map.getZoom()>5);container.current?.classList.toggle('atlas-street-view',map.getZoom()>=7.5);showResourceError();});
+      map.on('zoom',()=>{
+        const zoom=map.getZoom(),approach=Math.max(0,Math.min(1,(zoom-7.5)/5));
+        container.current?.classList.toggle('atlas-detail-zoom',zoom>5);container.current?.classList.toggle('atlas-street-view',zoom>=7.5);
+        container.current?.parentElement?.style.setProperty('--atlas-approach',String(approach));
+        showResourceError();
+      });
       latest.current.cities.forEach(city=>{
         const button=document.createElement('button');button.type='button';button.className='real-city-pin';button.dataset.city=city.id;
         button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=city.name;
@@ -70,6 +75,7 @@ export function AtlasMap(props:Props){
         if(container.current)container.current.dataset.actualCamera=JSON.stringify({center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing(),fov:map.getVerticalFieldOfView(),elevation:map.getCenterElevation()});
         if(latest.current.scene!=='map')return;
         const occupied:{x:number;y:number}[]=[];
+        const sheet=container.current?parseFloat(getComputedStyle(container.current.closest('.atlas-page')??container.current).getPropertyValue('--atlas-sheet-height'))||160:160;
         const ordered=[...markers.current].sort((a,b)=>{
           const rank=(marker:Marker)=>{const el=marker.getElement();return el.classList.contains('is-selected')?3:el.classList.contains('is-upcoming')?2:el.classList.contains('is-lit')?1:0;};
           return rank(b)-rank(a);
@@ -77,7 +83,7 @@ export function AtlasMap(props:Props){
         ordered.forEach(marker=>{
           const p=map.project(marker.getLngLat()),el=marker.getElement();
           const collision=map.getZoom()<5&&occupied.some(other=>Math.abs(other.x-p.x)<58&&Math.abs(other.y-p.y)<38);
-          const obscured=latest.current.scene!=='map'||p.y<(h<=720?160:190)||p.y>h-(h<=720?205:224)||p.x<10||p.x>w-12;
+          const obscured=latest.current.scene!=='map'||p.y<(h<=720?160:190)||p.y>h-sheet-76||p.x<10||p.x>w-12;
           el.style.visibility=collision||obscured?'hidden':'visible';
           if(!collision&&!obscured)occupied.push(p);
         });
@@ -119,7 +125,7 @@ export function AtlasMap(props:Props){
     const project=(now:number)=>{const t=reduced?1:Math.min((now-start)/2600,1),ease=t*t*(3-2*t);map.setVerticalFieldOfView(fromFov+(toFov-fromFov)*ease);if(t<1||map.isMoving())projectionFrame=requestAnimationFrame(project);else map.once('idle',settleProjection);};
     if(reduced)map.setVerticalFieldOfView(toFov);else projectionFrame=requestAnimationFrame(project);
     venueLayer.current?.location(venueEvent);venueLayer.current?.scene(scene);
-    map.setPaintProperty('buildings','fill-extrusion-opacity',scene==='map'?.85:0);
+    map.setPaintProperty('buildings','fill-extrusion-opacity',scene==='map'?.93:0);
     map.setSky({'sky-color':scene==='sky'?'#17304a':'#c8d8dc','horizon-color':scene==='sky'?'#a88470':'#f9dec0','fog-color':scene==='sky'?'#243a4b':'#e7dfd0','sky-horizon-blend':.8,'horizon-fog-blend':.65,'fog-ground-blend':.25,'atmosphere-blend':0});
     // Do not unmount or swap surfaces: every step uses the same native map camera.
     const localVenues=events.filter(event=>event.city===selectedCity?.name&&Number.isFinite(event.venue_lng)&&Number.isFinite(event.venue_lat));
@@ -165,7 +171,8 @@ export function AtlasMap(props:Props){
       const city=cities.find(c=>c.id===marker.getElement().dataset.city)!;const shows=events.filter(e=>e.city===city.name&&e.event_status!=='cancelled');
       const upcoming=shows.some(event=>['upcoming','today'].includes(eventPhase(event,today)));const button=marker.getElement();
       button.classList.toggle('is-lit',shows.length>0);button.classList.toggle('is-upcoming',upcoming);button.classList.toggle('is-selected',city.id===selectedCity?.id||(!selectedCity&&artistSelected&&city.name===nextEvent?.city));
-      button.setAttribute('aria-label',city.name+(shows.length?' · '+shows.length+' 场'+(upcoming?' · 有待演':''):''));
+      const wanted=shows.some(show=>latest.current.wantedEventIds?.includes(show.id));button.classList.toggle('is-wanted',wanted);
+      button.setAttribute('aria-label',city.name+(shows.length?' · '+shows.length+' 场'+(upcoming?' · 有待演':'')+(wanted?' · 有想去的现场':''):''));
     });
     (map.getSource('route') as GeoJSONSource)?.setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:artistSelected&&route.length>1?route:[]}});
     const seen=new Set<string>();const local=events.filter(event=>{const key=`${event.city}:${event.venue}`;if(seen.has(key)||event.city!==selectedCity?.name||!Number.isFinite(event.venue_lng)||!Number.isFinite(event.venue_lat))return false;seen.add(key);return true;});
@@ -173,10 +180,11 @@ export function AtlasMap(props:Props){
     venuePins.current.forEach(marker=>marker.remove());venuePins.current=[];
     if(scene==='map')for(const event of local){
       const button=document.createElement('button');button.type='button';button.className='real-venue-pin';button.dataset.event=event.id;
-      button.setAttribute('aria-label',`地图场馆 · ${event.venue} · 进入外景`);button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=event.venue;
+      const wanted=events.some(show=>show.city===event.city&&show.venue===event.venue&&latest.current.wantedEventIds?.includes(show.id));
+      button.classList.toggle('is-wanted',wanted);button.setAttribute('aria-label',`地图场馆 · ${event.venue} · 进入外景`);button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=event.venue+(wanted?' · 想去':'');
       button.addEventListener('click',()=>latest.current.onVenue(event));const marker=makeVenueMarker.current?.(button,[event.venue_lng!,event.venue_lat!]);if(marker)venuePins.current.push(marker);
     }
-  },[ready,cities,events,today,selectedCity?.id,artistSelected,route,scene]);
+  },[ready,cities,events,today,selectedCity?.id,artistSelected,route,scene,props.wantedEventIds]);
   function reset(){if(selectedCity){props.onNation();return;}if(engine.current)fitNation(engine.current,container.current?.clientHeight??844,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:1000);}
   function retryScene(){if(venueLayer.current)venueLayer.current.location(latest.current.venueEvent);else{setSceneImageError(false);setSceneImageLoading(true);setLayerRetry(value=>value+1);}}
   return <div className={'atlas-map-stage '+(scene!=='map'?'is-travelling':'')}>

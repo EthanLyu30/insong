@@ -1,0 +1,15 @@
+.playlist-version-summary{margin:0 0 20px;color:#546b58;font-size:12px;line-height:1.7}
+.playlist-snapshot-kind{display:inline-block;border:1px solid #cbd4c3;border-radius:20px;padding:3px 11px;background:#eef0e5;color:#52674e;font-size:11px}
+.playlist-snapshot-dates{display:flex;flex-wrap:wrap;gap:3px 15px;margin:8px 0 4px;color:#788773;font-size:10px}
+.playlist-snapshot-note{margin:4px 0;color:#7c8877;font-size:11px}
+.playlist-update-notice{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 15px;margin:0 0 18px;border:1px solid #d9d7bc;border-radius:12px;background:#f3f0df;color:#736c4e;font-size:11px;line-height:1.7}
+.playlist-update-notice p{margin:0}.playlist-update-notice p span{display:block;color:#938971;font-size:10px}
+.playlist-update-button{flex:none;border:1px solid #b4b89b;border-radius:18px;padding:7px 12px;background:#faf8ed;color:#5d674c;font:inherit;cursor:pointer}
+.playlist-update-button:hover{background:#ebeeda}.playlist-update-button:focus-visible{outline:2px solid #95a782;outline-offset:3px}.playlist-update-button:disabled{cursor:wait;opacity:.6}
+.playlist-update-error{margin:0 0 15px;color:#936746;font-size:12px;line-height:1.7}
+.playlist-card-update{display:block;margin-top:7px;color:#8a8056;font-size:10px}
+.concert-collect .playlist-version-summary{margin:9px 0 6px}.concert-collect .playlist-snapshot-kind{border-color:#d8cdbb;background:#eee8da;color:#776951;font-size:10px;padding:2px 9px}
+.concert-collect .playlist-snapshot-dates{color:#8e806c;font-size:10px;margin:5px 0 0}.concert-collect .playlist-snapshot-note{color:#8e806c;font-size:11px}
+.concert-collect .playlist-update-notice{margin:7px 0 0;padding:10px 12px}.concert-collect .playlist-update-notice p{color:#736c4e;font-size:11px;margin:0}
+.concert-collect .playlist-update-button{font-size:11px;padding:5px 10px}
+@media(max-width:520px){.playlist-update-notice{align-items:flex-start;flex-direction:column;gap:9px}.playlist-update-button{align-self:flex-start}.playlist-snapshot-dates{gap:3px 10px}}

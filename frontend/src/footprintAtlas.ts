@@ -6,10 +6,12 @@ export type AtlasEvent = {
   source_url: string; source_title: string; source_kind?: 'report' | 'announcement';
   setlist_kind?: 'confirmed' | 'partial' | 'artist_collection'; setlist_note?: string;
   event_status?: 'scheduled' | 'cancelled'; event_status_note?: string; verified_on?: string;
+  cancellation_verified_on?:string;
   venue_lng?: number; venue_lat?: number;
   songs: AtlasSong[];
 };
-export type AtlasCatalog = { artists: AtlasArtist[]; cities: AtlasCity[]; events: AtlasEvent[]; verified_on?: string; today?: string };
+export type CatalogChange = {reviewed_on:string;changes:{id:string;kinds:string[];fields:Record<string,{before?:unknown;after?:unknown}>}[]};
+export type AtlasCatalog = { artists: AtlasArtist[]; cities: AtlasCity[]; events: AtlasEvent[]; verified_on?: string; today?: string;change_history?:CatalogChange[] };
 export type AtlasVenue = { id: string; city: string; name: string; events: AtlasEvent[] };
 
 export function chinaToday() {

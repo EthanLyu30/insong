@@ -49,7 +49,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {FootprintsPage}=await server.ssrLoadModule('/src/FootprintsPage.tsx');const {SessionProvider}=await server.ssrLoadModule('/src/SessionContext.tsx');
   const root=createRoot(document.getElementById('root')); const previousFetch=globalThis.fetch;
-  let user={id:3,display_name:'听友',is_demo:false},saved=[],writes=0,finishWrite,expired=false,playlists=[],collections=0,finishCollection;
+  let user={id:3,display_name:'听友',is_demo:false},saved=[],writes=0,finishWrite,expired=false,playlists=[],collections=0,finishCollection,interestValue={artist_ids:[],wish_event_ids:[]};
   const catalog={verified_on:'2026-09-30',today:'2026-09-30',artists:[{id:'gem',name:'邓紫棋',aliases:['GEM']},{id:'liu',name:'刘雨昕',aliases:['刘雨欣']}],cities:[{id:'shenzhen',name:'深圳',lng:114.06,lat:22.54},{id:'beijing',name:'北京',lng:116.4,lat:39.9},{id:'lhasa',name:'拉萨',lng:91.1,lat:29.6}],events:[
     {id:'gem-test',artist_id:'gem',title:'测试演唱会',city:'深圳',venue:'大运体育场',date:'2026-09-11',source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[{title:'泡沫',artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w=泡沫',audio_url:'/api/audio/test.wav',audio_label:'测试音源'}]},
     {id:'gem-future',artist_id:'gem',title:'下一晚',city:'深圳',venue:'大运体育场',date:'2026-10-01',venue_lng:114.2123,venue_lat:22.697,source_url:'https://www.lg.gov.cn/',source_title:'官方公告',source_kind:'announcement',setlist_kind:'artist_collection',songs:[]},
@@ -58,6 +58,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   globalThis.fetch=async(url,options={})=>{
     if(url==='/api/me')return Response.json({user});if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/footprints')return expired?Response.json({detail:'请先登录，再操作你的记忆。'},{status:401}):Response.json(saved);
     if(url==='/api/playlists')return expired?Response.json({detail:'请先登录，再操作你的记忆。'},{status:401}):Response.json(playlists);
+    if(url==='/api/footprints/interests')return Response.json(interestValue);
     if(url==='/api/playlists/concerts/gem-test' && options.method==='PUT'){collections++;return new Promise(resolve=>{finishCollection=()=>{const item={id:7,event_id:'gem-test',name:'深圳现场',songs:catalog.events[0].songs};playlists=[item];resolve(Response.json(item));};});}
     if(String(url).startsWith('/api/stories?'))return Response.json([]);
     if(url==='/api/footprints/gem-test' && options.method==='PUT'){writes++;return new Promise(resolve=>{finishWrite=()=>{saved=JSON.parse(options.body).attended?['gem-test']:[];resolve(Response.json(saved));};});}
@@ -69,6 +70,10 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
     await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回全国'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,3);
     await click('邓紫棋'); assert.equal(writes,0);
+    assert.ok(document.querySelector('[aria-label="日程时期"]'));
+    await click('往期');assert.match(document.querySelector('.atlas-schedule-list').textContent,/大运体育场/);
+    assert.ok(!document.querySelector('.atlas-schedule-list').textContent.includes('10.01'),'past filter excludes the next show');
+    await click('接下来');
     await click('靠近这场现场');
     assert.ok(document.querySelector('[data-scene="map"]'),'approaching an itinerary stops on the venue map before the exterior');
     assert.deepEqual(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).center,[114.2123,22.697]);
@@ -87,7 +92,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     assert.equal(document.querySelectorAll('.cinematic-controls button').length,0);
     assert.match(document.querySelector('.atlas-night-event h2').textContent,/相关作品/);
     assert.ok([...document.querySelectorAll('button')].some(b=>b.disabled && b.textContent.includes('演出后')));
-    await click('返回场馆'); await click('全部场次'); await click('2026.09.11');
+    await click('返回全国地图'); await click('往期'); await click('靠近这场现场'); await click('进入大运体育场'); await click('2026.09.11');
     await click('泡沫'); assert.ok(document.querySelector('.concert-song-list'));assert.equal(document.querySelector('a[data-qq-song]'),null);assert.equal(document.querySelector('.atlas-event-source'),null);
     assert.equal(playCalls,1,'clicking the song star starts its audio');
     await React.act(async()=>document.querySelector('.concert-song-list button').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
@@ -98,14 +103,18 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('我去过'); await click('保存中'); assert.equal(writes,1);
     await React.act(async()=>finishWrite());assert.match(document.body.textContent,/取消到场/);
     await click('取消到场'); await React.act(async()=>finishWrite());
-    await click('我去过'); await click('返回场馆');await click('返回全国'); await click('刘雨昕'); await React.act(async()=>finishWrite());
-    assert.match(document.querySelector('.atlas-itinerary h2').textContent,/最近一站/,'past-only itineraries must not promise a future stop');
+    await click('我去过'); await click('返回场馆');await click('返回全国'); await click('接下来'); await click('刘雨昕'); await React.act(async()=>finishWrite());
+    assert.match(document.querySelector('.atlas-itinerary').textContent,/暂无待演/,'past-only artists should offer the past tab without promising a future stop');
+    await click('往期');assert.match(document.querySelector('.atlas-itinerary h2').textContent,/最近一站/);
     assert.ok(!document.body.textContent.includes('取消到场'));
     await click('北京');await click('进入五棵松');await click('2025.09.20');assert.ok(!document.body.textContent.includes('取消到场'));
     await React.act(async()=>{user=null;window.dispatchEvent(new window.StorageEvent('storage',{key:'memory-session-change'}));});
     assert.ok([...document.querySelectorAll('a')].some(a=>a.textContent.includes('登录') && decodeURIComponent(a.href).includes('liu-test')));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'event',initialEntries:['/footprints?event=gem-test']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
     assert.ok(document.querySelector('[data-scene="sky"]'));assert.match(document.body.textContent,/2026.09.11/);
+    await click('返回场馆');
+    if([...document.querySelectorAll('.atlas-show-sheet button')].some(button=>button.textContent.includes('全部场次')))await click('全部场次');
+    assert.ok(!document.querySelector('.atlas-show-sheet').textContent.includes('10.01'),'a direct past-night link defaults to its own past period rather than mixing in upcoming shows');
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'city-link',initialEntries:['/footprints?artist=gem&city=shenzhen']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
     assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8);
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'inconsistent-link',initialEntries:['/footprints?artist=liu&city=beijing&event=gem-test']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
@@ -127,7 +136,19 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     assert.match(document.querySelector('.cinematic-night-title').textContent,/已取消/);
     await click('取消到场');await React.act(async()=>finishWrite());
     assert.ok([...document.querySelectorAll('.atlas-attendance button')].some(button=>button.disabled&&button.textContent==='演出已取消'));
-
-
+    catalog.events[0].event_status='scheduled';
+    await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'filtered-night',initialEntries:['/footprints?artist=gem&period=past&month=2026-09']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
+    await click('靠近这场现场');await click('进入大运体育场');
+    assert.match(document.querySelector('.atlas-show-sheet').textContent,/09.11/,'the selected past night survives approach and venue selection');
+    assert.ok(!document.querySelector('.atlas-show-sheet').textContent.includes('10.01'),'month and period remain applied inside the venue');
+    catalog.events.push({...catalog.events[1],id:'gem-other',venue:'另一座体育馆'});
+    catalog.events.push({...catalog.events[1],id:'liu-future',artist_id:'liu',venue:'刘雨昕体育馆'});
+    interestValue={artist_ids:[],wish_event_ids:['gem-future','liu-future']};
+    await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'personal-map',initialEntries:['/footprints?scope=mine']},React.createElement(SessionProvider,null,React.createElement(FootprintsPage)))));
+    await click('靠近这场现场');
+    assert.equal(document.querySelectorAll('.atlas-venue-row').length,2,'personal scope retains wished venues across artists without adding unwished venues');
+    assert.ok(!document.querySelector('.atlas-city-sheet').textContent.includes('另一座体育馆'));
+    await click('返回全国');
+    assert.equal([...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').getAttribute('aria-pressed'),'true','an approached event does not become an implicit artist filter');
   }finally{await React.act(async()=>root.unmount());await server.close();globalThis.fetch=previousFetch;globalThis.Date=ActualDate;dom.window.close();}
 });

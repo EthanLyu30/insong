@@ -10,6 +10,7 @@
 .atlas-page button:disabled{cursor:default;opacity:.5}
 .atlas-page button:focus-visible,.atlas-page a:focus-visible{outline:2px solid #bd8050;outline-offset:4px}
 .atlas-page button,.atlas-page input,.atlas-page a{touch-action:manipulation}
+.atlas-page select{font:inherit;touch-action:manipulation}
 .atlas-scene,.atlas-map-stage,.real-map-canvas,.cinematic-stage{position:absolute;inset:0}
 .real-map-canvas{background:#f0e8dc}
 .real-map-canvas.maplibregl-map{position:absolute;inset:0;width:100%;height:100%}
@@ -59,7 +60,8 @@
 .atlas-panel header small{display:block;font-size:12px;color:#8a7661;margin-bottom:3px}
 .atlas-panel header>button{display:flex;align-items:center;gap:5px;min-height:36px;padding:3px 0 3px 10px;border:0;background:none;color:#877562;font-size:12px}
 .atlas-schedule-list{overflow:auto;max-height:29vh;scrollbar-width:thin}
-.atlas-schedule-list>button{display:flex;align-items:center;gap:15px;width:100%;min-height:65px;padding:8px 0;background:none;border:0;border-top:1px solid #bcaa942a;color:var(--ink);text-align:left}
+.atlas-schedule-list>button,.atlas-schedule-row{display:flex;align-items:center;gap:15px;width:100%;min-height:65px;padding:8px 0;background:none;border:0;color:var(--ink);text-align:left}
+.atlas-schedule-item{border-top:1px solid #bcaa942a;padding:2px 0 8px}
 .atlas-schedule-list time{font-size:23px;min-width:57px;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
 .atlas-schedule-list time small{display:block;font-size:11px;margin-top:3px;color:#8c7b69}
 .atlas-schedule-list>button>span{flex:1;min-width:0}
@@ -290,6 +292,52 @@
 .atlas-catalog-coverage,.atlas-setlist-note,.atlas-cancelled-note{font-size:11px;line-height:1.6;color:#8a7662;margin:5px 0}
 .atlas-cancelled-note{color:#9e603b}
 .atlas-schedule-list .cancelled{color:#84766a}
+
+/* A closer map shares the warm materials of the venue; only overlays fade. */
+.atlas-sky-canopy{opacity:calc((1 - var(--scene-arrival,0)) * (1 - var(--atlas-approach,0)));transition:opacity .45s}
+.atlas-cloud-canopy{opacity:calc(.92 * (1 - var(--atlas-approach,0)));transition:opacity .45s}
+.is-travelling .atlas-sky-canopy{opacity:0}
+.is-venue-map .atlas-searchbar{background:linear-gradient(#fff8e7e6 0%,#fff8e7b0 48%,#fff8e700 100%)}
+.real-venue-pin.is-wanted span{border-color:#839476;background:#fff7e8;color:#456346}
+.real-city-pin.is-wanted i{outline:2px solid #769072;outline-offset:6px}
+.atlas-map .atlas-map-controls{bottom:calc(var(--atlas-sheet-height,230px) + 80px)}
+.atlas-map .atlas-legend{bottom:calc(var(--atlas-sheet-height,230px) + 76px);color:#4b5948;background:#fff9e9ed}
+.atlas-schedule-row>span{flex:1;min-width:0}
+.atlas-itinerary .atlas-schedule-row{min-height:55px;padding:6px 0 3px}
+.atlas-show-sheet .atlas-schedule-row{min-height:51px;padding:4px 0}
+.atlas-schedule-details{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;padding:0 0 1px}
+.atlas-event-facts{min-width:0;display:flex;flex-direction:column;gap:3px;font-size:11px;line-height:1.6;color:#75634d}
+.atlas-event-facts .is-cancelled,.atlas-event-facts .is-change{font-size:12px;color:#914927}
+.atlas-event-facts .is-cancelled{color:#825147}
+.atlas-schedule-filters{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:2px 0 6px}
+.atlas-schedule-filters [role=group]{display:flex;background:#e9e1d4;border:1px solid #e0d5c2;border-radius:22px;padding:2px;flex:none}
+.atlas-schedule-filters [role=group] button{border:0;background:none;border-radius:19px;color:#716452;padding:6px 9px;min-height:36px;font-size:12px}
+.atlas-schedule-filters [role=group] button[aria-pressed=true]{background:#fffbf2;box-shadow:0 1px 5px #77562c12;color:#643b20}
+.atlas-month-filter{min-width:0;flex:1;max-width:112px}
+.atlas-month-filter select{width:100%;font-size:11px;min-height:44px;border:0;background:transparent;color:#665842;padding:4px 0;cursor:pointer}
+.atlas-interest-filter{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;border:0;background:none;color:#6c6457;padding:5px 0;font-size:12px;white-space:nowrap}
+.atlas-interest-filter[aria-pressed=true]{color:#4e6848;font-weight:600}
+.atlas-schedule-empty{padding:10px 0 3px;font-size:13px;color:#71624f;line-height:1.65}
+.atlas-schedule-empty p{margin:0 0 7px}
+.atlas-schedule-empty>button{display:inline-flex;align-items:center;gap:5px;border:0;background:none;color:#945632;font-size:12px;min-height:40px;padding:3px 12px 3px 0}
+.atlas-follow-button,.atlas-artist-pills .atlas-follow-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;border:1px solid #d6c3a5;background:#fff8e8;color:#72523a;border-radius:22px;min-height:40px;padding:7px 12px;white-space:nowrap}
+.atlas-artist-pills .atlas-follow-button[aria-pressed=true]{background:#f1eddf;color:#516943;border-color:#b7c4a6}
+.atlas-wish-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;min-height:36px;padding:5px 9px;border:1px solid #d9c7ae;border-radius:20px;background:#fff8e9;color:#805d3b;font-size:12px}
+.atlas-wish-button.is-wanted{color:#486242;background:#e9efdf;border-color:#c2ceaf}
+.atlas-interests-error{pointer-events:auto;font-size:12px;line-height:1.6;color:#8b452b;background:#fff7e8e8;border-radius:10px;padding:7px 9px;margin:5px 0}
+.atlas-interests-error button{border:0;background:none;color:#90451e;text-decoration:underline;padding:3px 8px}
+.atlas-night-personal{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0 7px}
+.atlas-night-personal .atlas-event-facts{font-size:10px}
+.cinematic-location::before{content:'';position:absolute;z-index:-1;inset:-20px -24px -42px;background:linear-gradient(110deg,#fff4ddbd,#fff2da69 62%,#fff2da00 98%);mask-image:linear-gradient(#000 0%,#000 64%,transparent 100%);pointer-events:none}
+.cinematic-location{isolation:isolate;text-shadow:0 1px 8px #fff0dc66}
+.cinematic-location p{display:inline-block;max-width:310px;font-size:14px;font-weight:500;line-height:1.6;color:#533b27;background:#fff4dfd9;padding:3px 9px;border-radius:14px;text-shadow:none}
+.cinematic-night-title{isolation:isolate}
+.cinematic-night-title::before{content:'';position:absolute;z-index:-1;inset:-22px -24px -36px;background:linear-gradient(#0b213da6,#0b213d65 55%,#0b213d00);pointer-events:none}
+.cinematic-night-title p{color:#fff1de;font-size:13px;line-height:1.7;text-shadow:0 1px 4px #081e3b}
+.cinematic-orbit-hint{left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);padding:7px 13px;border-radius:24px;background:#19302970;border:1px solid #fff7e52e;font-size:12px}
+.cinematic-enter>span{left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);padding:5px 11px;border-radius:22px;background:#16261a80;color:#fffaf0;opacity:1}
+@media(max-height:720px){.atlas-schedule-row{min-height:49px}.atlas-event-facts{font-size:10px}.atlas-schedule-list{max-height:24vh}.atlas-show-sheet .atlas-schedule-list{max-height:20vh}.cinematic-location p{font-size:12px}.cinematic-orbit-hint{bottom:calc(var(--atlas-sheet-height,230px) + 118px)}.cinematic-enter{height:auto;bottom:calc(var(--atlas-sheet-height,230px) + 78px)}.atlas-itinerary{padding-top:12px}.atlas-schedule-filters{margin-bottom:3px}}
+@media(max-width:370px){.atlas-schedule-filters [role=group] button{padding:6px 7px}.atlas-interest-filter{font-size:11px}.atlas-month-filter{max-width:94px}}
 .atlas-map:not(.atlas-venue) .real-map-canvas .maplibregl-ctrl-bottom-left{top:246px;bottom:auto;left:24px;right:auto}
 .atlas-legend i.past{background:#bdc6ad;box-shadow:none}.atlas-legend i.future{background:#ffe5a1}
 .atlas-venue-row .atlas-venue-icon{display:block;color:#a77346;flex:none}

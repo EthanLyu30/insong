@@ -177,6 +177,20 @@ class Footprint(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class ArtistFollow(Base):
+    __tablename__ = 'artist_follows'
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    artist_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class EventWish(Base):
+    __tablename__ = 'event_wishes'
+    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    event_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class ConcertPlaylist(Base):
     __tablename__ = 'concert_playlists'
     __table_args__ = (UniqueConstraint('owner_id', 'event_id'),)
