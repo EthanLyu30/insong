@@ -5,7 +5,7 @@ import json
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as OrmSession
 
-from .demo_data import DEMO_MEMORY_CARDS, DEMO_SONGS, FANDOM_SONGS, FANDOM_STORIES, LEGACY_FANDOM_COVERS, DEMO_PHOTO_COVERS
+from .demo_data import DEMO_MEMORY_CARDS, DEMO_SONGS, FANDOM_SONGS, FANDOM_STORIES, LEGACY_FANDOM_COVERS, DEMO_PHOTO_COVERS, PREVIOUS_FANDOM_PHOTO_COVERS
 from .models import MemoryCard, MemoryCardTag, MemoryReceipt, PublicStory, SeedMigration, Song, Tag, User
 from .card_metadata import set_memory_tags
 
@@ -85,6 +85,24 @@ def seed_fandom_showcase(db: OrmSession) -> None:
                                        tags_json=json.dumps(sample['tags'], ensure_ascii=False),
                                        photo_ids_json='[]', author_name='虚构歌迷 · 演示故事',
                                        anonymous=True, theme_id=sample['theme_id'], published=True)
+    db.add(SeedMigration(key=marker))
+
+
+def refresh_recent_showcase_photos(db: OrmSession) -> None:
+    """Upgrade exact untouched seed covers once, without changing user memories."""
+    marker = 'showcase-recent-photography-v1'
+    if db.get(SeedMigration, marker) is not None:
+        return
+    for sample in FANDOM_SONGS:
+        previous = PREVIOUS_FANDOM_PHOTO_COVERS.get(sample['id'])
+        if previous is None:
+            continue
+        for song in db.scalars(select(Song).where(
+            Song.title == sample['title'], Song.artist == sample['artist'],
+            Song.cover_url == previous, Song.is_demo.is_(False),
+            Song.source_label == '歌手作品资料 · 摄影配图',
+        )):
+            song.cover_url = sample['cover_url']
     db.add(SeedMigration(key=marker))
 
 

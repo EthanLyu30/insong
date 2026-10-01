@@ -12,15 +12,20 @@ DEMO_SONGS = [
 # 稻香: https://www.jvrmusic.com/artist/gallery/detail/1151772159916511232?lang=zh_CN&type=album
 # 倔强: https://bin-music.com/artist/MAYDAY
 # 邓紫棋/刘雨昕: source-backed song entries in footprint_catalog.json.
-# Real stock photography is illustrative, never an official album cover or
-# evidence of attendance at any named artist's concert. Sources live in photos/README.md.
+# Recent artist-specific concert photos and stock photos illustrate fictional
+# samples, not attendance or a confirmed setlist. Sources live in photos/README.md.
 FANDOM_SONGS = [
     {'id': 101, 'title': '稻香', 'artist': '周杰伦', 'cover_url': '/photos/live-lights.webp'},
-    {'id': 102, 'title': '光年之外', 'artist': '邓紫棋', 'cover_url': '/photos/concert-flags.webp'},
-    {'id': 103, 'title': '泡沫', 'artist': '邓紫棋', 'cover_url': '/photos/journey-sunset.webp'},
-    {'id': 104, 'title': 'REALITY', 'artist': '刘雨昕', 'cover_url': '/photos/concert-phone.webp'},
+    {'id': 102, 'title': '光年之外', 'artist': '邓紫棋', 'cover_url': '/photos/gem-shenzhen-20260926-stage.webp'},
+    {'id': 103, 'title': '泡沫', 'artist': '邓紫棋', 'cover_url': '/photos/gem-shenzhen-20260926-detail.webp'},
+    {'id': 104, 'title': 'REALITY', 'artist': '刘雨昕', 'cover_url': '/photos/liu-yuxin-2026-lightstick.webp'},
     {'id': 105, 'title': '倔强', 'artist': '五月天', 'cover_url': '/photos/festival-day.webp'},
 ]
+
+PREVIOUS_FANDOM_PHOTO_COVERS = {
+    102: '/photos/concert-flags.webp', 103: '/photos/journey-sunset.webp',
+    104: '/photos/concert-phone.webp',
+}
 
 LEGACY_FANDOM_COVERS = {
     101: '/scenes/venues/shanghai-stadium-interior.webp',

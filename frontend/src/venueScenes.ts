@@ -1,7 +1,8 @@
 import type {AtlasEvent} from './footprintAtlas';
+import {venuePhotograph,type PhotoSource} from './photoSources.ts';
 
 export type VenueScene = {
-  id:string; covered:boolean; exterior:string; interior:string;
+  id:string; covered:boolean; exterior:string; interior:string;interiorPhoto?:PhotoSource;
 };
 const profiles:[string,boolean,string[]][] = [
   ['shenzhen-stadium',false,['深圳大运中心体育场','大运体育场']],
@@ -30,6 +31,8 @@ for(const [id,covered,names] of profiles){
 }
 
 // Never substitute a different city's architecture for an unknown venue.
-export function venueScene(event?:Pick<AtlasEvent,'venue'>):VenueScene|undefined{
-  return event?scenes.get(event.venue):undefined;
+export function venueScene(event?:Pick<AtlasEvent,'venue'>&Partial<Pick<AtlasEvent,'artist_id'>>):VenueScene|undefined{
+  const profile=event?scenes.get(event.venue):undefined;
+  const photo=event?.artist_id==='gem'?venuePhotograph(event.venue,event.artist_id):undefined;
+  return profile&&photo?{...profile,id:profile.id+'-gem-20260926',interior:photo.url,interiorPhoto:photo}:profile;
 }

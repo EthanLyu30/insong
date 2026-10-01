@@ -32,8 +32,9 @@ function RecentConcerts() {
   }).filter((event,index,all)=>all.findIndex(other=>other.artist_id===event.artist_id&&other.city===event.city)===index).slice(0,3);
   return events.length?<div className="recent-concerts"><span>近期已收录现场</span><div>{events.map(event=>{
     const artist=catalog.artists.find(item=>item.id===event.artist_id)?.name??event.title;
+    const photo=venuePhotograph(event.venue,event.artist_id);
     return <Link key={event.id} to={`/footprints?event=${encodeURIComponent(event.id)}&scene=map`}>
-      {venuePhotograph(event.venue)?<div className="recent-photo"><img src={venuePhotograph(event.venue)!.url} alt="深圳大运中心全景，2017 年历史实拍" loading="lazy"/><span>2017 实拍</span></div>:<div className="recent-date" aria-hidden="true"><span>{event.date.slice(5).replace('-','.')}</span><i>{event.date.slice(0,4)}</i></div>}<strong>{artist} · {event.city}</strong><small>{dateLabel(event.date)} · {phaseLabel(event,today)}</small>
+      {photo?<div className="recent-photo"><img src={photo.url} alt={`${photo.description} · ${photo.captured} 实拍参考`} loading="lazy"/><span>{photo.captured?.slice(5)} 实拍参考</span></div>:<div className="recent-date" aria-hidden="true"><span>{event.date.slice(5).replace('-','.')}</span><i>{event.date.slice(0,4)}</i></div>}<strong>{artist} · {event.city}</strong><small>{dateLabel(event.date)} · {phaseLabel(event,today)}</small>
     </Link>;
   })}</div></div>:null;
 }

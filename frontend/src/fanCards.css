@@ -1,4 +1,9 @@
 /* PDF 9.29 feedback: photographs lead; stories stay complete and readable. */
+.story-cover img[src="/photos/gem-shenzhen-20260926-stage.webp"],
+.story-back-photo[src="/photos/gem-shenzhen-20260926-stage.webp"],
+.song-artwork img[src="/photos/gem-shenzhen-20260926-stage.webp"],
+.record-heading img[src="/photos/gem-shenzhen-20260926-stage.webp"],
+.song-selection img[src="/photos/gem-shenzhen-20260926-stage.webp"] { object-position: right center; }
 :root { color: #40372e; background: #eee8de; }
 .topbar { min-height: 66px; }
 .intro-shell { height: 100dvh; }
