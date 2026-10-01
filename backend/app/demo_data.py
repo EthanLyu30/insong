@@ -12,14 +12,28 @@ DEMO_SONGS = [
 # 稻香: https://www.jvrmusic.com/artist/gallery/detail/1151772159916511232?lang=zh_CN&type=album
 # 倔强: https://bin-music.com/artist/MAYDAY
 # 邓紫棋/刘雨昕: source-backed song entries in footprint_catalog.json.
-# These local illustrations are atmosphere scenes, never official album covers.
+# Real stock photography is illustrative, never an official album cover or
+# evidence of attendance at any named artist's concert. Sources live in photos/README.md.
 FANDOM_SONGS = [
-    {'id': 101, 'title': '稻香', 'artist': '周杰伦', 'cover_url': '/scenes/venues/shanghai-stadium-interior.webp'},
-    {'id': 102, 'title': '光年之外', 'artist': '邓紫棋', 'cover_url': '/scenes/venues/sanya-egret-interior.webp'},
-    {'id': 103, 'title': '泡沫', 'artist': '邓紫棋', 'cover_url': '/scenes/venues/shanghai-stadium-exterior.webp'},
-    {'id': 104, 'title': 'REALITY', 'artist': '刘雨昕', 'cover_url': '/scenes/venues/shanghai-oriental-arena-interior.webp'},
-    {'id': 105, 'title': '倔强', 'artist': '五月天', 'cover_url': '/scenes/venues/xiamen-egret-interior.webp'},
+    {'id': 101, 'title': '稻香', 'artist': '周杰伦', 'cover_url': '/photos/live-lights.webp'},
+    {'id': 102, 'title': '光年之外', 'artist': '邓紫棋', 'cover_url': '/photos/concert-flags.webp'},
+    {'id': 103, 'title': '泡沫', 'artist': '邓紫棋', 'cover_url': '/photos/journey-sunset.webp'},
+    {'id': 104, 'title': 'REALITY', 'artist': '刘雨昕', 'cover_url': '/photos/concert-phone.webp'},
+    {'id': 105, 'title': '倔强', 'artist': '五月天', 'cover_url': '/photos/festival-day.webp'},
 ]
+
+LEGACY_FANDOM_COVERS = {
+    101: '/scenes/venues/shanghai-stadium-interior.webp',
+    102: '/scenes/venues/sanya-egret-interior.webp',
+    103: '/scenes/venues/shanghai-stadium-exterior.webp',
+    104: '/scenes/venues/shanghai-oriental-arena-interior.webp',
+    105: '/scenes/venues/xiamen-egret-interior.webp',
+}
+DEMO_PHOTO_COVERS = {
+    1: '/photos/live-lights.webp', 2: '/photos/journey-sunset.webp',
+    3: '/photos/festival-day.webp', 4: '/photos/journey-sunset.webp',
+    5: '/photos/concert-phone.webp',
+}
 
 # Explicitly fictional walkthrough samples, unrelated to real attendance records.
 FANDOM_STORIES = [

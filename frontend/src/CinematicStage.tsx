@@ -41,6 +41,6 @@ export function CinematicStage({scene,controller,event,venueName,city,artistName
       <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {venueName??city}</p>{event.event_status==='cancelled'?<span>这场演出已取消 · 仅保留记录</span>:<span>把歌声，留在星光里。</span>}</div>
       <SongConstellation eventId={event.id} songs={event.songs} selected={selected} playing={playing} onSong={onSong}/>
     </>}
-    {scene!=='map'&&<span className="cinematic-demo-label">{located?'场景示意':'城市位置 · 场景示意'}</span>}
+    {scene!=='map'&&<span className="cinematic-demo-label">{located?'氛围示意 · 非实拍':'城市位置 · 氛围示意'}</span>}
   </div>;
 }

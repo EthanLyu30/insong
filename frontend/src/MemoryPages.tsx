@@ -14,6 +14,7 @@ import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
 import { Cards, ChatCircle, Plus } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
+import { PhotoCredit } from './PhotoCredit';
 
 export function LoginGate() {
   const location = useLocation();
@@ -51,6 +52,7 @@ export function SongPage() {
     <Link className="back-link" to="/">← 回到音乐里</Link>
     {params.get('event')&&<EventNote id={params.get('event')!}/>}
     <div className="song-artwork"><img src={songCover(song)} alt={`《${song.title}》配图`}/></div>
+    <PhotoCredit url={songCover(song)}/>
     <div className="song-journal-title"><h1>{song.title}</h1><p>{song.artist}</p><span className="journal-eyebrow">{song.recording_label}</span></div>
     <AudioPlayer song={song} full anchor={safePosition} end={safeEnd} onMark={ms=>{setPosition(ms);setLyricId(null);}}/>
     <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);}}/>

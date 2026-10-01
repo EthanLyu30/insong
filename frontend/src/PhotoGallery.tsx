@@ -3,6 +3,7 @@ import {CaretLeft, CaretRight, X} from '@phosphor-icons/react';
 import type {Photo} from './memoryClient';
 import {photoSource} from './cardMedia';
 import {PhotoPicker} from './PhotoPicker';
+import {PhotoCredit} from './PhotoCredit';
 
 export function PhotoGallery({photos,fallback}:{photos:Photo[];fallback?:string}) {
   const [selected,setSelected]=useState<number|null>(null);
@@ -11,7 +12,7 @@ export function PhotoGallery({photos,fallback}:{photos:Photo[];fallback?:string}
     function key(event:KeyboardEvent){if(event.key==='Escape')setSelected(null);if(event.key==='ArrowRight')setSelected(index=>index===null?null:(index+1)%photos.length);if(event.key==='ArrowLeft')setSelected(index=>index===null?null:(index+photos.length-1)%photos.length);}
     window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
   },[selected,photos.length]);
-  if(!photos.length)return fallback?<img className="story-fallback-image" src={fallback} alt="这首歌的配图"/>:null;
+  if(!photos.length)return fallback?<><img className="story-fallback-image" src={fallback} alt="这首歌的配图"/><PhotoCredit url={fallback}/></>:null;
   return <><div className={`moment-gallery moment-gallery-${Math.min(photos.length,4)}`} aria-label="这一刻的照片">{photos.map((photo,index)=><button key={photo.id} type="button" onClick={()=>setSelected(index)} aria-label={`查看第${index+1}张照片`}><img src={photoSource(photo.url)} alt={`这一刻的照片 ${index+1}`} loading="lazy"/></button>)}</div>{selected!==null&&photos[selected]&&<div className="photo-lightbox" role="dialog" aria-modal="true" aria-label="照片大图" onClick={()=>setSelected(null)}><button autoFocus type="button" aria-label="关闭照片大图" onClick={()=>setSelected(null)}><X size={25}/></button><img src={photoSource(photos[selected].url)} alt={`第${selected+1}张照片大图`}/>{photos.length>1&&<div className="lightbox-controls" onClick={event=>event.stopPropagation()}><button type="button" aria-label="上一张照片" onClick={()=>setSelected((selected+photos.length-1)%photos.length)}><CaretLeft/></button><span>{selected+1} / {photos.length}</span><button type="button" aria-label="下一张照片" onClick={()=>setSelected((selected+1)%photos.length)}><CaretRight/></button></div>}</div>}</>;
 }
 

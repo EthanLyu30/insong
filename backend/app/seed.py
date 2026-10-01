@@ -5,7 +5,7 @@ import json
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as OrmSession
 
-from .demo_data import DEMO_MEMORY_CARDS, DEMO_SONGS, FANDOM_SONGS, FANDOM_STORIES
+from .demo_data import DEMO_MEMORY_CARDS, DEMO_SONGS, FANDOM_SONGS, FANDOM_STORIES, LEGACY_FANDOM_COVERS, DEMO_PHOTO_COVERS
 from .models import MemoryCard, MemoryCardTag, MemoryReceipt, PublicStory, SeedMigration, Song, Tag, User
 from .card_metadata import set_memory_tags
 
@@ -61,7 +61,7 @@ def seed_fandom_showcase(db: OrmSession) -> None:
             if db.get(Song, song_id) is not None:
                 song_id = max(101, (db.scalar(select(func.max(Song.id))) or 100) + 1)
             song = Song(**(sample | {'id': song_id}), version='曲目资料（无音频）',
-                        source_label='歌手作品资料 · 场景插画', is_demo=False, audio_available=False)
+                        source_label='歌手作品资料 · 摄影配图', is_demo=False, audio_available=False)
             db.add(song)
             db.flush()
         songs[sample['id']] = song
@@ -85,4 +85,28 @@ def seed_fandom_showcase(db: OrmSession) -> None:
                                        tags_json=json.dumps(sample['tags'], ensure_ascii=False),
                                        photo_ids_json='[]', author_name='虚构歌迷 · 演示故事',
                                        anonymous=True, theme_id=sample['theme_id'], published=True)
+    db.add(SeedMigration(key=marker))
+
+
+def refresh_showcase_photos(db: OrmSession) -> None:
+    """Replace known seed illustrations once; never touch custom covers or stories."""
+    marker = 'showcase-photography-v1'
+    if db.get(SeedMigration, marker) is not None:
+        return
+    for sample in FANDOM_SONGS:
+        for song in db.scalars(select(Song).where(
+            Song.title == sample['title'], Song.artist == sample['artist'],
+            Song.cover_url == LEGACY_FANDOM_COVERS[sample['id']],
+            Song.source_label == '歌手作品资料 · 场景插画',
+            Song.is_demo.is_(False),
+        )):
+            song.cover_url = sample['cover_url']
+            song.source_label = '歌手作品资料 · 摄影配图'
+    for sample in DEMO_SONGS:
+        for song in db.scalars(select(Song).where(
+            Song.title == sample['title'], Song.artist == sample['artist'],
+            Song.version == sample['version'], Song.source_label == sample['source_label'],
+            Song.is_demo.is_(True), Song.cover_url.is_(None),
+        )):
+            song.cover_url = DEMO_PHOTO_COVERS[sample['id']]
     db.add(SeedMigration(key=marker))

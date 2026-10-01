@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.pool import StaticPool
 
 from .models import Base, MemoryCard, PublicStory
-from .seed import seed_demo_data, seed_fandom_showcase
+from .seed import seed_demo_data, seed_fandom_showcase, refresh_showcase_photos
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
 
@@ -81,3 +81,4 @@ def initialize_database(engine: Engine) -> None:
         # on legacy databases. Keep receipts when the corresponding card is deleted.
         db.execute(text('INSERT OR IGNORE INTO memory_receipts(id, owner_id, request_key) SELECT id, owner_id, request_key FROM memory_cards'))
         seed_fandom_showcase(db)
+        refresh_showcase_photos(db)

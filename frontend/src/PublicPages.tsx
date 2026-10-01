@@ -9,7 +9,8 @@ import {PhotoGallery} from './PhotoGallery';
 import {useData} from './useData';
 import {EventNote} from './EventNote';
 import {chinaToday, dateLabel, phaseLabel, type AtlasCatalog} from './footprintAtlas';
-import {venueScene} from './venueScenes';
+import {venuePhotograph} from './photoSources';
+import {PhotoCredit,PhotoSources} from './PhotoCredit';
 
 export function TagLinks({tags=[]}:{tags?:string[]}) {
   return tags.length?<div className="story-tags">{tags.map(tag=><Link key={tag} to={`/discover?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>)}</div>:null;
@@ -17,7 +18,7 @@ export function TagLinks({tags=[]}:{tags?:string[]}) {
 
 export function ThemeLinks() {
   const {value:themes,error}=useData<Theme[]>('/api/themes');
-  return <section className="theme-section"><div className="list-heading"><h2>下一次，现场见</h2><Link className="text-button" to="/footprints">看演出行程 <ArrowUpRight size={14}/></Link></div>{error?<p role="alert">{error}</p>:<div className="theme-links">{themes?.map((theme,index)=><Link to={`/themes/${theme.id}`} key={theme.id} className={`theme-link theme-link-${index}`}><img src={theme.image_url??['/scenes/venues/shanghai-stadium-interior.webp','/scenes/venues/guangzhou-arena-interior.webp','/scenes/venues/hangzhou-lotus-exterior.webp'][index%3]} alt=""/><div><h3>{theme.title}</h3><p>{theme.description}</p></div><ArrowUpRight size={17} aria-hidden="true"/></Link>)}</div>}<RecentConcerts/></section>;
+  return <section className="theme-section"><div className="list-heading"><h2>下一次，现场见</h2><Link className="text-button" to="/footprints">看演出行程 <ArrowUpRight size={14}/></Link></div>{error?<p role="alert">{error}</p>:<div className="theme-links">{themes?.map((theme,index)=><Link to={`/themes/${theme.id}`} key={theme.id} className={`theme-link theme-link-${index}`}><img src={theme.image_url??['/photos/live-lights.webp','/photos/festival-day.webp','/photos/journey-sunset.webp'][index%3]} alt=""/><div><h3>{theme.title}</h3><p>{theme.description}</p></div><ArrowUpRight size={17} aria-hidden="true"/></Link>)}</div>}<RecentConcerts/></section>;
 }
 
 function RecentConcerts() {
@@ -32,7 +33,7 @@ function RecentConcerts() {
   return events.length?<div className="recent-concerts"><span>近期已收录现场</span><div>{events.map(event=>{
     const artist=catalog.artists.find(item=>item.id===event.artist_id)?.name??event.title;
     return <Link key={event.id} to={`/footprints?event=${encodeURIComponent(event.id)}&scene=map`}>
-      {venueScene(event)&&<img src={venueScene(event)!.interior} alt="" loading="lazy"/>}<strong>{artist} · {event.city}</strong><small>{dateLabel(event.date)} · {phaseLabel(event,today)}</small>
+      {venuePhotograph(event.venue)?<div className="recent-photo"><img src={venuePhotograph(event.venue)!.url} alt="深圳大运中心全景，2017 年历史实拍" loading="lazy"/><span>2017 实拍</span></div>:<div className="recent-date" aria-hidden="true"><span>{event.date.slice(5).replace('-','.')}</span><i>{event.date.slice(0,4)}</i></div>}<strong>{artist} · {event.city}</strong><small>{dateLabel(event.date)} · {phaseLabel(event,today)}</small>
     </Link>;
   })}</div></div>:null;
 }
@@ -42,12 +43,12 @@ export function StoryEntry({story,matchLabel}:{story:PublicStory;matchLabel?:str
   return <article className={`flip-card${flipped?' is-flipped':''}`}>
     <div className="flip-rotor">
       <div className="flip-face flip-front" inert={flipped} aria-hidden={flipped}>
-        <button className="card-flip-trigger" aria-label={`翻开${story.song.title}的故事并播放`} onClick={()=>setFlipped(true)}>
+        <button className="card-flip-trigger" aria-label={`翻开${story.song.title}的故事${story.song.audio_url?'并播放':''}`} onClick={()=>setFlipped(true)}>
           <div className="story-cover"><img src={cardCover(story)} alt={`《${story.song.title}》${story.photo_url?'记忆照片':'配图'}`} loading="lazy"/><span className="cover-stamp">{story.is_demo_sample?'虚构样例':'音乐卡片'}</span>{cardPhotos(story).length>1&&<span className="photo-count">{cardPhotos(story).length} 张</span>}</div>
           <div className="story-front-copy"><h3>{story.song.title}</h3><span className="story-artist">{story.song.artist}</span><p className="story-card-title">{story.title||story.excerpt}</p>{matchLabel&&<span className="match-label">{matchLabel}</span>}</div>
         </button>
         <TagLinks tags={story.tags}/>
-        <div className="card-bottom"><span className="card-author">{story.author_name}</span><Link to={`/stories/${story.id}`} className="card-read" aria-label={`阅读${story.song.title}的完整故事`}>全文</Link><button className="card-play" aria-label={`播放${story.song.title}并翻到背面`} onClick={()=>setFlipped(true)}><Play size={14} weight="fill"/></button></div>
+        <div className="card-bottom"><span className="card-author">{story.author_name}</span><Link to={`/stories/${story.id}`} className="card-read" aria-label={`阅读${story.song.title}的完整故事`}>全文</Link><button className="card-play" aria-label={story.song.audio_url?`播放${story.song.title}并翻到背面`:`翻开${story.song.title}的故事`} onClick={()=>setFlipped(true)}>{story.song.audio_url?<Play size={14} weight="fill"/>:<ArrowUpRight size={15}/>}</button></div>
       </div>
       <div className="flip-face flip-back" inert={!flipped} aria-hidden={!flipped}>
         <button className="card-close" aria-label={`收起${story.song.title}的故事`} onClick={()=>setFlipped(false)}><ArrowCounterClockwise size={12}/> 正面</button>
@@ -100,6 +101,7 @@ export function DiscoverPage({home=false}:{home?:boolean}) {
     {busy&&<p className="inline-status" role="status">正在公开卡片里寻找…</p>}{error&&<p className="form-error" role="alert">{error}</p>}
     {result?<section aria-live="polite"><div className="list-heading"><h2>关于“{searched}”</h2><button className="text-button" onClick={()=>{setQuery(tag?`#${tag}`:'');reset();}}>回看故事</button></div><p className="resource-note">{result.notice||(result.mode==='semantic'?'这些经历可能与你有关，下面是作者的公开原文。':`${result.items.length} 张相关卡片`)}</p>{result.items.length?<div className="story-masonry">{result.items.map(item=><StoryEntry key={item.story.id} story={item.story} matchLabel={item.match_label}/>)}</div>:<div className="empty-paper"><h3>还没有找到相关卡片。</h3><p>试试歌手、歌名或标签，也可以切换经历匹配。</p></div>}</section>:!busy&&<PublicStoryList path={`/api/stories?${filters}`} recommended={!song&&!lyric&&!tag} heading={tag?`关于 #${tag}`:lyric?'同一句词，不同的我们':song?'这首歌里的我们':'这些歌，陪我们走过现场'}/>}
     <p className="resource-note">“虚构样例”用于体验流程，不代表真实听友投稿或实际演出歌单。</p>
+    <PhotoSources/>
   </section>;
 }
 
@@ -115,5 +117,5 @@ export function StoryPage() {
 export function ThemePage() {
   const {themeId}=useParams();const {value,error}=useData<Theme[]>('/api/themes');
   const theme=value?.find(item=>item.id===themeId);
-  return <section className="journal-page theme-page"><Link className="back-link" to="/discover">← 回到共鸣</Link>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><span className="journal-eyebrow">让一段音乐，唤起一个时刻</span><h1>{theme.title}</h1>{theme.image_url&&<img className="theme-hero" src={theme.image_url} alt=""/>}<p className="theme-question">{theme.prompt}</p><p className="page-intro">{theme.description}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><p className="quiet-caption">记忆会留在你的时间轴，公开由你决定。</p><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
+  return <section className="journal-page theme-page"><Link className="back-link" to="/discover">← 回到共鸣</Link>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><span className="journal-eyebrow">让一段音乐，唤起一个时刻</span><h1>{theme.title}</h1>{theme.image_url&&<><img className="theme-hero" src={theme.image_url} alt=""/><PhotoCredit url={theme.image_url}/></>}<p className="theme-question">{theme.prompt}</p><p className="page-intro">{theme.description}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><p className="quiet-caption">记忆会留在你的时间轴，公开由你决定。</p><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
 }

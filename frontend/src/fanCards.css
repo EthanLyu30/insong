@@ -29,8 +29,8 @@
 .theme-section .list-heading a { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; }
 .theme-links { gap: 8px; }
 .theme-link { position: relative; min-height: 136px; padding: 0; border-radius: 12px; background: #75604a; overflow: hidden; color: #fffaf1; }
-.theme-link > img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; opacity: .68; }
-.theme-link > div { position: relative; padding: 32px 12px 20px; background: #34241320; height: 100%; display: flex; flex-direction: column; justify-content: end; }
+.theme-link > img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+.theme-link > div { position: relative; padding: 32px 12px 20px; background: linear-gradient(transparent 10%,#21190d14 25%,#21190da6 100%); height: 100%; display: flex; flex-direction: column; justify-content: end; }
 .theme-link h3 { font: 600 17px/1.4 'Microsoft YaHei',sans-serif; color: #fff9ee; margin: 0 0 7px; text-shadow: 0 1px 5px #241810; }
 .theme-link p { color: #fff4e3; font-size: 10px; line-height: 1.6; margin: 0; text-shadow: 0 1px 4px #241810; }
 .theme-link > svg { position: absolute; right: 8px; top: 9px; }
@@ -39,6 +39,12 @@
 .recent-concerts > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
 .recent-concerts a { display: flex; flex-direction: column; min-width: 0; gap: 5px; padding-bottom: 8px; border-bottom: 1px solid #e8d9c5; }
 .recent-concerts img { width: 100%; aspect-ratio: 2; object-fit: cover; border-radius: 7px; }
+.recent-photo { position: relative; }
+.recent-photo img { display: block; }
+.recent-photo > span { position: absolute; bottom: 4px; right: 4px; background: #fff9efeb; color: #4e5443; padding: 2px 4px; font-size: 9px; border-radius: 3px; }
+.recent-date { aspect-ratio: 2; border-radius: 7px; background: #f0e7da; color: #8c684b; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.recent-date > span { font-size: clamp(16px,4.8vw,25px); font-weight: 500; letter-spacing: -.03em; }
+.recent-date > i { font-size: 10px; font-style: normal; writing-mode: vertical-rl; }
 .recent-concerts strong { font-size: 11px; line-height: 1.5; color: #6c533d; }
 .recent-concerts small { font-size: 9px; color: #987b61; line-height: 1.5; }
 .theme-hero { width: 100%; max-height: 330px; object-fit: cover; border-radius: 16px; }
@@ -48,6 +54,17 @@
 .flip-front { min-height: 0; }
 .story-cover { aspect-ratio: 4/5; }
 .story-cover::after { content: ''; position: absolute; inset: auto 0 -1px; height: 12px; box-shadow: inset 0 -9px 9px -9px #fffdf7; pointer-events: none; }
+img[src$="concert-phone.webp"] { object-position: 65% 80%; }
+img[src$="festival-day.webp"] { object-position: 50% 64%; }
+.photo-credit { color: #796550; font-size: 11px; line-height: 1.7; margin: 10px 0 15px; }
+.photo-credit summary { cursor: pointer; min-height: 34px; display: flex; align-items: center; gap: 7px; list-style: none; }
+.photo-credit summary::before { content: '+'; color: #a77b59; font-size: 15px; }
+.photo-credit[open] summary::before { content: '−'; }
+.photo-credit p { margin: 5px 0 9px; }
+.photo-credit > div { display: grid; gap: 3px; padding: 8px 0; border-top: 1px solid #e8dfd3; }
+.photo-credit a { color: #795838; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.photo-credit small { font-size: 10px; }
+.photo-sources { margin-top: 24px; }
 .story-front-copy { padding: 14px 13px 0; }
 .story-front-copy h3,.story-back-copy h3 { font-size: 21px; font-weight: 700; line-height: 1.35; margin-bottom: 5px; color: #44392e; }
 .story-artist { font-size: 12px; font-weight: 600; color: #77644f; }

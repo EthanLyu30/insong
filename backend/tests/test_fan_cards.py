@@ -167,7 +167,7 @@ def test_metadata_catalog_and_showcase_upgrade_do_not_overwrite_or_resurrect(tmp
             ('REALITY', '刘雨昕'), ('倔强', '五月天'),
         }
         assert all(song['audio_url'] is None and not song['audio_available'] and not song['is_demo'] for song in metadata)
-        assert all(song['lyrics'] == [] and song['cover_url'].startswith('/scenes/') for song in metadata)
+        assert all(song['lyrics'] == [] and song['cover_url'].startswith('/photos/') for song in metadata)
         showcase = [story for story in client.get('/api/stories').json() if story['song_id'] >= 101]
         assert len(showcase) >= 5 and all(story['is_demo_sample'] for story in showcase)
         assert {'演唱会', '散场', '音乐节', '跨城追星'} <= {tag for story in showcase for tag in story['tags']}

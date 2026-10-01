@@ -1,8 +1,8 @@
 """Project-owned example prompts and lyric-position metadata, not a TME catalog."""
 THEMES = [
-    {'id': 'concert', 'title': '散场以后', 'prompt': '演唱会散场后，哪首歌还在心里回响？', 'description': '灯亮了，心里还有一首歌没有唱完。', 'image_url': '/scenes/venues/shanghai-stadium-interior.webp'},
-    {'id': 'graduation', 'title': '音乐节的夏天', 'prompt': '草地、晚风和同行的人，你想留住哪一刻？', 'description': '把音乐节的热烈，留在一张记忆卡里。', 'image_url': '/scenes/venues/xiamen-egret-interior.webp'},
-    {'id': 'new-city', 'title': '跨城去见你', 'prompt': '为了喜欢的歌手出发，那次奔赴发生了什么？', 'description': '从车票到应援，收藏每一次赴约。', 'image_url': '/scenes/venues/shanghai-stadium-exterior.webp'},
+    {'id': 'concert', 'title': '散场以后', 'prompt': '演唱会散场后，哪首歌还在心里回响？', 'description': '灯亮了，心里还有一首歌没有唱完。', 'image_url': '/photos/live-lights.webp'},
+    {'id': 'graduation', 'title': '音乐节的夏天', 'prompt': '草地、晚风和同行的人，你想留住哪一刻？', 'description': '把音乐节的热烈，留在一张记忆卡里。', 'image_url': '/photos/festival-day.webp'},
+    {'id': 'new-city', 'title': '跨城去见你', 'prompt': '为了喜欢的歌手出发，那次奔赴发生了什么？', 'description': '从车票到应援，收藏每一次赴约。', 'image_url': '/photos/journey-sunset.webp'},
 ]
 THEME_IDS = {theme['id'] for theme in THEMES}
 LINES = {
