@@ -1,5 +1,5 @@
 {
-  "verified_on": "2026-09-30",
+  "verified_on": "2026-10-01",
   "artists": [
     {
       "id": "gem",
@@ -51,6 +51,26 @@
         "Luo Tianyi"
       ],
       "color": "#78a5a5"
+    },
+    {
+      "id": "zhang-jie",
+      "name": "张杰",
+      "initial": "JASON",
+      "aliases": [
+        "张傑",
+        "Jason Zhang"
+      ],
+      "color": "#8397ae"
+    },
+    {
+      "id": "xue-zhiqian",
+      "name": "薛之谦",
+      "initial": "JOKER",
+      "aliases": [
+        "薛之謙",
+        "Joker Xue"
+      ],
+      "color": "#927c9f"
     }
   ],
   "events": [
@@ -123,7 +143,16 @@
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。"
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 109.5134954,
+      "venue_lat": 18.3119787,
+      "venue_location_source": "https://www.openstreetmap.org/node/13639826446",
+      "venue_location_kind": "poi",
+      "venue_location_note": "OSM同名白鹭体育场POI；不是三亚城市中心坐标。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-sanya-20251206",
@@ -194,7 +223,16 @@
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。"
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 109.5134954,
+      "venue_lat": 18.3119787,
+      "venue_location_source": "https://www.openstreetmap.org/node/13639826446",
+      "venue_location_kind": "poi",
+      "venue_location_note": "OSM同名白鹭体育场POI；不是三亚城市中心坐标。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-ganzhou-20250803",
@@ -265,7 +303,16 @@
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。"
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.8823832,
+      "venue_lat": 25.78471735,
+      "venue_location_source": "https://www.openstreetmap.org/relation/19993802",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM赣州全民健身中心way/982711083内体育场建筑轮廓的经纬边界中心；轮廓未独立命名，以所属场馆交叉核验，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-ganzhou-20250802",
@@ -336,7 +383,16 @@
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。"
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.8823832,
+      "venue_lat": 25.78471735,
+      "venue_location_source": "https://www.openstreetmap.org/relation/19993802",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM赣州全民健身中心way/982711083内体育场建筑轮廓的经纬边界中心；轮廓未独立命名，以所属场馆交叉核验，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "liu-yuxin-guangzhou-20251018",
@@ -362,13 +418,98 @@
           "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0",
           "platform": "QQ音乐",
           "link_kind": "search"
+        },
+        {
+          "title": "REALITY",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20REALITY",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "WALLS",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20WALLS",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "飓",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E9%A3%93",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Boom Tick Boom",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Boom%20Tick%20Boom",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Of Course",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Of%20Course",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "练习曲",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%BB%83%E4%B9%A0%E6%9B%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Baby I Know",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Baby%20I%20Know",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Look Into The Mirror",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Look%20Into%20The%20Mirror",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "venue_lng": 113.47819539,
       "venue_lat": 23.17985089,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "liu-yuxin-beijing-20250920",
@@ -394,13 +535,98 @@
           "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0",
           "platform": "QQ音乐",
           "link_kind": "search"
+        },
+        {
+          "title": "REALITY",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20REALITY",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "WALLS",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20WALLS",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "飓",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E9%A3%93",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Boom Tick Boom",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Boom%20Tick%20Boom",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Of Course",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Of%20Course",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "练习曲",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%BB%83%E4%B9%A0%E6%9B%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Baby I Know",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Baby%20I%20Know",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Look Into The Mirror",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Look%20Into%20The%20Mirror",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
         }
       ],
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "venue_lng": 116.27192047,
       "venue_lat": 39.90828826,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time": "19:30",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260911",
@@ -413,7 +639,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -474,7 +700,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260912",
@@ -487,7 +727,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -548,7 +788,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260913",
@@ -561,7 +815,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -622,7 +876,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260919",
@@ -635,7 +903,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -696,7 +964,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260920",
@@ -709,7 +991,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -770,7 +1052,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260925",
@@ -783,7 +1079,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -844,7 +1140,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260926",
@@ -857,7 +1167,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -918,7 +1228,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20260927",
@@ -931,7 +1255,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -992,7 +1316,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20261001",
@@ -1005,7 +1343,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1066,7 +1404,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20261002",
@@ -1079,7 +1431,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1140,7 +1492,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20261004",
@@ -1153,7 +1519,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1214,7 +1580,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-shenzhen-20261005",
@@ -1227,7 +1607,7 @@
       "source_title": "大麦官方微博 · 深圳十二场官宣（新浪公开页）",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1288,7 +1668,21 @@
       ],
       "venue_lng": 114.21232575,
       "venue_lat": 22.69703695,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "主来源为认证大麦官方微博内容展示页；龙岗区文旅部门回复确认12场计划和9月11日至10月5日场期，审批与公告不等同于演出完成记录。",
+      "source_references": [
+        {
+          "url": "https://www.lg.gov.cn/hdjlpt/detail?pid=3440767&via=pc",
+          "title": "深圳市龙岗区文旅部门 · 十二场演出计划回复",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-hangzhou-20260710",
@@ -1301,7 +1695,7 @@
       "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1362,7 +1756,26 @@
       ],
       "venue_lng": 120.22436303,
       "venue_lat": 30.2331564,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "event_status": "cancelled",
+      "event_status_note": "原定2026年7月10日至12日杭州三场演出已取消。",
+      "cancellation_source_url": "https://www.sina.cn/news/detail/5318769007137246.html",
+      "cancellation_source_title": "火风鼎文化官方微博 · 杭州站取消及补偿公告（新浪展示）",
+      "cancellation_verified_on": "2026-10-01",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5318769007137246.html",
+          "title": "火风鼎文化官方微博 · 杭州站取消及补偿公告（新浪展示）",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "保留原官宣日期与原有ID；认证主办方海宁火风鼎文化传媒有限公司7月9日公告确认取消，不能标记为已到场演出。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-hangzhou-20260711",
@@ -1375,7 +1788,7 @@
       "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1436,7 +1849,26 @@
       ],
       "venue_lng": 120.22436303,
       "venue_lat": 30.2331564,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "event_status": "cancelled",
+      "event_status_note": "原定2026年7月10日至12日杭州三场演出已取消。",
+      "cancellation_source_url": "https://www.sina.cn/news/detail/5318769007137246.html",
+      "cancellation_source_title": "火风鼎文化官方微博 · 杭州站取消及补偿公告（新浪展示）",
+      "cancellation_verified_on": "2026-10-01",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5318769007137246.html",
+          "title": "火风鼎文化官方微博 · 杭州站取消及补偿公告（新浪展示）",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "保留原官宣日期与原有ID；认证主办方海宁火风鼎文化传媒有限公司7月9日公告确认取消，不能标记为已到场演出。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-hangzhou-20260712",
@@ -1449,7 +1881,7 @@
       "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1510,7 +1942,26 @@
       ],
       "venue_lng": 120.22436303,
       "venue_lat": 30.2331564,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "event_status": "cancelled",
+      "event_status_note": "原定2026年7月10日至12日杭州三场演出已取消。",
+      "cancellation_source_url": "https://www.sina.cn/news/detail/5318769007137246.html",
+      "cancellation_source_title": "火风鼎文化官方微博 · 杭州站取消及补偿公告（新浪展示）",
+      "cancellation_verified_on": "2026-10-01",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5318769007137246.html",
+          "title": "火风鼎文化官方微博 · 杭州站取消及补偿公告（新浪展示）",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "保留原官宣日期与原有ID；认证主办方海宁火风鼎文化传媒有限公司7月9日公告确认取消，不能标记为已到场演出。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-tianjin-20260724",
@@ -1523,7 +1974,7 @@
       "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1584,7 +2035,12 @@
       ],
       "venue_lng": 117.16947032,
       "venue_lat": 39.07351889,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-tianjin-20260725",
@@ -1597,7 +2053,7 @@
       "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1658,7 +2114,12 @@
       ],
       "venue_lng": 117.16947032,
       "venue_lat": 39.07351889,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-tianjin-20260726",
@@ -1671,7 +2132,7 @@
       "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1732,7 +2193,12 @@
       ],
       "venue_lng": 117.16947032,
       "venue_lat": 39.07351889,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-nanchang-20260808",
@@ -1741,11 +2207,11 @@
       "city": "南昌",
       "venue": "南昌国际体育中心体育场",
       "date": "2026-08-08",
-      "source_url": "https://www.weibo.com/7055544327/R2eFw7Hxp",
-      "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
+      "source_url": "https://www.weibo.com/u/7055544327?index=7&tabtype=album&uid=7055544327",
+      "source_title": "邓紫棋工作室 · 2026年7月2日南昌三场公告",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1806,7 +2272,13 @@
       ],
       "venue_lng": 115.8116805,
       "venue_lat": 28.6256887,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "source_note": "工作室7月2日13:22公告明确8月7、8、9日与场馆；微博相册索引访问可能受登录和缓存影响。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-chongqing-20260822",
@@ -1815,11 +2287,11 @@
       "city": "重庆",
       "venue": "重庆奥体中心体育场",
       "date": "2026-08-22",
-      "source_url": "https://www.weibo.com/7055544327/R2eFw7Hxp",
-      "source_title": "邓紫棋工作室 · 巡演日期与场馆官宣",
+      "source_url": "https://whlyw.cq.gov.cn/zwgk_221/fdzdgknr/xzxk/xzxkjg/whxzxkjg/202608/t20260810_15913273.html",
+      "source_title": "重庆市文化和旅游发展委员会 · 邓紫棋演出许可",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1880,7 +2352,12 @@
       ],
       "venue_lng": 106.4996508,
       "venue_lat": 29.5260436,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-xiamen-20260501",
@@ -1893,7 +2370,7 @@
       "source_title": "福建省文化和旅游厅 · 2026年5月演出查询表",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -1952,7 +2429,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-xiamen-20260502",
@@ -1965,7 +2450,7 @@
       "source_title": "福建省文化和旅游厅 · 2026年5月演出查询表",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -2024,7 +2509,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "gem-xiamen-20260503",
@@ -2037,7 +2530,7 @@
       "source_title": "福建省文化和旅游厅 · 2026年5月演出查询表",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "光年之外",
@@ -2096,7 +2589,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "phoenix-jinan-20260925",
@@ -2109,7 +2610,7 @@
       "source_title": "济南文旅发展集团 · 凤凰传奇观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "最炫民族风",
@@ -2154,7 +2655,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "phoenix-jinan-20260926",
@@ -2167,7 +2676,7 @@
       "source_title": "济南文旅发展集团 · 凤凰传奇观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "最炫民族风",
@@ -2212,7 +2721,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "phoenix-jinan-20260927",
@@ -2225,7 +2742,7 @@
       "source_title": "济南文旅发展集团 · 凤凰传奇观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "最炫民族风",
@@ -2270,7 +2787,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "phoenix-jinan-20261002",
@@ -2283,7 +2808,7 @@
       "source_title": "济南文旅发展集团 · 凤凰传奇观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "最炫民族风",
@@ -2328,7 +2853,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "phoenix-jinan-20261003",
@@ -2341,7 +2874,7 @@
       "source_title": "济南文旅发展集团 · 凤凰传奇观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "最炫民族风",
@@ -2386,7 +2919,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "phoenix-jinan-20261004",
@@ -2399,7 +2940,7 @@
       "source_title": "济南文旅发展集团 · 凤凰传奇观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "最炫民族风",
@@ -2444,7 +2985,15 @@
           "link_kind": "search"
         }
       ],
-      "time": "19:00"
+      "time": "19:00",
+      "verified_on": "2026-09-30",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "luo-tianyi-jinan-20261005",
@@ -2457,7 +3006,7 @@
       "source_title": "济南文旅发展集团 · 洛天依观演信息",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "千年食谱颂",
@@ -2491,7 +3040,11 @@
       "time": "19:12",
       "venue_lng": 117.1219533,
       "venue_lat": 36.6552825,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "tnt-shanghai-20260802",
@@ -2504,7 +3057,7 @@
       "source_title": "上海市徐汇区 · 演唱会日期与场馆公告",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "相遇",
@@ -2537,7 +3090,20 @@
       ],
       "venue_lng": 121.43916135,
       "venue_lat": 31.18741595,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-10-01",
+      "time": "19:00",
+      "source_references": [
+        {
+          "url": "https://www.shanghai.gov.cn/nw4411/20260804/eb7d1b4a53284fc194126501bdb1ee6e.html",
+          "title": "上海市政府 · 8月2日首场演出回顾",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "tnt-shanghai-20260803",
@@ -2550,7 +3116,7 @@
       "source_title": "上海市徐汇区 · 演唱会日期与场馆公告",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "相遇",
@@ -2583,7 +3149,12 @@
       ],
       "venue_lng": 121.43916135,
       "venue_lat": 31.18741595,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "tnt-shanghai-20260805",
@@ -2596,7 +3167,7 @@
       "source_title": "上海市徐汇区 · 演唱会日期与场馆公告",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "相遇",
@@ -2629,7 +3200,12 @@
       ],
       "venue_lng": 121.43916135,
       "venue_lat": 31.18741595,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     },
     {
       "id": "tnt-shanghai-20260806",
@@ -2642,7 +3218,7 @@
       "source_title": "上海市徐汇区 · 演唱会日期与场馆公告",
       "source_kind": "announcement",
       "setlist_kind": "artist_collection",
-      "setlist_note": "本场完整歌单待核实，星空先展示歌手关联作品。",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
       "songs": [
         {
           "title": "相遇",
@@ -2675,7 +3251,3595 @@
       ],
       "venue_lng": 121.43916135,
       "venue_lat": 31.18741595,
-      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "verified_on": "2026-09-30",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "liu-yuxin-shanghai-20250705",
+      "artist_id": "liu-yuxin",
+      "title": "刘雨昕2025仙那度2.0巡回演唱会 · 上海站",
+      "city": "上海",
+      "venue": "浦发银行东方体育中心",
+      "date": "2025-07-05",
+      "source_url": "https://www.weibo.com/7785024037/PpwEnrFEJ",
+      "source_title": "纷玩岛官方微博 · 上海站官宣",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "原来那个人",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E5%8E%9F%E6%9D%A5%E9%82%A3%E4%B8%AA%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "看着月亮想你",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "REALITY",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20REALITY",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "WALLS",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20WALLS",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "飓",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E9%A3%93",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Boom Tick Boom",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Boom%20Tick%20Boom",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Of Course",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Of%20Course",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "练习曲",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%BB%83%E4%B9%A0%E6%9B%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Baby I Know",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Baby%20I%20Know",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Look Into The Mirror",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Look%20Into%20The%20Mirror",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.47470415,
+      "venue_lat": 31.15947135,
+      "venue_location_source": "https://www.openstreetmap.org/way/447994705",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "东方体育中心内室内体育馆建筑轮廓的经纬边界中心；以中心命名轮廓way/404680079交叉核验，不是地铁站或入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "liu-yuxin-suzhou-20260131",
+      "artist_id": "liu-yuxin",
+      "title": "刘雨昕2026仙那度2.0巡回演唱会 · 苏州站",
+      "city": "苏州",
+      "venue": "苏州奥体中心体育馆",
+      "date": "2026-01-31",
+      "source_url": "https://www.szosc.cn/index.php/activity/xx/id/142.html",
+      "source_title": "苏州奥体中心 · 刘雨昕演唱会活动页",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "原来那个人",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E5%8E%9F%E6%9D%A5%E9%82%A3%E4%B8%AA%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "看着月亮想你",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "REALITY",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20REALITY",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "WALLS",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20WALLS",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "飓",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E9%A3%93",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Boom Tick Boom",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Boom%20Tick%20Boom",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Of Course",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Of%20Course",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "练习曲",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%BB%83%E4%B9%A0%E6%9B%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Baby I Know",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Baby%20I%20Know",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Look Into The Mirror",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Look%20Into%20The%20Mirror",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "time": "19:30",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "venue_lng": 120.746112786222,
+      "venue_lat": 31.306422511322,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E8%8B%8F%E5%B7%9E%E5%A5%A5%E4%BD%93%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E9%A6%86&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育馆POI，匹配分100；与奥体中心整体位置区分。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "liu-yuxin-shenzhen-20260801",
+      "artist_id": "liu-yuxin",
+      "title": "刘雨昕2026仙那度2.0巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育馆",
+      "date": "2026-08-01",
+      "source_url": "https://www.sina.cn/news/detail/5310027608359106.html",
+      "source_title": "纷玩岛官方微博 · 深圳站官宣（新浪展示）",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "原来那个人",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E5%8E%9F%E6%9D%A5%E9%82%A3%E4%B8%AA%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "看着月亮想你",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%9C%8B%E7%9D%80%E6%9C%88%E4%BA%AE%E6%83%B3%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "REALITY",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20REALITY",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "WALLS",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20WALLS",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "飓",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E9%A3%93",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Boom Tick Boom",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Boom%20Tick%20Boom",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Of Course",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Of%20Course",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "练习曲",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20%E7%BB%83%E4%B9%A0%E6%9B%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Baby I Know",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Baby%20I%20Know",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "Look Into The Mirror",
+          "artist": "刘雨昕",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%88%98%E9%9B%A8%E6%98%95%20Look%20Into%20The%20Mirror",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://pc.service.kugou.com/yueku/v9/singer/home/547697-0-2-l.html",
+          "source_title": "酷狗音乐 · 刘雨昕歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "time": "19:30",
+      "source_note": "来源为认证票务运营方纷玩岛的原始微博内容展示页；另有深圳文旅局演出报道交叉核验。",
+      "source_references": [
+        {
+          "url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+          "title": "深圳市文化广电旅游体育局 · 深圳演唱会经济持续火爆",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "venue_lng": 114.2142894,
+      "venue_lat": 22.700392401,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B7%B1%E5%9C%B3%E5%A4%A7%E8%BF%90%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E9%A6%86&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育馆首个POI，匹配分100；与南侧大运体育场区分。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-jinan-20241013",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 济南站",
+      "city": "济南",
+      "venue": "济南奥体中心体育场",
+      "date": "2024-10-13",
+      "source_url": "https://www.jnbus.com.cn/busnews/50301.jhtml",
+      "source_title": "济南公交 · 邓紫棋演唱会出行公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_references": [
+        {
+          "url": "https://www.sdxc.gov.cn/fzgg/fzggsy/202410/t20241025_14999152.htm",
+          "title": "山东宣传 · 济南演唱会报道",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 117.110231818017,
+      "venue_lat": 36.65617003963,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%E6%B5%8E%E5%8D%97%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E4%BD%93%E8%82%B2%E4%B8%AD%E5%BF%83%E4%BD%93%E8%82%B2%E5%9C%BA&f=json&outSR=4326&outFields=Match_addr%2CAddr_type%2CPlaceName%2CPlace_addr&maxLocations=2",
+      "venue_location_kind": "poi",
+      "venue_location_note": "ArcGIS同名体育场POI，匹配分100；位置为场馆参考点，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-nanchang-20241109",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2024-11-09",
+      "source_url": "https://fgw.nc.gov.cn/ncfzggw/fgdt/202409/d4b76a9a3ad74dd29df2281ee27566de.shtml",
+      "source_title": "南昌市发展和改革委员会 · 演唱会行程报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "主来源明确两日演出日期；场馆由国体中心运营年度报道交叉核验。",
+      "source_references": [
+        {
+          "url": "https://gzw.nc.gov.cn/ncsgzw/gzdt/202501/a81e57b9ae014f03ab921bf585ba52b2.shtml",
+          "title": "南昌市国资委 · 国体中心年度运营回顾",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-nanchang-20241110",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2024-11-10",
+      "source_url": "https://fgw.nc.gov.cn/ncfzggw/fgdt/202409/d4b76a9a3ad74dd29df2281ee27566de.shtml",
+      "source_title": "南昌市发展和改革委员会 · 演唱会行程报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "主来源明确两日演出日期；场馆由国体中心运营年度报道交叉核验。",
+      "source_references": [
+        {
+          "url": "https://gzw.nc.gov.cn/ncsgzw/gzdt/202501/a81e57b9ae014f03ab921bf585ba52b2.shtml",
+          "title": "南昌市国资委 · 国体中心年度运营回顾",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-hangzhou-20241115",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 杭州站",
+      "city": "杭州",
+      "venue": "杭州奥体中心体育场",
+      "date": "2024-11-15",
+      "source_url": "https://hznews.hangzhou.com.cn/wenti/content/2024-11/14/content_8813025.htm",
+      "source_title": "杭州网 · 邓紫棋杭州三场演出报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-hangzhou-20241116",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 杭州站",
+      "city": "杭州",
+      "venue": "杭州奥体中心体育场",
+      "date": "2024-11-16",
+      "source_url": "https://hznews.hangzhou.com.cn/wenti/content/2024-11/14/content_8813025.htm",
+      "source_title": "杭州网 · 邓紫棋杭州三场演出报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-hangzhou-20241117",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 杭州站",
+      "city": "杭州",
+      "venue": "杭州奥体中心体育场",
+      "date": "2024-11-17",
+      "source_url": "https://hznews.hangzhou.com.cn/wenti/content/2024-11/14/content_8813025.htm",
+      "source_title": "杭州网 · 邓紫棋杭州三场演出报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-shanghai-20240524",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2024-05-24",
+      "source_url": "https://weibo.com/7055544327/OfAN9ebNf",
+      "source_title": "邓紫棋工作室 · 上海五场演出现场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "采用临演前工作室列出的五场日期；早期主办方三场官宣不能代表后续加场。微博直链可能要求登录。",
+      "source_references": [
+        {
+          "url": "https://weibo.com/7316952296/5018682136990523",
+          "title": "CMCLive华人文化演艺 · 上海站初始三场官宣",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-shanghai-20240525",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2024-05-25",
+      "source_url": "https://weibo.com/7055544327/OfAN9ebNf",
+      "source_title": "邓紫棋工作室 · 上海五场演出现场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "采用临演前工作室列出的五场日期；早期主办方三场官宣不能代表后续加场。微博直链可能要求登录。",
+      "source_references": [
+        {
+          "url": "https://weibo.com/7316952296/5018682136990523",
+          "title": "CMCLive华人文化演艺 · 上海站初始三场官宣",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-shanghai-20240526",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2024-05-26",
+      "source_url": "https://weibo.com/7055544327/OfAN9ebNf",
+      "source_title": "邓紫棋工作室 · 上海五场演出现场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "采用临演前工作室列出的五场日期；早期主办方三场官宣不能代表后续加场。微博直链可能要求登录。",
+      "source_references": [
+        {
+          "url": "https://weibo.com/7316952296/5018682136990523",
+          "title": "CMCLive华人文化演艺 · 上海站初始三场官宣",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-shanghai-20240527",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2024-05-27",
+      "source_url": "https://weibo.com/7055544327/OfAN9ebNf",
+      "source_title": "邓紫棋工作室 · 上海五场演出现场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "采用临演前工作室列出的五场日期；早期主办方三场官宣不能代表后续加场。微博直链可能要求登录。",
+      "source_references": [
+        {
+          "url": "https://weibo.com/7316952296/5018682136990523",
+          "title": "CMCLive华人文化演艺 · 上海站初始三场官宣",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-shanghai-20240528",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会 · 上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2024-05-28",
+      "source_url": "https://weibo.com/7055544327/OfAN9ebNf",
+      "source_title": "邓紫棋工作室 · 上海五场演出现场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "采用临演前工作室列出的五场日期；早期主办方三场官宣不能代表后续加场。微博直链可能要求登录。",
+      "source_references": [
+        {
+          "url": "https://weibo.com/7316952296/5018682136990523",
+          "title": "CMCLive华人文化演艺 · 上海站初始三场官宣",
+          "kind": "announcement",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-nanchang-20260807",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会2.0 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2026-08-07",
+      "source_url": "https://www.weibo.com/u/7055544327?index=7&tabtype=album&uid=7055544327",
+      "source_title": "邓紫棋工作室 · 2026年7月2日南昌三场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "工作室7月2日13:22公告明确8月7、8、9日与场馆；微博相册索引可能随登录状态返回旧内容，未采用第三方生成稿补全开演时间。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-nanchang-20260809",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会2.0 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2026-08-09",
+      "source_url": "https://www.weibo.com/u/7055544327?index=7&tabtype=album&uid=7055544327",
+      "source_title": "邓紫棋工作室 · 2026年7月2日南昌三场公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_note": "工作室7月2日13:22公告明确8月7、8、9日与场馆；微博相册索引可能随登录状态返回旧内容，未采用第三方生成稿补全开演时间。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-chongqing-20260821",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会2.0 · 重庆站",
+      "city": "重庆",
+      "venue": "重庆奥体中心体育场",
+      "date": "2026-08-21",
+      "source_url": "https://whlyw.cq.gov.cn/zwgk_221/fdzdgknr/xzxk/xzxkjg/whxzxkjg/202608/t20260810_15913273.html",
+      "source_title": "重庆市文化和旅游发展委员会 · 邓紫棋演出许可",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 106.4996508,
+      "venue_lat": 29.5260436,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "gem-chongqing-20260823",
+      "artist_id": "gem",
+      "title": "邓紫棋I AM GLORIA世界巡回演唱会2.0 · 重庆站",
+      "city": "重庆",
+      "venue": "重庆奥体中心体育场",
+      "date": "2026-08-23",
+      "source_url": "https://whlyw.cq.gov.cn/zwgk_221/fdzdgknr/xzxk/xzxkjg/whxzxkjg/202608/t20260810_15913273.html",
+      "source_title": "重庆市文化和旅游发展委员会 · 邓紫棋演出许可",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "光年之外",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%85%89%E5%B9%B4%E4%B9%8B%E5%A4%96",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "泡沫",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%B3%A1%E6%B2%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "句号",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%8F%A5%E5%8F%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "再见",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%86%8D%E8%A7%81",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "倒数",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%80%92%E6%95%B0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "喜欢你",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%96%9C%E6%AC%A2%E4%BD%A0",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "多远都要在一起",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E5%A4%9A%E8%BF%9C%E9%83%BD%E8%A6%81%E5%9C%A8%E4%B8%80%E8%B5%B7",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "我的秘密",
+          "artist": "邓紫棋",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E9%82%93%E7%B4%AB%E6%A3%8B%20%E6%88%91%E7%9A%84%E7%A7%98%E5%AF%86",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 106.4996508,
+      "venue_lat": 29.5260436,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "phoenix-tianjin-20250627",
+      "artist_id": "phoenix",
+      "title": "凤凰传奇「吉祥如意」2025巡回演唱会 · 天津站",
+      "city": "天津",
+      "venue": "天津奥林匹克中心体育场",
+      "date": "2025-06-27",
+      "source_url": "https://whly.tj.gov.cn/WSBSYZXBS4230/ZXBS9097/SPGS4525/202504/t20250410_6904879.html",
+      "source_title": "天津市文化和旅游局 · 凤凰传奇演出许可",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "最炫民族风",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%80%E7%82%AB%E6%B0%91%E6%97%8F%E9%A3%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "月亮之上",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%88%E4%BA%AE%E4%B9%8B%E4%B8%8A",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "奢香夫人",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%A5%A2%E9%A6%99%E5%A4%AB%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "荷塘月色",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "自由飞翔",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%87%AA%E7%94%B1%E9%A3%9E%E7%BF%94",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "山河图",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%B1%B1%E6%B2%B3%E5%9B%BE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "time": "19:30",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "venue_lng": 117.16947032,
+      "venue_lat": 39.07351889,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "phoenix-tianjin-20250628",
+      "artist_id": "phoenix",
+      "title": "凤凰传奇「吉祥如意」2025巡回演唱会 · 天津站",
+      "city": "天津",
+      "venue": "天津奥林匹克中心体育场",
+      "date": "2025-06-28",
+      "source_url": "https://whly.tj.gov.cn/WSBSYZXBS4230/ZXBS9097/SPGS4525/202504/t20250410_6904879.html",
+      "source_title": "天津市文化和旅游局 · 凤凰传奇演出许可",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "最炫民族风",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%80%E7%82%AB%E6%B0%91%E6%97%8F%E9%A3%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "月亮之上",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%88%E4%BA%AE%E4%B9%8B%E4%B8%8A",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "奢香夫人",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%A5%A2%E9%A6%99%E5%A4%AB%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "荷塘月色",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "自由飞翔",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%87%AA%E7%94%B1%E9%A3%9E%E7%BF%94",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "山河图",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%B1%B1%E6%B2%B3%E5%9B%BE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "time": "19:30",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "venue_lng": 117.16947032,
+      "venue_lat": 39.07351889,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "phoenix-tianjin-20250629",
+      "artist_id": "phoenix",
+      "title": "凤凰传奇「吉祥如意」2025巡回演唱会 · 天津站",
+      "city": "天津",
+      "venue": "天津奥林匹克中心体育场",
+      "date": "2025-06-29",
+      "source_url": "https://whly.tj.gov.cn/WSBSYZXBS4230/ZXBS9097/SPGS4525/202504/t20250410_6904879.html",
+      "source_title": "天津市文化和旅游局 · 凤凰传奇演出许可",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "最炫民族风",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%80%E7%82%AB%E6%B0%91%E6%97%8F%E9%A3%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "月亮之上",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%88%E4%BA%AE%E4%B9%8B%E4%B8%8A",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "奢香夫人",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%A5%A2%E9%A6%99%E5%A4%AB%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "荷塘月色",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "自由飞翔",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%87%AA%E7%94%B1%E9%A3%9E%E7%BF%94",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "山河图",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%B1%B1%E6%B2%B3%E5%9B%BE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "time": "19:30",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "venue_lng": 117.16947032,
+      "venue_lat": 39.07351889,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "phoenix-shenzhen-20241115",
+      "artist_id": "phoenix",
+      "title": "凤凰传奇「吉祥如意」2024巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2024-11-15",
+      "source_url": "https://www.lg.gov.cn/xxgk/zwgk/shgy/tyfw/content/post_11595387.html",
+      "source_title": "深圳市龙岗区政府 · 凤凰传奇深圳站公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "最炫民族风",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%80%E7%82%AB%E6%B0%91%E6%97%8F%E9%A3%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "月亮之上",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%88%E4%BA%AE%E4%B9%8B%E4%B8%8A",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "奢香夫人",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%A5%A2%E9%A6%99%E5%A4%AB%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "荷塘月色",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "自由飞翔",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%87%AA%E7%94%B1%E9%A3%9E%E7%BF%94",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "山河图",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%B1%B1%E6%B2%B3%E5%9B%BE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "phoenix-shenzhen-20241116",
+      "artist_id": "phoenix",
+      "title": "凤凰传奇「吉祥如意」2024巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2024-11-16",
+      "source_url": "https://www.lg.gov.cn/xxgk/zwgk/shgy/tyfw/content/post_11595387.html",
+      "source_title": "深圳市龙岗区政府 · 凤凰传奇深圳站公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "最炫民族风",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%80%E7%82%AB%E6%B0%91%E6%97%8F%E9%A3%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "月亮之上",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%88%E4%BA%AE%E4%B9%8B%E4%B8%8A",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "奢香夫人",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%A5%A2%E9%A6%99%E5%A4%AB%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "荷塘月色",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "自由飞翔",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%87%AA%E7%94%B1%E9%A3%9E%E7%BF%94",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "山河图",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%B1%B1%E6%B2%B3%E5%9B%BE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "phoenix-shenzhen-20241117",
+      "artist_id": "phoenix",
+      "title": "凤凰传奇「吉祥如意」2024巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2024-11-17",
+      "source_url": "https://www.lg.gov.cn/xxgk/zwgk/shgy/tyfw/content/post_11595387.html",
+      "source_title": "深圳市龙岗区政府 · 凤凰传奇深圳站公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "最炫民族风",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%80%E7%82%AB%E6%B0%91%E6%97%8F%E9%A3%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "月亮之上",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E6%9C%88%E4%BA%AE%E4%B9%8B%E4%B8%8A",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "奢香夫人",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%A5%A2%E9%A6%99%E5%A4%AB%E4%BA%BA",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "荷塘月色",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "自由飞翔",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E8%87%AA%E7%94%B1%E9%A3%9E%E7%BF%94",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "山河图",
+          "artist": "凤凰传奇",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%87%A4%E5%87%B0%E4%BC%A0%E5%A5%87%20%E5%B1%B1%E6%B2%B3%E5%9B%BE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "tnt-shanghai-20250820",
+      "artist_id": "tnt",
+      "title": "时代少年团「加冠礼」演唱会 ·「冠军」上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2025-08-20",
+      "source_url": "https://www.shanghai.gov.cn/nw31406/20250822/555caa8ba4894640ab88f64cbbf193ce.html",
+      "source_title": "上海市政府 · 演唱会交通管制公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "相遇",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%9B%B8%E9%81%87",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "爆米花",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%88%86%E7%B1%B3%E8%8A%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "少年时代",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%B0%91%E5%B9%B4%E6%97%B6%E4%BB%A3",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "姐姐真漂亮",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%A7%90%E5%A7%90%E7%9C%9F%E6%BC%82%E4%BA%AE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_references": [
+        {
+          "url": "https://www.xuhui.gov.cn/xwzx_bmlf/20250821/562023.html",
+          "title": "上海市徐汇区政府 · 8月20日首场安保报道",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "tnt-shanghai-20250821",
+      "artist_id": "tnt",
+      "title": "时代少年团「加冠礼」演唱会 ·「冠军」上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2025-08-21",
+      "source_url": "https://www.shanghai.gov.cn/nw31406/20250822/555caa8ba4894640ab88f64cbbf193ce.html",
+      "source_title": "上海市政府 · 演唱会交通管制公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "相遇",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%9B%B8%E9%81%87",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "爆米花",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%88%86%E7%B1%B3%E8%8A%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "少年时代",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%B0%91%E5%B9%B4%E6%97%B6%E4%BB%A3",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "姐姐真漂亮",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%A7%90%E5%A7%90%E7%9C%9F%E6%BC%82%E4%BA%AE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_references": [
+        {
+          "url": "https://www.xuhui.gov.cn/xwzx_bmlf/20250821/562023.html",
+          "title": "上海市徐汇区政府 · 8月20日首场安保报道",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "tnt-shanghai-20250823",
+      "artist_id": "tnt",
+      "title": "时代少年团「加冠礼」演唱会 ·「冠军」上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2025-08-23",
+      "source_url": "https://www.shanghai.gov.cn/nw31406/20250822/555caa8ba4894640ab88f64cbbf193ce.html",
+      "source_title": "上海市政府 · 演唱会交通管制公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "相遇",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%9B%B8%E9%81%87",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "爆米花",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%88%86%E7%B1%B3%E8%8A%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "少年时代",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%B0%91%E5%B9%B4%E6%97%B6%E4%BB%A3",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "姐姐真漂亮",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%A7%90%E5%A7%90%E7%9C%9F%E6%BC%82%E4%BA%AE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_references": [
+        {
+          "url": "https://www.xuhui.gov.cn/xwzx_bmlf/20250821/562023.html",
+          "title": "上海市徐汇区政府 · 8月20日首场安保报道",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "tnt-shanghai-20250824",
+      "artist_id": "tnt",
+      "title": "时代少年团「加冠礼」演唱会 ·「冠军」上海站",
+      "city": "上海",
+      "venue": "上海体育场",
+      "date": "2025-08-24",
+      "source_url": "https://www.shanghai.gov.cn/nw31406/20250822/555caa8ba4894640ab88f64cbbf193ce.html",
+      "source_title": "上海市政府 · 演唱会交通管制公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "相遇",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%9B%B8%E9%81%87",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "爆米花",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E7%88%86%E7%B1%B3%E8%8A%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "少年时代",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%B0%91%E5%B9%B4%E6%97%B6%E4%BB%A3",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        },
+        {
+          "title": "姐姐真漂亮",
+          "artist": "时代少年团",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E6%97%B6%E4%BB%A3%E5%B0%91%E5%B9%B4%E5%9B%A2%20%E5%A7%90%E5%A7%90%E7%9C%9F%E6%BC%82%E4%BA%AE",
+          "platform": "QQ音乐",
+          "link_kind": "search"
+        }
+      ],
+      "source_references": [
+        {
+          "url": "https://www.xuhui.gov.cn/xwzx_bmlf/20250821/562023.html",
+          "title": "上海市徐汇区政府 · 8月20日首场安保报道",
+          "kind": "report",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 121.43916135,
+      "venue_lat": 31.18741595,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-nanchang-20240412",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2024-04-12",
+      "source_url": "https://www.nc.gov.cn/ncszf/jrnc/202404/2df0b8d6b4394f0b96e97aa911892e21.shtml",
+      "source_title": "南昌市政府 · 张杰三场演出回顾",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-nanchang-20240413",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2024-04-13",
+      "source_url": "https://www.nc.gov.cn/ncszf/jrnc/202404/2df0b8d6b4394f0b96e97aa911892e21.shtml",
+      "source_title": "南昌市政府 · 张杰三场演出回顾",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time": "19:00",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-nanchang-20240414",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 南昌站",
+      "city": "南昌",
+      "venue": "南昌国际体育中心体育场",
+      "date": "2024-04-14",
+      "source_url": "https://www.nc.gov.cn/ncszf/jrnc/202404/2df0b8d6b4394f0b96e97aa911892e21.shtml",
+      "source_title": "南昌市政府 · 张杰三场演出回顾",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 115.8116805,
+      "venue_lat": 28.6256887,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-hangzhou-20240502",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 杭州站",
+      "city": "杭州",
+      "venue": "杭州奥体中心体育场",
+      "date": "2024-05-02",
+      "source_url": "https://www.hzzx.gov.cn/cshz/content/2024-04/18/content_8717408.htm",
+      "source_title": "杭州政协新闻网 · 调整后杭州三场日期公告",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-hangzhou-20240503",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 杭州站",
+      "city": "杭州",
+      "venue": "杭州奥体中心体育场",
+      "date": "2024-05-03",
+      "source_url": "https://www.hzzx.gov.cn/cshz/content/2024-04/18/content_8717408.htm",
+      "source_title": "杭州政协新闻网 · 调整后杭州三场日期公告",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-hangzhou-20240504",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 杭州站",
+      "city": "杭州",
+      "venue": "杭州奥体中心体育场",
+      "date": "2024-05-04",
+      "source_url": "https://www.hzzx.gov.cn/cshz/content/2024-04/18/content_8717408.htm",
+      "source_title": "杭州政协新闻网 · 调整后杭州三场日期公告",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 120.22436303,
+      "venue_lat": 30.2331564,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-shenzhen-20241018",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2024-10-18",
+      "source_url": "https://www.lg.gov.cn/xxgk/zwgk/shgy/tyfw/content/post_11529286.html",
+      "source_title": "深圳市龙岗区政府 · 张杰深圳站公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-shenzhen-20241019",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2024-10-19",
+      "source_url": "https://www.lg.gov.cn/xxgk/zwgk/shgy/tyfw/content/post_11529286.html",
+      "source_title": "深圳市龙岗区政府 · 张杰深圳站公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "zhang-jie-shenzhen-20241020",
+      "artist_id": "zhang-jie",
+      "title": "张杰「未·LIVE—开往1982」巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2024-10-20",
+      "source_url": "https://www.lg.gov.cn/xxgk/zwgk/shgy/tyfw/content/post_11529286.html",
+      "source_title": "深圳市龙岗区政府 · 张杰深圳站公告",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "天下",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E5%A4%A9%E4%B8%8B",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "逆战",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E9%80%86%E6%88%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "这，就是爱",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E8%BF%99%EF%BC%8C%E5%B0%B1%E6%98%AF%E7%88%B1",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "最美的太阳",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%9C%80%E7%BE%8E%E7%9A%84%E5%A4%AA%E9%98%B3",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "他不懂",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E4%BB%96%E4%B8%8D%E6%87%82",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "明天过后",
+          "artist": "张杰",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E5%BC%A0%E6%9D%B0%20%E6%98%8E%E5%A4%A9%E8%BF%87%E5%90%8E",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www4.kugou.kugou.com/yueku/2019/singer/home/3539-0-1-z.html",
+          "source_title": "酷狗音乐 · 张杰歌手作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260821",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-21",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260822",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-22",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260823",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-23",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260827",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-27",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260828",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-28",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260829",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-29",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-shenzhen-20260830",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦「万兽之王」2026巡回演唱会 · 深圳站",
+      "city": "深圳",
+      "venue": "深圳大运中心体育场",
+      "date": "2026-08-30",
+      "source_url": "https://wtl.sz.gov.cn/whfw/zfxx/content/post_12957253.html",
+      "source_title": "深圳市文化广电旅游体育局 · 薛之谦深圳七场报道",
+      "source_kind": "report",
+      "verified_on": "2026-10-01",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "source_note": "报道明确原定8月21–23、28–30日六场及8月27日加场；报道发表于8月28日，不能作为后两场已完成的证明。",
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场实际演出歌单与顺序待核实；此处展示歌手关联作品，不代表现场演唱曲目。",
+      "time_note": "已核验日期与场馆，开演时间未核实。",
+      "venue_lng": 114.21232575,
+      "venue_lat": 22.69703695,
+      "venue_location_source": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      "venue_location_kind": "poi",
+      "venue_location_verified_on": "2026-09-30",
+      "venue_coordinate_system": "WGS84"
     }
   ],
   "cities": [
@@ -3012,5 +7176,6 @@
   "map_source": {
     "title": "阿里云 DataV GeoAtlas",
     "url": "https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json"
-  }
+  },
+  "coverage_note": "已收录场次为逐条核验的部分巡演记录，不代表全国完整巡演行程；开演时间未核实时留空。"
 }

@@ -27,10 +27,10 @@
 .real-city-pin.is-upcoming i{width:10px;height:10px;background:#b77647;box-shadow:0 0 0 5px #faf0dfb0,0 0 17px #c7986488}
 .real-city-pin.is-selected i{box-shadow:0 0 0 5px #9b5c32,0 0 0 7px #ffe6b2;}
 .real-city-pin.is-selected span{font-weight:700}
-.atlas-map-controls,.cinematic-controls{position:absolute;right:22px;z-index:5;display:flex;flex-direction:column;gap:8px}
+.atlas-map-controls{position:absolute;right:22px;z-index:5;display:flex;flex-direction:column;gap:8px}
+.atlas-map-controls button,.atlas-scene-toolbar>button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #ffffffb0;border-radius:50%;background:#f8f3e9f5;color:#302e2b;box-shadow:0 2px 7px #3b2a2317}
+.atlas-map-controls button:hover,.atlas-scene-toolbar>button:hover{background:#fffcf6}
 .atlas-map-controls{bottom:310px}
-.atlas-map-controls button,.cinematic-controls button,.atlas-scene-toolbar>button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #ffffffb0;border-radius:50%;background:#f8f3e9f5;color:#302e2b;box-shadow:0 2px 7px #3b2a2317}
-.atlas-map-controls button:hover,.cinematic-controls button:hover,.atlas-scene-toolbar>button:hover{background:#fffcf6}
 .atlas-searchbar{position:absolute;z-index:8;top:0;left:0;right:0;padding:max(22px,env(safe-area-inset-top)) max(24px,calc((100vw - 712px)/2)) 16px;background:linear-gradient(#f7f3e9ef 20%,#f7f3e9bd 76%,#f7f3e900);pointer-events:none}
 .atlas-searchbar input,.atlas-searchbar button,.atlas-searchbar a,.atlas-search-results{pointer-events:auto}
 .atlas-wordmark{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
@@ -97,8 +97,6 @@
 .cinematic-enter{position:absolute;top:38%;height:33%;left:0;right:0;width:100%;background:transparent;border:0;color:#544734;touch-action:none}
 .cinematic-enter>span{position:absolute;bottom:8px;left:24px;right:24px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:13px;text-shadow:0 1px 7px #fff7e8}
 .cinematic-enter:hover>span{color:#a3673e}
-.cinematic-controls{right:max(24px,calc((100vw - 712px)/2));top:44%;}
-.cinematic-controls button{background:#f6f1e2d9}
 .cinematic-loading{position:absolute;top:45%;left:20px;right:20px;text-align:center;font-size:14px;color:#675943;pointer-events:none}
 .cinematic-demo-label{position:absolute;left:24px;bottom:262px;font-size:10px;color:#fff9e9;text-shadow:0 1px 5px #38291e;pointer-events:none}
 .is-night .cinematic-demo-label{bottom:337px;}
@@ -112,7 +110,8 @@
 .atlas-song-star span{font:400 13px/1.4 'Songti SC','SimSun',serif;text-shadow:0 1px 7px #192c48;text-align:center;text-wrap:balance}
 .atlas-song-star:hover svg,.atlas-song-star.is-selected svg{opacity:1;transform:scale(1.25);filter:drop-shadow(0 0 6px #ffe5ad) drop-shadow(0 0 16px #ffd497)}
 .atlas-song-star.is-selected span{color:#ffead0}
-.atlas-song-stars.is-long{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:210px;overflow:auto;pointer-events:auto;scrollbar-width:thin}
+.atlas-song-stars.is-long{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:210px;overflow:auto;pointer-events:auto;scrollbar-width:none}
+.atlas-song-stars.is-long::-webkit-scrollbar{display:none}
 .atlas-song-stars.is-long .atlas-song-star{position:static;transform:none;width:auto;height:62px}
 .atlas-night-panel{background:#f8f2e8f7;max-height:47vh;padding-top:12px;padding-bottom:10px}
 .atlas-night-panel>header{margin-bottom:5px}
@@ -160,7 +159,6 @@
   .atlas-scene-toolbar,.cinematic-location,.cinematic-night-title{left:calc(50% - 330px);right:calc(50% - 330px)}
   .cinematic-location h1{max-width:450px;font-size:36px}
   .atlas-song-stars{left:calc(50% - 300px);right:auto;width:600px;height:220px}
-  .cinematic-controls{right:calc(50% - 330px)}
   .atlas-night-panel{max-width:620px;left:calc(50% - 310px);right:auto;width:620px}
   .atlas-panel{padding-left:28px;padding-right:28px}
 }
@@ -172,8 +170,6 @@
   .atlas-itinerary header small{display:none}.atlas-schedule-list>button{min-height:57px}.atlas-schedule-list strong{font-size:15px}
   .atlas-map-controls{bottom:263px;right:17px}.atlas-legend{bottom:253px}
   .atlas-scene-toolbar{top:17px;left:20px;right:20px}.cinematic-location{top:83px;left:20px;right:20px}.cinematic-location h1{font-size:27px;max-width:280px}.cinematic-location p{margin-top:5px;font-size:12px}
-  .cinematic-controls{top:215px}
-  .is-night .cinematic-controls{top:17px;right:76px;flex-direction:row;gap:6px}
   .cinematic-night-title{top:83px;left:20px}.cinematic-night-title h1{font-size:25px}.cinematic-night-title p{font-size:12px;margin:4px 0}.cinematic-night-title>span{font-size:18px}
   .atlas-song-stars,.atlas-song-stars.is-long{top:177px;height:153px}.atlas-song-star{width:80px;min-height:47px;gap:3px}.atlas-song-star span{font-size:12px}
   .concert-song-list{max-height:80px}.concert-song-list button{min-height:40px}.concert-song-list strong{font-size:15px}
@@ -213,12 +209,8 @@
 .cinematic-location h1{font-size:31px;line-height:1.4;max-width:310px;font-weight:650;text-wrap:balance}
 .cinematic-location p{color:#776a51;margin-top:9px}
 .cinematic-enter>span{color:#fff8e9;text-shadow:0 1px 8px #142b1e;bottom:0}
-.cinematic-controls{top:48%;bottom:auto;gap:8px}
-.cinematic-controls button{width:44px;height:44px;background:#f6f1e2d9}
-.cinematic-controls button svg{width:24px;height:24px}
 .cinematic-demo-label{bottom:236px;font-size:9px;color:#fff0da}
 .is-night .cinematic-demo-label{bottom:292px}
-.is-night .cinematic-controls{top:auto;bottom:303px}
 .atlas-night-panel{padding-top:14px;padding-bottom:10px}
 .atlas-night-panel .concert-song-list{max-height:86px}
 .atlas-night-panel .concert-song-list button{min-height:29px;padding:5px 10px}
@@ -232,8 +224,6 @@
   .atlas-itinerary h2{font-size:20px}.atlas-itinerary .atlas-schedule-list>button{min-height:49px}
   .atlas-show-sheet .atlas-schedule-list>button{min-height:49px}
   .cinematic-location{top:83px}.cinematic-location h1{font-size:29px;max-width:300px}
-  .cinematic-controls{top:auto;bottom:253px;right:20px}
-  .is-night .cinematic-controls{top:auto;bottom:286px;right:20px;flex-direction:column;gap:7px}
   .cinematic-demo-label{bottom:223px}.is-night .cinematic-demo-label{bottom:268px}
   .atlas-night-panel .concert-song-list{max-height:80px}
 }
@@ -255,14 +245,6 @@
 .atlas-night-panel .concert-collect{margin:6px 0 2px}
 .atlas-night-actions summary{padding:4px 0}
 .atlas-night-actions{margin-top:2px}
-
-/* Opaque control surfaces avoid backdrop compositing trails over the moving GL canvas. */
-.cinematic-controls{top:47%;gap:9px}
-.cinematic-controls button{width:44px;height:44px;background:#4c4b45d9;border-color:#fff7e466;color:#fffaf1;box-shadow:0 2px 5px #17241d25;backdrop-filter:none}
-.cinematic-controls button:hover{background:#56554fe8}
-.cinematic-controls button:active{background:#393b36f0}
-.cinematic-controls button svg{width:23px;height:23px;pointer-events:none}
-.is-night .cinematic-controls{top:auto;bottom:calc(64px + var(--concert-sheet-height,226px) + 12px);flex-direction:row}
 .atlas-song-stars,.atlas-song-stars.is-long{height:min(210px,calc(100dvh - 64px - var(--concert-sheet-height,226px) - 231px))}
 .cinematic-orbit-hint{position:absolute;top:64%;left:20px;right:20px;display:flex;align-items:center;justify-content:center;gap:10px;color:#fffaf0;font-size:13px;font-weight:400;letter-spacing:.02em;text-shadow:0 1px 6px #18281c;pointer-events:none}
 .cinematic-orbit-hint>span{width:7px;height:7px;border-radius:50%;background:#fffaf0}
@@ -298,8 +280,19 @@
 .atlas-street-view .real-city-pin{color:#4e6358;text-shadow:0 1px 3px #fffcf1,0 0 6px #fffcf1}
 .atlas-street-view .real-city-pin i{background:#bd895a;box-shadow:0 0 0 2px #fffcf1}
 .atlas-street-view .real-city-pin.is-selected i{background:#bc8148;box-shadow:0 0 0 4px #e7ccac,0 0 0 6px #fffcf1}
+.real-venue-pin{position:relative;min-width:44px;min-height:44px;padding:0 12px 22px;border:0;background:none;color:#433b30;cursor:pointer;white-space:nowrap;font:500 12px/1.5 "Microsoft YaHei",sans-serif}
+.real-venue-pin span{display:block;padding:8px 12px;border-radius:12px;background:#fffbf3;border:1px solid #d8b997;box-shadow:0 4px 14px #47352326}
+.real-venue-pin i{position:absolute;bottom:0;left:calc(50% - 7px);width:14px;height:14px;border:3px solid #fff8e8;border-radius:50%;background:#ac713f;box-shadow:0 0 0 2px #bb8e60,0 2px 7px #47352340}
+.real-venue-pin:focus-visible{outline:2px solid #a36e3d;outline-offset:5px;border-radius:14px}
+.is-travelling .real-venue-pin{visibility:hidden}
+.atlas-catalog-coverage,.atlas-setlist-note,.atlas-cancelled-note{font-size:11px;line-height:1.6;color:#8a7662;margin:5px 0}
+.atlas-cancelled-note{color:#9e603b}
+.atlas-schedule-list .cancelled{color:#84766a}
+.atlas-map:not(.atlas-venue) .real-map-canvas .maplibregl-ctrl-bottom-left{top:246px;bottom:auto;left:24px;right:auto}
+.atlas-legend i.past{background:#bdc6ad;box-shadow:none}.atlas-legend i.future{background:#ffe5a1}
+.atlas-venue-row .atlas-venue-icon{display:block;color:#a77346;flex:none}
+.cinematic-load-error{z-index:10;pointer-events:auto;padding:12px;border-radius:16px;background:#fcf7eced;box-shadow:0 5px 25px #30281f22}
+.cinematic-load-error button{display:block;min-height:44px;margin:8px auto 0;border:0;border-radius:22px;padding:8px 18px;background:#9e6e43;color:#fff9ec}
 @media(max-height:720px){
-  .is-night .cinematic-controls{top:20px;bottom:auto;right:76px;flex-direction:row;gap:7px}
-  .cinematic-controls button{width:44px;height:44px}.cinematic-controls button svg{width:23px;height:23px}
   .is-night .cinematic-demo-label{bottom:276px}
 }

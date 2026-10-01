@@ -8,6 +8,9 @@ test('camera resolves actual venue coordinates and does not claim precision for 
   assert.deepEqual(venue.center,[114.2123,22.6970]);assert.ok(venue.pitch>=50);assert.ok(venue.duration>=2000);
   assert.ok(cameraTarget('venue',city,{},false).zoom<=12);
   assert.deepEqual(cameraTarget('venue',city,{},false).center,[114.06,22.54]);
+  const street=cameraTarget('map',city,event,false);
+  assert.deepEqual(street.center,[114.2123,22.6970]);
+  assert.ok(street.zoom>=14 && street.zoom<venue.zoom,'map approach stays geographic before entering the exterior');
 });
 
 test('entering a concert moves closer in the same coordinate system and reduced motion skips the flight',()=>{

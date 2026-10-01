@@ -5,6 +5,7 @@ export type AtlasEvent = {
   id: string; artist_id: string; title: string; city: string; venue: string; date: string; time?: string;
   source_url: string; source_title: string; source_kind?: 'report' | 'announcement';
   setlist_kind?: 'confirmed' | 'partial' | 'artist_collection'; setlist_note?: string;
+  event_status?: 'scheduled' | 'cancelled'; event_status_note?: string; verified_on?: string;
   venue_lng?: number; venue_lat?: number;
   songs: AtlasSong[];
 };
@@ -14,8 +15,12 @@ export type AtlasVenue = { id: string; city: string; name: string; events: Atlas
 export function chinaToday() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
-export function eventPhase(event: Pick<AtlasEvent, 'date'>, today = chinaToday()) {
+export function eventPhase(event: Pick<AtlasEvent, 'date' | 'event_status'>, today = chinaToday()) {
+  if(event.event_status==='cancelled')return 'cancelled';
   return event.date > today ? 'upcoming' : event.date < today ? 'past' : 'today';
+}
+export function phaseLabel(event:Pick<AtlasEvent,'date'|'event_status'>,today=chinaToday()){
+  return {cancelled:'已取消',upcoming:'待演',today:'今天',past:'往期'}[eventPhase(event,today)];
 }
 export function qqMusicUrl(title: string, artist: string) {
   return `https://y.qq.com/n/ryqq_v2/search?w=${encodeURIComponent(`${artist} ${title}`.trim())}`;

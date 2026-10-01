@@ -28,6 +28,8 @@ def validate_event(event_id, *, past=False):
     event = next((item for item in load_catalog()['events'] if item['id'] == event_id), None)
     if event is None:
         raise HTTPException(422, '找不到这个场次，请重新选择。')
+    if past and event.get('event_status') == 'cancelled':
+        raise HTTPException(422, '这场演出已取消，不能标记到场。')
     if past and event['date'] > datetime.now(timezone(timedelta(hours=8))).date().isoformat():
         raise HTTPException(422, '演出发生后才能标记到场。')
 
@@ -91,7 +93,7 @@ def install_footprints(app, get_db, get_user):
 
     @app.put('/api/footprints/{event_id}')
     def set_attendance(event_id: str, data: AttendanceInput, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
-        validate_event(event_id, past=True)
+        validate_event(event_id, past=data.attended)
         if data.attended:
             db.execute(insert(Footprint).values(owner_id=user.id, event_id=event_id).on_conflict_do_nothing())
         else:

@@ -40,3 +40,17 @@ def test_empty_concert_cannot_create_an_empty_playlist(tmp_path, monkeypatch):
         response = owner.put('/api/playlists/concerts/empty')
         assert response.status_code == 422
         assert owner.get('/api/playlists').json() == []
+
+
+def test_cancelled_show_cannot_be_marked_as_attended(tmp_path, monkeypatch):
+    from app import footprints
+    monkeypatch.setattr(footprints, 'load_catalog', lambda: {'events': [
+        {'id': 'cancelled', 'date': '2026-07-10', 'event_status': 'cancelled'}
+    ]})
+    with TestClient(create_app(f'sqlite:///{tmp_path / "cancelled.db"}')) as owner:
+        register(owner)
+        response = owner.put('/api/footprints/cancelled', json={'attended': True})
+        assert response.status_code == 422
+        assert '取消' in response.json()['detail']
+        assert owner.get('/api/footprints').json() == []
+        assert owner.put('/api/footprints/cancelled', json={'attended': False}).status_code == 200

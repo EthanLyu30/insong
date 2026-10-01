@@ -4,28 +4,26 @@ import type {AtlasEvent} from './footprintAtlas';
 import {HOME_PHOTO_VIEW,clampPhotoView,photoCoverage,sceneFrame,settlePhotoView,type PhotoView} from './sceneFraming';
 import type {SceneController} from './sceneInteraction';
 import {updateDepthSurface} from './sceneDepthSurface';
+import {venueScene} from './venueScenes';
 
 export type VenueLayer=SceneController&{location:(event?:AtlasEvent)=>void;scene:(mode:string)=>void;dispose:()=>void};
 const smooth=(value:number)=>{const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t);};
 const DISTANCE=3.2,FOV=35;
-const assets=[
-  {preview:'/scenes/stadium-exterior.webp',detail:'/scenes/stadium-exterior-detail.webp'},
-  {preview:'/scenes/stadium-interior.webp',detail:'/scenes/stadium-interior-detail.webp'},
-];
 
 // Preserve the selected portrait views. A depth relief adds restrained perspective;
 // a single photograph cannot truthfully represent a 360-degree surveyed venue.
 // One map canvas survives the journey, including interrupted camera flights.
-export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLayer{
+export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'|'error')=>void=()=>{}):VenueLayer{
   const world=new THREE.Scene(),camera=new THREE.PerspectiveCamera(FOV,1,.1,100);
-  const geometries=assets.map(()=>new THREE.PlaneGeometry(1,1,48,96));
-  const materials=assets.map(()=>new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthTest:false,depthWrite:false,toneMapped:false}));
+  const geometries=[0,1].map(()=>new THREE.PlaneGeometry(1,1,48,96));
+  const materials=[0,1].map(()=>new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthTest:false,depthWrite:false,toneMapped:false}));
   const surfaces=materials.map((material,i)=>{const mesh=new THREE.Mesh(geometries[i],material);mesh.renderOrder=i;mesh.visible=false;world.add(mesh);return mesh;});
   let renderer:THREE.WebGLRenderer|undefined,disposed=false,mode='map',located=false;
   let night=0,fromNight=0,changed=performance.now(),lastFrame=performance.now();
   let departing=false,departureInterrupted=0,departureOpacity=0;
   let view:PhotoView={...HOME_PHOTO_VIEW},target:PhotoView={...view},maxZoom=1,pixelZoom=1;
   let sized='',readyAt=[0,0],dimensions=[[780,1688],[780,1688]],detailReady=[false,false];
+  let profileId:string|null=null,profileFailed=false,loadVersion=0;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const canvas=map.getCanvas();
 
@@ -43,12 +41,26 @@ export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLa
     if(!readyAt[index])readyAt[index]=performance.now();
     surfaces[index].visible=true;sized='';previous?.dispose();map.triggerRepaint();
   }
-  function load(index:number){
-    const loader=new THREE.TextureLoader();
-    let previewFailed=false,detailFailed=false;
-    const failed=()=>{if(previewFailed&&detailFailed&&!disposed){canvas.dataset.sceneImageError=assets[index].detail;onImageError();}};
-    loader.load(assets[index].preview,texture=>install(texture,index,false),undefined,()=>{previewFailed=true;failed();});
-    loader.load(assets[index].detail,texture=>install(texture,index,true),undefined,()=>{detailFailed=true;failed();});
+  function setLocation(event?:AtlasEvent){
+    located=Number.isFinite(event?.venue_lng)&&Number.isFinite(event?.venue_lat);
+    const profile=venueScene(event),id=profile?.id??'';if(profileId===id&&!profileFailed)return;
+    profileId=id;const version=++loadVersion;
+    profileFailed=false;
+    readyAt=[0,0];detailReady=[false,false];sized='';target={...HOME_PHOTO_VIEW};view={...target};
+    materials.forEach((material,index)=>{material.map?.dispose();material.map=null;material.needsUpdate=true;surfaces[index].visible=false;});
+    canvas.dataset.sceneProfile=id;delete canvas.dataset.sceneImageError;
+    if(!profile){profileFailed=true;onImageState('error');map.triggerRepaint();return;}
+    onImageState('loading');let loaded=0,failed=false;
+    [profile.exterior,profile.interior].forEach((url,index)=>{
+      new THREE.TextureLoader().load(url,texture=>{
+        if(disposed||version!==loadVersion){texture.dispose();return;}
+        install(texture,index,true);loaded++;
+        if(loaded===2&&!failed)onImageState('ready');
+      },undefined,()=>{
+        if(disposed||version!==loadVersion)return;
+        failed=true;profileFailed=true;canvas.dataset.sceneImageError=url;onImageState('error');map.triggerRepaint();
+      });
+    });
   }
   function resize(){
     const width=map.getContainer().clientWidth,height=map.getContainer().clientHeight;
@@ -69,7 +81,7 @@ export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLa
     id:'concert-architecture',type:'custom',renderingMode:'3d',
     onAdd(_map,gl){
       renderer=new THREE.WebGLRenderer({canvas,context:gl as WebGL2RenderingContext,antialias:true});renderer.autoClear=false;
-      assets.forEach((_,i)=>load(i));renderer.resetState();
+      renderer.resetState();
     },
     render(){
       if(!renderer||disposed)return;
@@ -77,7 +89,7 @@ export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLa
       night=fromNight+((mode==='sky'?1:0)-fromNight)*smooth(elapsed);
       const approach=arrival();if(mode==='map'&&approach===0)departing=false;
       let visible=mode==='map'&&!departing?0:approach;
-      const departureFade=departureInterrupted?smooth((now-departureInterrupted)/650):0;
+      const departureFade=departureInterrupted?(reduced.matches?1:smooth((now-departureInterrupted)/650)):0;
       if(departureInterrupted){visible=Math.min(visible,departureOpacity*(1-departureFade));if(departureFade===1){departing=false;departureInterrupted=0;}}
       map.getContainer().parentElement?.style.setProperty('--scene-arrival',String(visible));
       // Map source attribution remains on visible geography, not over opaque concept art.
@@ -102,7 +114,7 @@ export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLa
     onRemove(){dispose();},
   };
   function dispose(){
-    if(disposed)return;disposed=true;document.removeEventListener('visibilitychange',visibility);map.off('movestart',interruptDeparture);
+    if(disposed)return;disposed=true;loadVersion++;document.removeEventListener('visibilitychange',visibility);map.off('movestart',interruptDeparture);
     geometries.forEach(geometry=>geometry.dispose());materials.forEach(material=>{material.map?.dispose();material.dispose();});renderer?.dispose();
   }
   const interruptDeparture=(event:unknown)=>{
@@ -113,8 +125,16 @@ export function createVenueLayer(map:GLMap,onImageError:()=>void=()=>{}):VenueLa
   map.addLayer(layer);
   function move(next:PhotoView){resize();const bounded=clampPhotoView(next,pixelZoom);maxZoom=Math.max(1,pixelZoom/photoCoverage(camera.aspect,bounded.yaw,bounded.pitch));target=clampPhotoView(bounded,maxZoom);lastFrame=performance.now();map.triggerRepaint();}
   return {
-    location(event){if(event)located=Number.isFinite(event.venue_lng)&&Number.isFinite(event.venue_lat);map.triggerRepaint();},
-    scene(value){if(mode===value)return;departing=value==='map';departureInterrupted=0;fromNight=night;mode=value;changed=lastFrame=performance.now();target={...HOME_PHOTO_VIEW};sized='';map.triggerRepaint();},
+    location(event){setLocation(event);map.triggerRepaint();},
+    scene(value){
+      if(mode===value)return;
+      departing=value==='map';
+      // A venue map stays close (zoom 14.3), so departure must finish by time,
+      // independently of the geographic approach threshold.
+      departureOpacity=Number(canvas.dataset.sceneArrival)||arrival();
+      departureInterrupted=departing?performance.now():0;
+      fromNight=night;mode=value;changed=lastFrame=performance.now();target={...HOME_PHOTO_VIEW};sized='';map.triggerRepaint();
+    },
     orbit(dx,dy){move({...target,yaw:target.yaw-dx*.1,pitch:target.pitch+dy*.055});},
     pinch(from,to){move({...target,zoom:target.zoom*Math.max(to,1)/Math.max(from,1)});},
     zoom(delta){move({...target,zoom:target.zoom*2**(delta*.4)});},

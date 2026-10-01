@@ -1,6 +1,6 @@
 import {useRef,type PointerEvent as ReactPointerEvent,type RefObject} from 'react';
-import {ArrowRight,Minus,Plus,StarFour} from '@phosphor-icons/react';
-import type {AtlasEvent,AtlasSong} from './footprintAtlas';
+import {ArrowRight,StarFour} from '@phosphor-icons/react';
+import {eventPhase,type AtlasEvent,type AtlasSong} from './footprintAtlas';
 import {isSceneTap,type SceneController} from './sceneInteraction';
 
 type Props={scene:string;controller:RefObject<SceneController|null>;event?:AtlasEvent;venueName?:string;city?:string;artistName?:string;selected:AtlasSong|null;playing?:string;onSong:(song:AtlasSong)=>void;onEnter:()=>void};
@@ -12,7 +12,7 @@ export function CinematicStage({scene,controller,event,venueName,city,artistName
   const points=useRef(new Map<number,[number,number]>());
   const gesture=useRef<{start:[number,number];enter:boolean;moved:boolean;handled:boolean}|null>(null);
   function pointerDown(e:ReactPointerEvent<HTMLDivElement>){
-    if((e.target as HTMLElement).closest('.cinematic-controls,.atlas-song-stars')||e.button!==0)return;
+    if((e.target as HTMLElement).closest('.atlas-song-stars')||e.button!==0)return;
     points.current.set(e.pointerId,[e.clientX,e.clientY]);
     if(points.current.size===1)gesture.current={start:[e.clientX,e.clientY],enter:!!(e.target as HTMLElement).closest('.cinematic-enter'),handled:false,moved:false};
     else if(gesture.current)gesture.current.moved=true;
@@ -33,19 +33,18 @@ export function CinematicStage({scene,controller,event,venueName,city,artistName
   return <div className={'cinematic-stage '+(scene==='map'?'is-hidden':'')+(scene==='sky'?' is-night':'')} aria-hidden={scene==='map'} inert={scene==='map'} role="region" tabIndex={scene==='map'?-1:0} aria-label="可拖动调整景深视角的场馆" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={()=>{points.current.clear();gesture.current=null;}} onWheel={e=>{if(!(e.target as HTMLElement).closest('.atlas-song-stars'))controller.current?.zoom(-e.deltaY*.002);}} onKeyDown={e=>{if(e.target!==e.currentTarget)return;const moves:Record<string,[number,number]>={ArrowLeft:[-30,0],ArrowRight:[30,0],ArrowUp:[0,-20],ArrowDown:[0,20]};if(moves[e.key]){e.preventDefault();controller.current?.orbit(...moves[e.key]);}}}>
     <div className="cinematic-gesture-surface" aria-hidden="true"/>
     {scene==='venue'&&<>
-      <div className="cinematic-location"><h1>{venueName?.match(/体育[场馆]$/)?<>{venueName.slice(0,-3)}<br/>{venueName.slice(-3)}</>:venueName}</h1><p>{located?'歌声即将抵达':'场馆位置待核实 · 先看看这座城'}</p></div>
-      <button className="cinematic-enter" type="button" aria-label="进入这座场馆" onClick={e=>{if(e.detail===0||!gesture.current?.handled)onEnter();}}><span>点击场馆，走进这一晚 <ArrowRight size={16}/></span></button>
+      <div className="cinematic-location"><h1>{venueName?.match(/体育[场馆]$/)?<>{venueName.slice(0,-3)}<br/>{venueName.slice(-3)}</>:venueName}</h1><p>{!located?'场馆位置待核实 · 先看看这座城':event&&eventPhase(event)==='past'?'歌声曾在这里停靠':event?.event_status==='cancelled'?'此场次已取消':'歌声即将抵达'}</p></div>
+      {event?.event_status!=='cancelled'&&<button className="cinematic-enter" type="button" aria-label="进入这座场馆" onClick={e=>{if(e.detail===0||!gesture.current?.handled)onEnter();}}><span>点击场馆，走进这一晚 <ArrowRight size={16}/></span></button>}
       <div className="cinematic-orbit-hint"><span aria-hidden="true"/>拖动，环绕现场</div>
     </>}
     {scene==='sky'&&event&&<>
-      <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {venueName??city}</p><span>把歌声，留在星光里。</span></div>
+      <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {venueName??city}</p>{event.event_status==='cancelled'?<span>这场演出已取消 · 仅保留记录</span>:<span>把歌声，留在星光里。</span>}</div>
       <div className={'atlas-song-stars '+(event.songs.length>constellation.length?'is-long':'')} aria-label="歌曲星空">
         {event.songs.map((song,i)=>{
         const [x,y]=constellation[i%constellation.length];
         return <button key={i} type="button" className={'atlas-song-star '+(selected?.title===song.title?'is-selected':'')+(playing===song.title?' is-playing':'')} style={{left:`${x}%`,top:`${y}%`}} aria-label={`第${i+1}颗星 · ${song.title} · ${playing===song.title?'暂停':'播放'}`} aria-pressed={playing===song.title} onClick={()=>onSong(song)}><StarFour size={18} weight="fill"/><span>{song.title}</span></button>;
       })}</div>
     </>}
-    {scene!=='map'&&<div className="cinematic-controls"><button type="button" onClick={()=>controller.current?.zoom(.3)} aria-label="拉近场馆"><Plus size={23} weight="light"/></button><button type="button" onClick={()=>controller.current?.zoom(-.3)} aria-label="拉远场馆"><Minus size={23} weight="light"/></button></div>}
     {scene!=='map'&&<span className="cinematic-demo-label">{located?'场景示意':'城市位置 · 场景示意'}</span>}
   </div>;
 }
