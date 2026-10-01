@@ -8,6 +8,7 @@ import { useData } from './useData';
 import { PublicStoryList } from './PublicPages';
 import { AtlasMap } from './AtlasMap';
 import { CinematicStage } from './CinematicStage';
+import type {SceneController} from './sceneInteraction';
 import { CollectConcert, SongList } from './ConcertPlaylist';
 import { chinaToday, dateLabel, eventPhase, filterArtists, groupVenues, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong, type AtlasVenue } from './footprintAtlas';
 import './footprints.css';
@@ -34,7 +35,7 @@ function Attendance({event,today,next}:{event:AtlasEvent;today:string;next:strin
 
 export function FootprintsPage() {
   const {user}=useSession();const [params,setParams]=useSearchParams();const [retry,setRetry]=useState(0);const {value:catalog,error}=useData<AtlasCatalog>('/api/footprints/catalog',retry);
-  const [stageReady,setStageReady]=useState(false),[listOpen,setListOpen]=useState(true);
+  const sceneController=useRef<SceneController|null>(null);const [listOpen,setListOpen]=useState(true);
   const storyTrigger=useRef<HTMLButtonElement>(null);const storyClose=useRef<HTMLButtonElement>(null);
 
   const [query,setQuery]=useState('');const [searchOpen,setSearchOpen]=useState(false);const [expanded,setExpanded]=useState(false);const [selectedSong,setSelectedSong]=useState<AtlasSong|null>(null);const [stories,setStories]=useState(false);
@@ -47,7 +48,6 @@ export function FootprintsPage() {
   const venue=venues.find(item=>item.events.some(event=>event.id===linkedEvent?.id))??venues.find(item=>item.id===params.get('venue'));
   const scene=linkedEvent && params.get('scene')!=='venue'?'sky':venue && params.get('scene')==='venue'?'venue':'map';
   const today=catalog?.today??chinaToday();
-  useEffect(()=>{if(scene==='map'){setStageReady(false);return;}setStageReady(typeof window.WebGL2RenderingContext==='undefined');const timer=window.setTimeout(()=>setStageReady(true),3200);return()=>window.clearTimeout(timer);},[venue?.id]);
   const recent=[...events].sort((a,b)=>{
     const ap=eventPhase(a,today)!=='past',bp=eventPhase(b,today)!=='past';return ap!==bp?ap?-1:1:ap?a.date.localeCompare(b.date):b.date.localeCompare(a.date);
   });
@@ -70,10 +70,10 @@ export function FootprintsPage() {
   const matchingArtists=filterArtists(catalog.artists,query);
   const matchingCities=query.trim()?cities.filter(item=>item.name.includes(query.trim())).slice(0,6):[];
   const invalidEvent=params.get('event')&&!linkedEvent;
-  return <section className={`atlas-page atlas-${scene} ${stageReady?'atlas-stage-ready':''}`} data-scene={scene}>
+  return <section className={`atlas-page atlas-${scene}`} data-scene={scene}>
     <div className="atlas-scene">
-      <AtlasMap cities={cities} events={events} today={today} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} scene={scene} venueEvent={stageEvent} onArrive={()=>setStageReady(true)}/>
-      <CinematicStage scene={scene} visible={stageReady} event={stageEvent} venueName={venue?.name} city={city?.name} artistName={catalog.artists.find(item=>item.id===stageEvent?.artist_id)?.name} selected={selectedSong} onSong={setSelectedSong} onEnter={()=>{if(stageEvent)openEvent(stageEvent);}}/>
+      <AtlasMap cities={cities} events={events} today={today} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
+      <CinematicStage scene={scene} controller={sceneController} event={stageEvent} venueName={venue?.name} city={city?.name} artistName={catalog.artists.find(item=>item.id===stageEvent?.artist_id)?.name} selected={selectedSong} onSong={setSelectedSong} onEnter={()=>{if(stageEvent)openEvent(stageEvent);}}/>
     </div>
     {scene==='map'?<header className="atlas-searchbar">
       <div className="atlas-wordmark"><div><span>足迹</span><small>跟着歌声，去远方。</small></div><Link to="/playlists" aria-label="我的现场歌单"><BookmarkSimple size={23} weight="light"/></Link></div>

@@ -10,29 +10,30 @@
 .atlas-page button:disabled{cursor:default;opacity:.5}
 .atlas-page button:focus-visible,.atlas-page a:focus-visible{outline:2px solid #bd8050;outline-offset:4px}
 .atlas-page button,.atlas-page input,.atlas-page a{touch-action:manipulation}
-.atlas-scene,.atlas-map-stage,.real-map-canvas,.cinematic-stage,.cinematic-canvas,.cinematic-photographs{position:absolute;inset:0}
+.atlas-scene,.atlas-map-stage,.real-map-canvas,.cinematic-stage{position:absolute;inset:0}
 .real-map-canvas{background:#f0e8dc}
 .real-map-canvas.maplibregl-map{position:absolute;inset:0;width:100%;height:100%}
 .real-map-canvas .maplibregl-canvas{outline:none}
-.atlas-map-stage{transition:opacity .8s ease}
-.atlas-stage-ready .atlas-map-stage.is-travelling{opacity:0;pointer-events:none}
-.real-map-canvas .maplibregl-ctrl-bottom-left{bottom:65px;left:8px;max-width:94%}
+.atlas-map-stage{opacity:1}
+.real-map-canvas .maplibregl-ctrl-bottom-left{bottom:auto;top:211px;left:auto;right:22px;max-width:88%;z-index:11}
+.is-travelling .real-map-canvas .maplibregl-ctrl-bottom-left{top:76px}
 .real-map-canvas .maplibregl-ctrl-attrib{background:#f5f0e7d9;font-size:9px;line-height:16px}
-.real-city-pin{display:block;width:44px;min-width:44px;height:44px;padding:0;border:0;background:transparent;color:#fff9ed;font:12px "Microsoft YaHei",sans-serif;white-space:nowrap;text-shadow:0 1px 5px #192820}
+.real-city-pin{display:block;width:44px;min-width:44px;height:44px;padding:0;border:0;background:transparent;color:#534f45;font:12px "Microsoft YaHei",sans-serif;white-space:nowrap;text-shadow:0 1px 3px #fffdf4}
 .real-city-pin i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:5px;height:5px;border-radius:50%;background:#f2ead1b0;box-shadow:0 0 0 2px #ffffff18}
 .real-city-pin span{position:absolute;left:calc(50% + 10px);top:50%;transform:translateY(-50%);opacity:0;transition:opacity .25s}
 .real-city-pin.is-lit span,.real-city-pin:hover span,.real-city-pin:focus-visible span,.atlas-detail-zoom .real-city-pin span{opacity:1}
-.real-city-pin.is-lit i{width:8px;height:8px;background:#dad3b7;box-shadow:0 0 0 4px #f5e6be25}
-.real-city-pin.is-upcoming i{width:10px;height:10px;background:#ffe3b3;box-shadow:0 0 0 5px #eabd7a40,0 0 15px #ffd597}
+.real-city-pin.is-lit i{width:8px;height:8px;background:#a1a893;box-shadow:0 0 0 4px #fff9eb88}
+.real-city-pin.is-upcoming i{width:10px;height:10px;background:#b77647;box-shadow:0 0 0 5px #faf0dfb0,0 0 17px #c7986488}
 .real-city-pin.is-selected i{box-shadow:0 0 0 5px #9b5c32,0 0 0 7px #ffe6b2;}
 .real-city-pin.is-selected span{font-weight:700}
 .atlas-map-controls,.cinematic-controls{position:absolute;right:22px;z-index:5;display:flex;flex-direction:column;gap:8px}
-.atlas-map-controls{bottom:292px}
+.atlas-map-controls{bottom:310px}
 .atlas-map-controls button,.cinematic-controls button,.atlas-scene-toolbar>button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffffb0;border-radius:50%;background:#f8f3e9ea;color:#302e2b;box-shadow:0 3px 14px #3b2a2317;backdrop-filter:blur(14px)}
 .atlas-map-controls button:hover,.cinematic-controls button:hover,.atlas-scene-toolbar>button:hover{background:#fffcf6}
-.atlas-searchbar{position:absolute;z-index:8;top:0;left:0;right:0;padding:max(22px,env(safe-area-inset-top)) max(24px,calc((100vw - 712px)/2)) 16px;background:#f7f3e9e8;backdrop-filter:blur(12px)}
-.atlas-wordmark{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:17px}
-.atlas-wordmark>div>span{font-size:28px;font-weight:650;letter-spacing:.04em;display:block}
+.atlas-searchbar{position:absolute;z-index:8;top:0;left:0;right:0;padding:max(22px,env(safe-area-inset-top)) max(24px,calc((100vw - 712px)/2)) 16px;background:linear-gradient(#f7f3e9ef 20%,#f7f3e9bd 76%,#f7f3e900);pointer-events:none}
+.atlas-searchbar input,.atlas-searchbar button,.atlas-searchbar a,.atlas-search-results{pointer-events:auto}
+.atlas-wordmark{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.atlas-wordmark>div>span{font-size:25px;font-weight:650;letter-spacing:.04em;display:block}
 .atlas-wordmark small{display:block;margin-top:5px;font:400 19px/1.4 'Wanwei Handwriting',sans-serif;color:#9a623d;letter-spacing:.03em}
 .atlas-wordmark>a{width:44px;height:44px;display:grid;place-items:center;color:#63584c}
 .atlas-search-input{display:flex;gap:10px;align-items:center;height:48px;padding:0 16px;background:#fffdf8;border:1px solid #dfd6c770;border-radius:27px;color:#514c46}
@@ -47,10 +48,10 @@
 .atlas-search-results button{display:flex;align-items:center;gap:8px;min-height:50px;width:100%;padding:10px 2px;background:none;border:0;border-top:1px solid #ded4c755;color:#413930;font-size:15px;text-align:left}
 .atlas-search-results button small{display:flex;align-items:center;margin-left:auto;color:#8b7965;font-size:12px}
 .atlas-search-results p{font-size:14px;line-height:1.7}
-.atlas-legend{position:absolute;z-index:3;left:24px;bottom:284px;display:flex;gap:13px;font-size:11px;color:#fff4d8;text-shadow:0 1px 4px #283329}
+.atlas-legend{position:absolute;z-index:3;left:24px;bottom:310px;display:flex;gap:13px;font-size:11px;color:#665d4f;background:#fff9e9c9;border:1px solid #ffffffb0;padding:7px 11px;border-radius:20px}
 .atlas-legend span{display:flex;gap:6px;align-items:center}
-.atlas-legend i{width:6px;height:6px;border-radius:50%;background:#dcd6bf}
-.atlas-legend i.future{background:#ffd798}
+.atlas-legend i{width:6px;height:6px;border-radius:50%;background:#99a189}
+.atlas-legend i.future{background:#b77647}
 .atlas-panel{position:absolute;z-index:7;bottom:64px;left:max(0px,calc((100vw - 760px)/2));right:max(0px,calc((100vw - 760px)/2));border:1px solid #ffffff86;border-bottom:0;border-radius:26px 26px 0 0;padding:17px 24px 14px;background:#f8f3e9f2;backdrop-filter:blur(22px);box-shadow:0 -4px 25px #4933230b;color:var(--ink);max-height:52vh;overflow:auto;scrollbar-width:thin}
 .atlas-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .atlas-panel h2{margin:0;font-size:19px;font-weight:600;line-height:1.5}
@@ -86,22 +87,16 @@
 .atlas-empty-city button{display:block;min-height:44px;margin-top:8px;border:0;background:none;padding:0}
 .atlas-scene-toolbar{position:absolute;left:max(24px,calc((100vw - 712px)/2));right:max(24px,calc((100vw - 712px)/2));top:max(24px,env(safe-area-inset-top));z-index:9;display:flex;align-items:center;justify-content:space-between;color:#342e26;font-size:14px}
 .atlas-scene-toolbar>span{font-size:16px}
-.cinematic-stage{opacity:0;pointer-events:none;transition:opacity .8s ease;touch-action:none}
-.atlas-stage-ready .cinematic-stage:not(.is-hidden){opacity:1;pointer-events:auto}
+.cinematic-stage{opacity:1;pointer-events:auto;touch-action:none;user-select:none}
 .cinematic-stage.is-hidden{opacity:0;pointer-events:none}
-.cinematic-photographs img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;user-select:none}
-.cinematic-night-photo{opacity:0;transition:opacity 1.2s ease;object-position:center 80%}
-.is-night .cinematic-night-photo{opacity:1}
-.cinematic-canvas{opacity:0;transition:opacity .3s ease}
-.cinematic-canvas.is-ready{opacity:1}
-.cinematic-canvas canvas{width:100%;height:100%;display:block;touch-action:none}
-.cinematic-location{position:absolute;top:97px;left:max(24px,calc((100vw - 712px)/2));right:max(24px,calc((100vw - 712px)/2));pointer-events:none;color:#2d291f}
+.cinematic-stage:not(.is-hidden):not(.is-night){background:linear-gradient(#f7efdfd9 0%,#f7efdfa6 18%,#f7efdf00 32%)}
+.cinematic-location{position:absolute;top:97px;left:max(24px,calc((100vw - 712px)/2));right:max(24px,calc((100vw - 712px)/2));pointer-events:none;color:#2d291f;text-shadow:0 1px 10px #fff5e5;}
 .cinematic-location h1{font-size:31px;font-weight:650;line-height:1.4;letter-spacing:.005em;margin:0;max-width:310px;text-wrap:balance}
 .cinematic-location p{font-size:14px;color:#776a51;margin:9px 0 0}
-.cinematic-enter{position:absolute;top:38%;height:33%;left:0;right:0;width:100%;background:transparent;border:0;color:#fff9e9;touch-action:none}
-.cinematic-enter>span{position:absolute;bottom:8px;left:24px;right:24px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:13px;text-shadow:0 1px 7px #422f23}
-.cinematic-enter:hover>span{color:#fff}
-.cinematic-controls{right:max(24px,calc((100vw - 712px)/2));top:48%;}
+.cinematic-enter{position:absolute;top:38%;height:33%;left:0;right:0;width:100%;background:transparent;border:0;color:#544734;touch-action:none}
+.cinematic-enter>span{position:absolute;bottom:8px;left:24px;right:24px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:13px;text-shadow:0 1px 7px #fff7e8}
+.cinematic-enter:hover>span{color:#a3673e}
+.cinematic-controls{right:max(24px,calc((100vw - 712px)/2));top:44%;}
 .cinematic-controls button{background:#f6f1e2d9}
 .cinematic-loading{position:absolute;top:45%;left:20px;right:20px;text-align:center;font-size:14px;color:#675943;pointer-events:none}
 .cinematic-demo-label{position:absolute;left:24px;bottom:262px;font-size:10px;color:#fff9e9;text-shadow:0 1px 5px #38291e;pointer-events:none}
@@ -169,7 +164,6 @@
   .atlas-panel{padding-left:28px;padding-right:28px}
 }
 @media(max-height:720px){
-  .cinematic-night-photo{object-position:center 98%}
   .atlas-searchbar{padding-top:14px;padding-bottom:11px}
   .atlas-wordmark{margin-bottom:11px}.atlas-wordmark>div>span{font-size:24px}.atlas-wordmark small{font-size:16px}
   .atlas-search-input{height:44px}.atlas-artist-pills{margin-top:8px}.atlas-artist-pills button{min-height:36px;font-size:12px;padding:7px 13px}
@@ -177,6 +171,8 @@
   .atlas-itinerary header small{display:none}.atlas-schedule-list>button{min-height:57px}.atlas-schedule-list strong{font-size:15px}
   .atlas-map-controls{bottom:263px;right:17px}.atlas-legend{bottom:253px}
   .atlas-scene-toolbar{top:17px;left:20px;right:20px}.cinematic-location{top:83px;left:20px;right:20px}.cinematic-location h1{font-size:27px;max-width:280px}.cinematic-location p{margin-top:5px;font-size:12px}
+  .cinematic-controls{top:215px}
+  .is-night .cinematic-controls{top:17px;right:76px;flex-direction:row;gap:6px}
   .cinematic-night-title{top:83px;left:20px}.cinematic-night-title h1{font-size:25px}.cinematic-night-title p{font-size:12px;margin:4px 0}.cinematic-night-title>span{font-size:18px}
   .atlas-song-stars,.atlas-song-stars.is-long{top:177px;height:153px}.atlas-song-star{width:80px;min-height:47px;gap:3px}.atlas-song-star span{font-size:12px}
   .concert-song-list{max-height:80px}.concert-song-list button{min-height:40px}.concert-song-list strong{font-size:15px}
