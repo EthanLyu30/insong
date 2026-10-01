@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router';
 import { getSongs, type Song } from './api';
 import { MemoryCollage } from './MemoryCollage';
@@ -6,7 +6,11 @@ import { AccountControl, SessionProvider, useSession } from './SessionContext';
 import { AccountPage } from './AccountPage';
 import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from './MemoryPages';
 import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
-import { FootprintsPage } from './FootprintsPage';
+import './footprints.css';
+import {House,MagnifyingGlass,BookmarkSimple,MapTrifold} from '@phosphor-icons/react';
+function AtlasGlyph({name}:{name:'home'|'search'|'bookmark'|'map'}){const Icon={home:House,search:MagnifyingGlass,bookmark:BookmarkSimple,map:MapTrifold}[name];return <Icon size={25} weight="light" aria-hidden="true"/>;}
+const FootprintsPage = lazy(() => import('./FootprintsPage').then(module => ({default:module.FootprintsPage})));
+const PlaylistsPage = lazy(() => import('./ConcertPlaylist').then(module => ({default:module.PlaylistsPage})));
 
 function Glyph({ name }: { name: 'home' | 'search' | 'bookmark' | 'map' }) {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{name === 'home' ? <><path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/></> : name === 'search' ? <><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.4 4.4"/></> : name === 'map' ? <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/></> : <path d="M6 3h12v18l-6-4-6 4V3Z"/>}</svg>;
@@ -39,10 +43,11 @@ function Shell() {
   const location = useLocation();
   const [entered,setEntered] = useState(location.pathname !== '/' || !!location.search);
   const intro = location.pathname === '/' && !entered;
+  const atlas = location.pathname === '/footprints';
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   useEffect(() => {if(location.pathname !== '/')setEntered(true);},[location.pathname]);
-  return <div className={`site-shell${intro?' intro-shell':''}`}>
-    {!intro && <header className="topbar"><Link to="/" className="brand" aria-label="歌里有我，返回首页"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
+  return <div className={`site-shell${intro?' intro-shell':''}${atlas?' atlas-shell':''}`}>
+    {!intro && !atlas && <header className="topbar"><Link to="/" className="brand" aria-label="歌里有我，返回首页"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
       {loading ? <div className="status-card" role="status">正在打开你的空间…</div> : error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
         <Routes key={`${user?.id ?? 'guest'}:${location.pathname}`}>
@@ -51,7 +56,8 @@ function Shell() {
           <Route path="/songs/:songId" element={<SongPage/>}/>
           <Route path="/songs/:songId/write" element={<CreateMemoryPage/>}/>
           <Route path="/discover" element={<DiscoverPage/>}/>
-          <Route path="/footprints" element={<FootprintsPage/>}/>
+          <Route path="/footprints" element={<Suspense fallback={<section className="atlas-page atlas-loading" role="status">正在展开山河与歌声…</section>}><FootprintsPage/></Suspense>}/>
+          <Route path="/playlists" element={<Suspense fallback={<p role="status">正在翻开歌单…</p>}><PlaylistsPage/></Suspense>}/>
           <Route path="/stories/:storyId" element={<StoryPage/>}/>
           <Route path="/themes/:themeId" element={<ThemePage/>}/>
           <Route path="/memories" element={<MemoryCollection/>}/>
@@ -62,7 +68,7 @@ function Shell() {
     </main>
     {!intro && <nav className="bottom-nav" aria-label="主导航">{([
       ['/', 'home', '听见'], ['/discover', 'search', '共鸣'], ['/memories', 'bookmark', '我的记忆'], ['/footprints', 'map', '足迹'],
-    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}><Glyph name={icon}/><span>{label}</span></NavLink>)}</nav>}
+    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>{atlas?<AtlasGlyph name={icon}/>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
   </div>;
 }
 

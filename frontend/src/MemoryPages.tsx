@@ -99,6 +99,7 @@ function CollectionContent() {
   return <section className="journal-page collection-page">
     <div className="journal-title-row"><div><span className="journal-eyebrow">一首歌 一页生活</span><h1>我的音乐记忆</h1></div><Link className="round-action" to="/" aria-label="选择歌曲留下一刻">＋</Link></div>
     <p className="page-intro">同一首歌，经过不同年份的你。把生活按自己的时间慢慢翻开。</p><SampleNotice/>
+    <Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link>
     <form className="recall-form" onSubmit={search}>
       <label htmlFor="memory-query">还记得那时发生了什么？</label>
       <div className="recall-input"><input id="memory-query" value={query} maxLength={200} onChange={e => {setQuery(e.target.value);reset();}} placeholder="比如：离开校园的那个晚上"/><button disabled={busy || !query.trim()} aria-label="找回这段记忆">{busy ? '…' : '找回'}</button></div>
