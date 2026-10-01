@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Link, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router';
+import { Link, NavLink, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { getSongs, type Song } from './api';
 import {songCover} from './cardMedia';
 import { MemoryCollage } from './MemoryCollage';
@@ -45,17 +45,18 @@ function HomePage({intro,onEnter}:{intro:boolean;onEnter:()=>void}) {
 function Shell() {
   const { user, loading, error, refresh } = useSession();
   const location = useLocation();
-  const [entered,setEntered] = useState(location.pathname !== '/' || !!location.search);
-  const intro = location.pathname === '/' && !entered;
+  const navigate = useNavigate();
+  const homeParams = new URLSearchParams(location.search);
+  // Home has one visual state, regardless of how the user arrived here.
+  const intro = location.pathname === '/' && !['theme','event','choose'].some(key=>homeParams.has(key));
   const atlas = location.pathname === '/footprints';
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
-  useEffect(() => {if(location.pathname !== '/')setEntered(true);},[location.pathname]);
   return <div className={`site-shell${intro?' intro-shell':''}${atlas?' atlas-shell':''}`}>
     {!atlas && <header className="topbar"><Link to="/" className="brand" aria-label="歌里有我，返回首页"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
       {loading ? <div className="status-card" role="status">正在打开你的空间…</div> : error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
         <Routes key={`${user?.id ?? 'guest'}:${location.pathname}`}>
-          <Route path="/" element={<HomePage intro={intro} onEnter={()=>setEntered(true)}/>}/>
+          <Route path="/" element={<HomePage intro={intro} onEnter={()=>navigate('/discover')}/>}/>
           <Route path="/account" element={<AccountPage/>}/>
           <Route path="/songs/:songId" element={<SongPage/>}/>
           <Route path="/songs/:songId/write" element={<CreateMemoryPage/>}/>

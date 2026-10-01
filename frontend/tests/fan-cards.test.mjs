@@ -11,6 +11,7 @@ async function harness(path,respond,work){
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};
   window.matchMedia=()=>({matches:true,addEventListener(){},removeEventListener(){}});
+  globalThis.ResizeObserver=class {observe(){} disconnect(){}};
   window.HTMLMediaElement.prototype.play=async function(){this.dispatchEvent(new window.Event('play'));};
   window.HTMLMediaElement.prototype.pause=function(){this.dispatchEvent(new window.Event('pause'));};
   const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter}=await import('react-router');
@@ -29,8 +30,31 @@ async function harness(path,respond,work){
   const act=React.act;
   const fill=async(id,text)=>act(async()=>{const input=document.getElementById(id);assert.ok(input,`missing ${id}`);const proto=input.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,text);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
   try{await act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(App))));await work({act,fill});}
-  finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;dom.window.close();}
+  finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;delete globalThis.ResizeObserver;dom.window.close();}
 }
+
+test('Hear keeps its full collage after story entry and navigation back from discovery',async()=>{
+  await harness('/',async url=>{
+    if(url==='/api/songs')return Response.json(Array.from({length:5},(_,i)=>({...song,id:i+1,title:`原版歌曲${i+1}`,cover_url:'/photos/live-lights.webp'})));
+    if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-01',artists:[],events:[]});
+    throw new Error(url);
+  },async({act})=>{
+    assert.ok(document.querySelector('.intro-shell .collage-intro'));
+    const projection=[...document.querySelectorAll('.collage-card')].map(card=>card.style.transform);
+    await act(async()=>document.querySelector('.intro-copy button').click());
+    assert.ok(document.querySelector('.discover-page'),'story entry opens the discovery route');
+    await act(async()=>document.querySelector('.bottom-nav a[href="/"]').click());
+    assert.ok(document.querySelector('.intro-shell .collage-intro'),'returning to Hear keeps the full-size home');
+    assert.equal(document.querySelector('.collage-copy'),null,'the compact alternative copy never replaces home');
+    assert.equal(document.querySelector('.intro-copy h1').textContent,'追过的光，留在歌里。');
+    assert.deepEqual([...document.querySelectorAll('.collage-card')].map(card=>card.style.transform),projection);
+    assert.deepEqual([...document.querySelectorAll('.collage-card-art img.is-visible')].map(img=>img.getAttribute('src')),Array.from({length:5},(_,i)=>`/covers/song-${i+1}.png`));
+    await act(async()=>document.querySelector('.scene-enter').click());
+    assert.ok(document.querySelector('.discover-page'),'background entry also opens discovery');
+    await act(async()=>document.querySelector('.brand').click());
+    assert.ok(document.querySelector('.intro-shell .collage-intro'),'brand return shares the same full-size home');
+  });
+});
 
 test('gallery cover, title and tags remain editable and are sent together',async()=>{
   let sent;
