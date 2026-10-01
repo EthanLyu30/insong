@@ -180,3 +180,102 @@
   .cinematic-demo-label{bottom:245px}.is-night .cinematic-demo-label{bottom:287px}
 }
 @media(prefers-reduced-motion:reduce){.atlas-page *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Reference proportions and restrained controls leave the cinematic imagery in charge. */
+.atlas-cloud-canopy{position:absolute;inset:-28px -8% auto;width:116%;height:390px;object-fit:fill;pointer-events:none;z-index:2;opacity:.92}
+.atlas-searchbar{padding-top:max(32px,env(safe-area-inset-top));background:none}
+.atlas-wordmark>div>span{font-size:32px;line-height:1.25;letter-spacing:.02em;color:#282a24;text-shadow:0 1px 12px #fff6e6}
+.atlas-wordmark small{font-size:24px;line-height:1.4;color:#975426;text-shadow:0 1px 8px #fff5e4}
+.atlas-search-input{background:#faf7f0ed;box-shadow:0 8px 32px #13282212}
+.atlas-artist-pills button{background:#faf7f0e8;border-color:#fff9ee9c;box-shadow:0 3px 16px #15362414}
+.real-city-pin{font-size:13px;color:#fff8e8;text-shadow:0 1px 5px #1b3328,0 1px 10px #18281f}
+.real-city-pin i{background:#ffedbdd9;box-shadow:0 0 5px #ffc568}
+.real-city-pin.is-lit i{width:7px;height:7px;background:#fff2c4;box-shadow:0 0 7px #ffd074,0 0 16px #ffb855}
+.real-city-pin.is-upcoming i{width:9px;height:9px;background:#fff4d1;box-shadow:0 0 0 2px #ffcd7580,0 0 9px #fff0bc,0 0 23px #ffb545}
+.real-city-pin.is-selected i{box-shadow:0 0 0 5px #c78a3866,0 0 0 7px #fff0be,0 0 28px #ffbd62}
+.atlas-map-controls{bottom:260px}
+.atlas-legend{bottom:268px;left:24px;color:#fbedd4;background:#233f37a0;border-color:#b5ccbb55;font-size:10px;backdrop-filter:blur(10px)}
+.atlas-legend i{background:#ead29b}.atlas-legend i.future{background:#ffe9b0;box-shadow:0 0 7px #ffd086}
+.atlas-panel{padding:15px 22px 14px;background:#faf5ebf2;border-radius:26px 26px 0 0;box-shadow:0 -5px 32px #1a292113}
+.atlas-panel:before{content:'';display:block;width:31px;height:4px;margin:-7px auto 9px;border-radius:3px;background:#c9c3b9}
+.atlas-panel>header{margin-bottom:4px}
+.atlas-itinerary h2{font-size:24px}
+.atlas-itinerary .atlas-schedule-list>button{min-height:56px;border-top:0}
+.atlas-itinerary .atlas-schedule-list time{font-size:27px;border-right:1px solid #baab9366;padding-right:16px}
+.atlas-itinerary .atlas-schedule-list strong{font-size:17px}
+.map-primary-action{background:#9d572b;min-height:46px}
+.atlas-show-sheet .atlas-schedule-list>button{min-height:51px;padding:3px 0 5px}
+.atlas-show-sheet .atlas-schedule-list time small{font-size:9px;margin-top:1px}
+.atlas-show-sheet h2{font-size:16px}
+.cinematic-stage:not(.is-hidden):not(.is-night){background:none}
+.cinematic-location{top:103px;text-shadow:0 1px 9px #fff2d38c}
+.cinematic-location h1{font-size:36px;line-height:1.3;max-width:330px;font-weight:700;text-wrap:initial}
+.cinematic-location p{color:#584f30;margin-top:8px}
+.cinematic-enter>span{color:#fff8e9;text-shadow:0 1px 8px #142b1e;bottom:0}
+.cinematic-controls{top:auto;bottom:280px;gap:7px}
+.cinematic-controls button{width:36px;height:36px;background:#fbf7efdf}
+.cinematic-controls button svg{width:19px;height:19px}
+.cinematic-demo-label{bottom:236px;font-size:9px;color:#fff0da}
+.is-night .cinematic-demo-label{bottom:292px}
+.is-night .cinematic-controls{bottom:303px}
+.atlas-night-panel{padding-top:14px;padding-bottom:10px}
+.atlas-night-panel .concert-song-list{max-height:86px}
+.atlas-night-panel .concert-song-list button{min-height:29px;padding:5px 10px}
+.atlas-night-actions{margin-top:5px}
+@media(max-height:720px){
+  .atlas-cloud-canopy{height:315px;top:-28px}
+  .atlas-searchbar{padding-top:21px}
+  .atlas-wordmark>div>span{font-size:27px}.atlas-wordmark small{font-size:20px}
+  .atlas-map-controls{bottom:236px}.atlas-legend{bottom:240px}
+  .atlas-panel{padding:13px 20px 11px}.atlas-panel:before{margin-bottom:7px}
+  .atlas-itinerary h2{font-size:20px}.atlas-itinerary .atlas-schedule-list>button{min-height:49px}
+  .atlas-show-sheet .atlas-schedule-list>button{min-height:49px}
+  .cinematic-location{top:83px}.cinematic-location h1{font-size:29px;max-width:300px}
+  .cinematic-controls{top:auto;bottom:253px;right:20px}
+  .is-night .cinematic-controls{top:auto;bottom:286px;right:20px;flex-direction:column;gap:7px}
+  .cinematic-demo-label{bottom:223px}.is-night .cinematic-demo-label{bottom:268px}
+  .atlas-night-panel .concert-song-list{max-height:80px}
+}
+.atlas-sky-canopy{position:absolute;top:0;left:0;width:100%;height:260px;object-fit:cover;pointer-events:none;z-index:2;mask-image:linear-gradient(#000 0%,#000 65%,transparent 100%)}
+.atlas-cloud-canopy{top:122px;height:250px;opacity:.24}
+.real-map-canvas .maplibregl-ctrl-bottom-left{top:auto;bottom:264px;right:auto;left:24px}
+.is-travelling .real-map-canvas .maplibregl-ctrl-bottom-left{top:76px;bottom:auto;left:auto;right:22px}
+@media(max-height:720px){.atlas-sky-canopy{height:238px}.atlas-cloud-canopy{top:106px;height:230px}.real-map-canvas .maplibregl-ctrl-bottom-left{bottom:246px}}
+.atlas-show-sheet>header>button{min-height:24px}
+.atlas-show-sheet .atlas-schedule-list>button{min-height:45px}
+.atlas-show-sheet{padding-top:12px;padding-bottom:12px}
+.atlas-show-sheet .atlas-primary-action{margin-top:6px}
+.atlas-sky-canopy{opacity:calc(1 - var(--scene-arrival,0));transition:opacity .25s}
+.is-travelling .atlas-sky-canopy{opacity:0;transition:opacity .7s}
+.atlas-cloud-canopy{opacity:calc(.24 * (1 - var(--scene-arrival,0)))}
+.cinematic-location p{color:#363721;font-weight:500;text-shadow:0 1px 8px #fff1cc}
+.atlas-night-panel{padding-top:12px;padding-bottom:8px}
+.atlas-night-panel:before{margin-bottom:7px}
+.atlas-night-panel>header{margin-bottom:2px}
+.atlas-night-panel .concert-collect{margin:6px 0 2px}
+.atlas-night-actions summary{padding:4px 0}
+.atlas-night-actions{margin-top:2px}
+
+/* Star positions and links use the same song coordinates. */
+.atlas-song-stars{top:208px;height:170px}
+.atlas-song-star{width:110px;gap:4px}
+.atlas-song-star span{text-wrap:nowrap;font-weight:500}
+.atlas-song-star svg{color:#fff9e9;opacity:1;filter:drop-shadow(0 0 3px #fff7df) drop-shadow(0 0 10px #ffd3a0)}
+.atlas-constellation{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.atlas-constellation line{stroke:#fff4dd;stroke-width:.4;stroke-opacity:.43;vector-effect:non-scaling-stroke}
+@media(max-height:720px){.atlas-song-stars{top:177px;height:153px}.atlas-song-star{width:104px}.atlas-song-star span{font-size:12px}}
+.cinematic-stage{touch-action:auto}
+.cinematic-gesture-surface{position:absolute;inset:0;touch-action:none}
+.cinematic-enter{touch-action:none}
+.atlas-song-stars.is-long{touch-action:pan-y}
+.cinematic-location h1{font-size:34px;line-height:1.14}
+.cinematic-location p{color:#383828;margin-top:7px}
+.real-city-pin.is-selected i{width:12px;height:12px;background:#fff4d4;box-shadow:0 0 0 5px #ba8c3780,0 0 0 7px #ffe4a5,0 0 24px #ffb545}
+.real-city-pin.is-selected span{font-size:15px}
+@media(max-height:720px){.cinematic-location h1{font-size:29px}}
+.atlas-song-star:before{content:'';position:absolute;top:14px;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#fff9e8;box-shadow:0 0 5px 2px #ffedce,0 0 17px 6px #eec1877d;pointer-events:none}
+.atlas-song-stars.is-long .atlas-song-star:before{display:none}
+@media(max-height:720px){
+  .is-night .cinematic-controls{top:20px;bottom:auto;right:76px;flex-direction:row;gap:7px}
+  .is-night .cinematic-demo-label{bottom:276px}
+}
