@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState, type FormEvent} from 'react';
-import {Link, useLocation, useParams, useSearchParams} from 'react-router';
+import {Link, useParams, useSearchParams} from 'react-router';
 import {ArrowUpRight, ArrowCounterClockwise, Play, MusicNote} from '@phosphor-icons/react';
 import {apiBaseUrl} from './api';
 import {AudioPlayer} from './AudioPlayer';
@@ -11,6 +11,7 @@ import {EventNote} from './EventNote';
 import {chinaToday, dateLabel, phaseLabel, type AtlasCatalog} from './footprintAtlas';
 import {venuePhotograph} from './photoSources';
 import {PhotoCredit,PhotoSources} from './PhotoCredit';
+import {BackLink} from './Navigation';
 
 export function TagLinks({tags=[]}:{tags?:string[]}) {
   return tags.length?<div className="story-tags">{tags.map(tag=><Link key={tag} to={`/discover?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>)}</div>:null;
@@ -41,10 +42,8 @@ function RecentConcerts() {
 
 export function StoryEntry({story,matchLabel}:{story:PublicStory;matchLabel?:string}) {
   const [flipped,setFlipped]=useState(false);
-  const location=useLocation();
   const rotor=useRef<HTMLDivElement>(null);
   const [rows,setRows]=useState<number>();
-  const returnState={returnTo:location.pathname+location.search};
   useEffect(()=>{
     const element=rotor.current;if(!element)return;
     // Eight-pixel rows with a twelve-pixel gap keep the DOM in reading order.
@@ -64,12 +63,12 @@ export function StoryEntry({story,matchLabel}:{story:PublicStory;matchLabel?:str
           <div className="story-front-copy"><h3>{story.song.title}</h3><span className="story-artist">{story.song.artist}</span><p className="story-card-title">{story.title||story.excerpt}</p>{matchLabel&&<span className="match-label">{matchLabel}</span>}</div>
         </button>
         <TagLinks tags={story.tags}/>
-        <div className="card-bottom"><Link to={`/stories/${story.id}`} state={returnState} className="card-read" aria-label={`阅读${story.song.title}的完整故事`}>读故事 <ArrowUpRight size={13}/></Link><button className={`card-play${story.song.audio_url?'':' without-audio'}`} disabled={!story.song.audio_url} title={story.song.audio_url?'播放这一刻':'暂未接入音源，点击照片可读故事'} aria-label={story.song.audio_url?`播放${story.song.title}并翻到背面`:`播放${story.song.title}（暂无音源）`} onClick={()=>setFlipped(true)}><Play size={16} weight="fill"/></button></div>
+        <div className="card-bottom"><Link to={`/stories/${story.id}`} className="card-read" aria-label={`阅读${story.song.title}的完整故事`}>读故事 <ArrowUpRight size={13}/></Link><button className={`card-play${story.song.audio_url?'':' without-audio'}`} disabled={!story.song.audio_url} title={story.song.audio_url?'播放这一刻':'暂未接入音源，点击照片可读故事'} aria-label={story.song.audio_url?`播放${story.song.title}并翻到背面`:`播放${story.song.title}（暂无音源）`} onClick={()=>setFlipped(true)}><Play size={16} weight="fill"/></button></div>
       </div>
       <div className="flip-face flip-back" inert={!flipped} aria-hidden={!flipped}>
         <button className="card-close" aria-label={`收起${story.song.title}的故事`} onClick={()=>setFlipped(false)}><ArrowCounterClockwise size={12}/> 正面</button>
         <img className="story-back-photo" src={cardCover(story)} alt={story.photo_url?'听友分享的照片':'这段故事的歌曲配图'}/>
-        <div className="story-back-copy"><h3>{story.song.title}</h3><small>{story.song.artist}</small><div className="story-back-scroll" aria-label="公开故事原文">{story.title&&<h4>{story.title}</h4>}<p>{story.excerpt}</p>{story.lyric&&<blockquote>“{story.lyric.text}”</blockquote>}</div><Link className="card-read" state={returnState} to={`/stories/${story.id}`}>展开读这一页 ↗</Link></div>
+        <div className="story-back-copy"><h3>{story.song.title}</h3><small>{story.song.artist}</small><div className="story-back-scroll" aria-label="公开故事原文">{story.title&&<h4>{story.title}</h4>}<p>{story.excerpt}</p>{story.lyric&&<blockquote>“{story.lyric.text}”</blockquote>}</div><Link className="card-read" to={`/stories/${story.id}`}>展开读这一页 ↗</Link></div>
         {flipped&&<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms} autoPlay compact/>}
       </div>
     </div>
@@ -130,18 +129,15 @@ export function DiscoverPage({home=false}:{home?:boolean}) {
 
 export function StoryPage() {
   const {storyId}=useParams(),[retry,setRetry]=useState(0);
-  const location=useLocation();
-  const candidate=location.state?.returnTo;
-  const backTo=typeof candidate==='string'&&/^\/(discover|themes\/|songs\/)/.test(candidate)?candidate:'/discover';
   const {value:story,error}=useData<PublicStory>(`/api/stories/${storyId}`,retry);
-  if(!story)return <section className="journal-page"><Link className="back-link" to={backTo}>← 回到共鸣</Link>{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
+  if(!story)return <section className="journal-page"><BackLink fallback="/discover"/>{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
   const playback=new URLSearchParams();if(story.offset_ms!==null)playback.set('at',String(story.offset_ms));if(story.end_ms!=null)playback.set('end',String(story.end_ms));
-  return <section className="journal-page public-detail"><Link className="back-link" to={backTo}>← 回到共鸣</Link><article className="keepsake-paper public-moment"><div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>{(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}{story.title&&<h1 className="moment-title">{story.title}</h1>}<p className="original-story">{story.excerpt}</p><PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/><TagLinks tags={story.tags}/>{story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}</article><div className="record-heading"><img src={songCover(story.song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{story.song.title}</h2><small>{story.song.artist}</small><Link className="text-button" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`} state={{returnTo:location.pathname,storyReturnTo:backTo}}>走进这首歌 →</Link></div></div>{story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>{story.event_id&&<EventNote id={story.event_id}/>}<Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link><p className="quiet-caption">从同一段旋律开始，写自己的经历。默认私密保存。</p><PublicStoryList path={`/api/stories?song_id=${story.song_id}${story.lyric_id?`&lyric_id=${encodeURIComponent(story.lyric_id)}`:''}`} excludeId={story.id} heading="同一首歌，别人的现场"/></section>;
+  return <section className="journal-page public-detail"><BackLink fallback="/discover"/><article className="keepsake-paper public-moment"><div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>{(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}{story.title&&<h1 className="moment-title">{story.title}</h1>}<p className="original-story">{story.excerpt}</p><PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/><TagLinks tags={story.tags}/>{story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}</article><div className="record-heading"><img src={songCover(story.song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{story.song.title}</h2><small>{story.song.artist}</small><Link className="text-button" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`}>走进这首歌 →</Link></div></div>{story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>{story.event_id&&<EventNote id={story.event_id}/>}<Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link><p className="quiet-caption">从同一段旋律开始，写自己的经历。默认私密保存。</p><PublicStoryList path={`/api/stories?song_id=${story.song_id}${story.lyric_id?`&lyric_id=${encodeURIComponent(story.lyric_id)}`:''}`} excludeId={story.id} heading="同一首歌，别人的现场"/></section>;
 }
 
 export function ThemePage() {
   const {themeId}=useParams();const {value,error}=useData<Theme[]>('/api/themes');
   const theme=value?.find(item=>item.id===themeId);
-  return <section className="journal-page theme-page"><Link className="back-link" to="/discover">← 回到共鸣</Link>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><span className="journal-eyebrow">让一段音乐，唤起一个时刻</span><h1>{theme.title}</h1>{theme.image_url&&<><img className="theme-hero" src={theme.image_url} alt=""/><PhotoCredit url={theme.image_url}/></>}<p className="theme-question">{theme.prompt}</p><p className="page-intro">{theme.description}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><p className="quiet-caption">记忆会留在你的时间轴，公开由你决定。</p><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
+  return <section className="journal-page theme-page"><BackLink fallback="/discover"/>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><span className="journal-eyebrow">让一段音乐，唤起一个时刻</span><h1>{theme.title}</h1>{theme.image_url&&<><img className="theme-hero" src={theme.image_url} alt=""/><PhotoCredit url={theme.image_url}/></>}<p className="theme-question">{theme.prompt}</p><p className="page-intro">{theme.description}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><p className="quiet-caption">记忆会留在你的时间轴，公开由你决定。</p><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
 }

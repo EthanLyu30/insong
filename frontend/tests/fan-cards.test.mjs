@@ -7,7 +7,7 @@ const song={id:1,title:'散场以后',artist:'Demo Artist',is_demo:true,audio_av
 const photos=[{id:'a',url:'/api/photos/a'},{id:'b',url:'/api/photos/b'}];
 const card={id:88,owner_id:3,song_id:1,song,title:'把这一晚带回家',story:'第一行。\n最后一行也必须完整。',life_time:'散场的晚上',life_year:2025,revision:1,reflections:[],tags:['演唱会','散场'],photos,photo_id:'a',photo_url:'/api/photos/a',created_at:'2026-01-01',updated_at:'2026-01-01',offset_ms:10000,end_ms:14000};
 
-async function harness(path,respond,work){
+async function harness(path,respond,work,fixtures={}){
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   const priorFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};
@@ -15,22 +15,24 @@ async function harness(path,respond,work){
   globalThis.ResizeObserver=class {observe(){} disconnect(){}};
   window.HTMLMediaElement.prototype.play=async function(){this.dispatchEvent(new window.Event('play'));};
   window.HTMLMediaElement.prototype.pause=function(){this.dispatchEvent(new window.Event('pause'));};
-  const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter}=await import('react-router');
+  const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter,useNavigate,useLocation}=await import('react-router');
+  let navigate,current;function Probe(){navigate=useNavigate();current=useLocation();return null;}
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');const prior=globalThis.fetch;
   globalThis.fetch=async(url,options={})=>{
     if(url==='/api/me')return Response.json({user:{id:3,display_name:'我',is_demo:false}});
-    if(url==='/api/themes')return Response.json([]);
+    if(url==='/api/themes')return Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
     if(url==='/api/memories/88'&&!options.method)return Response.json(card);
-    if(url==='/api/memories')return Response.json([card]);
+    if(url==='/api/memories'&&!options.method)return Response.json([card]);
     if(url.startsWith('/api/stories?'))return Response.json([]);
     return respond(url,options);
   };
   const root=createRoot(document.getElementById('root'));
   const act=React.act;
+  const until=async selector=>{for(let i=0;i<40&&!document.querySelector(selector);i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});assert.ok(document.querySelector(selector),selector);};
   const fill=async(id,text)=>act(async()=>{const input=document.getElementById(id);assert.ok(input,`missing ${id}`);const proto=input.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,text);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
-  try{await act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(App))));await work({act,fill});}
+  try{await act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(App),React.createElement(Probe))));await work({act,fill,until,go:async to=>act(async()=>navigate(to)),location:()=>current});}
   finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;globalThis.FormData=priorFormData;delete globalThis.ResizeObserver;dom.window.close();}
 }
 
@@ -98,8 +100,8 @@ test('large music player and song cards entrance are available on the regular so
   });
 });
 
-test('marking a new listening position preserves loaded player controls',async()=>{
-  await harness('/songs/1',async url=>{throw new Error(url);},async({act})=>{
+test('marking a new listening position preserves loaded controls and survives a compose/back round trip',async()=>{
+  await harness('/songs/1',async url=>{throw new Error(url);},async({act,location})=>{
     const audio=document.querySelector('audio');
     await act(async()=>audio.dispatchEvent(new window.Event('loadedmetadata')));
     audio.currentTime=12;
@@ -109,6 +111,15 @@ test('marking a new listening position preserves loaded player controls',async()
     assert.equal(document.querySelector('[aria-label="播放散场以后"]').disabled,false);
     await act(async()=>document.querySelector('[aria-label="播放散场以后"]').click());
     assert.equal(audio.currentTime,12);
+    await act(async()=>document.querySelector('.song-community-actions a:last-child').click());
+    await act(async()=>document.querySelector('.memory-composer .back-link').click());
+    assert.equal(location().pathname,'/songs/1');assert.equal(location().search,'?at=12000');
+    const restored=document.querySelector('audio');await act(async()=>restored.dispatchEvent(new window.Event('loadedmetadata')));
+    assert.equal(restored.currentTime,12,'return preserves the selected music position');
+    const visitKey=location().key;
+    await act(async()=>document.querySelector('.song-community-actions > button').click());
+    assert.equal(location().key,visitKey,'scrolling to listeners must not add a native hash history entry');
+    assert.equal(document.activeElement.id,'song-conversation');
   });
 });
 
@@ -183,4 +194,105 @@ test('song without a recording retains a clearly disabled conventional player',a
     assert.equal(document.querySelector('audio'),null,'never substitute another recording');
     assert.ok(document.querySelector('a[href="/discover?song=102"]'));
   });
+});
+
+test('composer is concise while collapsed options preserve existing metadata on save',async()=>{
+  let sent;
+  await harness('/memories/88/edit',async(url,options)=>{if(url==='/api/memories/88'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);},async({act,fill})=>{
+    const composer=document.querySelector('.memory-composer');assert.ok(composer);
+    assert.equal(composer.querySelectorAll('details[open]').length,0);
+    assert.ok(document.querySelector('#memory-story').closest('details')===null,'story stays immediately available');
+    assert.ok(document.querySelector('#memory-title').closest('details')===null,'short title remains optional and visible');
+    for(const selector of ['#memory-tags','[aria-label="人生里的年份"]','[aria-label="音乐里的位置"]'])assert.ok(document.querySelector(selector).closest('details'),'optional controls are disclosed on demand');
+    await fill('memory-story','修改正文，折叠的时间与标签不丢失。');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+  });
+  assert.equal(sent.life_year,2025);assert.equal(sent.life_time,card.life_time);assert.deepEqual(sent.tags,card.tags);assert.equal(sent.offset_ms,10000);assert.equal(sent.end_ms,14000);
+});
+
+test('playlist back returns to the actual filtered memory collection, including browser forward/back',async()=>{
+  await harness('/memories?song=1&view=cards',async url=>{if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,go,location,until})=>{
+    await act(async()=>document.querySelector('.memory-playlist-link').click());
+    await until('.saved-playlists .back-link');
+    await act(async()=>document.querySelector('.saved-playlists .back-link').click());
+    assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
+    assert.equal(document.querySelector('.song-filter select').value,'1');
+    assert.equal(document.querySelector('.timeline-toggle button:last-child').getAttribute('aria-pressed'),'true');
+    await go(1);await until('.saved-playlists .back-link');assert.equal(location().pathname,'/playlists','back must POP, not push another memory page');
+    await go(-1);assert.equal(location().pathname,'/memories');
+  });
+});
+
+test('story → compose → cancel and save return to the story rather than an unrelated song or collection',async()=>{
+  const story={...card,excerpt:card.story,author_name:'听友'};
+  await harness('/discover?q=散场',async(url,options)=>{
+    if(url==='/api/stories/search')return Response.json({mode:'keyword',items:[{story}]});
+    if(url==='/api/stories/88')return Response.json(story);
+    if(url==='/api/memories'&&options.method==='POST')return Response.json(card);
+    throw new Error(url);
+  },async({act,fill,location})=>{
+    await act(async()=>document.querySelector('.card-read').click());
+    const compose=()=>document.querySelector('.public-detail > .primary-button');
+    await act(async()=>compose().click());
+    await act(async()=>document.querySelector('.memory-composer .back-link').click());
+    assert.equal(location().pathname,'/stories/88');
+    await act(async()=>compose().click());await fill('memory-story','测试用的虚构故事');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/memories/88');
+    await act(async()=>document.querySelector('.memory-detail .back-link').click());
+    assert.equal(location().pathname,'/stories/88','saving replaces the form entry');
+    await act(async()=>document.querySelector('.public-detail .back-link').click());
+    assert.equal(location().search,'?q=散场');
+  });
+});
+
+test('editing then saving does not add a duplicate detail page or return to the editor',async()=>{
+  await harness('/memories',async(url,options)=>{if(url==='/api/memories/88'&&options.method==='PATCH')return Response.json(card);throw new Error(url);},async({act,location})=>{
+    await act(async()=>document.querySelector('.memory-entry').click());
+    const detailKey=location().key;
+    await act(async()=>document.querySelector('a[href="/memories/88/edit"]').click());
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/memories/88');
+    assert.equal(location().key,detailKey,'save returns to the existing detail visit');
+    await act(async()=>document.querySelector('.memory-detail .back-link').click());
+    assert.equal(location().pathname,'/memories');
+  });
+});
+
+test('direct opening of the composer has a safe in-app song fallback',async()=>{
+  await harness('/songs/1/write?at=10000&end=14000',async url=>{throw new Error(url);},async({act,location})=>{
+    await act(async()=>document.querySelector('.back-link').click());
+    assert.equal(location().pathname,'/songs/1');assert.ok(location().search.includes('at=10000'));
+  });
+});
+
+test('theme → song chooser → compose returns through the actual pages, and account back keeps the entry query',async()=>{
+  const theme={id:'summer',title:'音乐节的夏天',prompt:'留下夏天的一刻',description:'一起听过的歌'};
+  await harness('/themes/summer',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,location})=>{
+    await act(async()=>document.querySelector('.theme-page .primary-button').click());
+    await act(async()=>document.querySelector('.song-selection a').click());
+    assert.equal(document.querySelector('.composer-extra select').value,'summer');
+    await act(async()=>document.querySelector('.memory-composer .back-link').click());
+    assert.equal(location().pathname,'/');assert.equal(location().search,'?theme=summer');
+    await act(async()=>document.querySelector('.home-page > .back-link').click());
+    assert.equal(location().pathname,'/themes/summer');
+  },{themes:[theme]});
+  await harness('/memories?song=1&view=cards',async url=>{throw new Error(url);},async({act,go,location})=>{
+    await go('/account');
+    await act(async()=>document.querySelector('.account-page .back-link').click());
+    assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
+  });
+});
+
+test('invalid optional music range reopens its controls and blocks a save',async()=>{
+  let writes=0;
+  await harness('/songs/1/write?at=10000&end=14000',async(url,options)=>{if(options.method){writes++;return Response.json(card);}throw new Error(url);},async({act,fill})=>{
+    await fill('memory-story','测试正文');
+    const end=document.querySelector('[aria-label="播放区间终点"]');
+    await act(async()=>{Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(end,'00:05');end.dispatchEvent(new window.Event('input',{bubbles:true}));});
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(document.querySelector('.composer-music').open,true);
+    assert.ok(document.querySelector('[role="alert"]').textContent.includes('结束时间要晚于起点'));
+  });
+  assert.equal(writes,0);
 });

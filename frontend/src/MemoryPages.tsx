@@ -15,19 +15,21 @@ import { Cards, ChatCircle, Plus } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
 import { PhotoCredit } from './PhotoCredit';
+import {BackLink,useBackNavigation} from './Navigation';
+import './composer.css';
 
 export function LoginGate() {
   const location = useLocation();
   return <section className="journal-page empty-journal"><span className="journal-eyebrow">我的音乐记忆</span><h1>留给自己的，<br/>慢慢听。</h1><p>登录后，一句心事、一段旋律，都会好好留在你的空间里。</p><Link className="primary-button" to={`/account?next=${encodeURIComponent(location.pathname + location.search)}`}>打开我的私人空间</Link><Link className="text-button" to="/">先选一首歌</Link></section>;
 }
 
-function SampleNotice() {
+function SampleNotice({compact=false}:{compact?:boolean}) {
   const { user } = useSession();
-  return user?.is_demo ? <aside className="sample-notice">你正在使用共享样例账号，请只填写虚构内容。<Link to="/account">创建个人账号 →</Link></aside> : null;
+  return user?.is_demo ? <aside className={`sample-notice${compact?' is-compact':''}`}>{compact?'共享样例 · 请只填写虚构内容':'你正在使用共享样例账号，请只填写虚构内容。'}<Link to="/account">创建个人账号 →</Link></aside> : null;
 }
 
 function LoadingError({ error, retry }: { error: string; retry?: () => void }) {
-  return error ? <div className="status-card error-card" role="alert">{error}{retry && <button onClick={retry}>重新加载</button>}<Link to="/memories">回到我的记忆</Link></div> : <div className="status-card" role="status">正在翻开这一页…</div>;
+  return error ? <div className="status-card error-card" role="alert">{error}{retry && <button onClick={retry}>重新加载</button>}<BackLink fallback="/memories"/></div> : <div className="status-card" role="status">正在翻开这一页…</div>;
 }
 
 function SongHeading({ song }: { song: Song }) {
@@ -36,15 +38,13 @@ function SongHeading({ song }: { song: Song }) {
 
 export function SongPage() {
   const { songId } = useParams();
-  const location=useLocation();
-  const candidate=location.state?.returnTo;
-  const backTo=typeof candidate==='string'&&/^\/(stories\/|discover|memories\/)/.test(candidate)?candidate:'/';
-  const [params] = useSearchParams();
+  const [params,setParams] = useSearchParams();
   const [retry, setRetry] = useState(0);
   const { value: song, error } = useData<Song>(`/api/songs/${songId}`, retry);
   const requestedPosition=Number(params.get('at'));
-  const [position, setPosition] = useState<number | null>(params.has('at')&&Number.isFinite(requestedPosition)&&requestedPosition>=0?requestedPosition:null);
-  const [lyricId, setLyricId] = useState<string|null>(null);
+  const position=params.has('at')&&Number.isFinite(requestedPosition)&&requestedPosition>=0?requestedPosition:null;
+  const lyricId=params.get('lyric');
+  function mark(ms:number,id:string|null=null){const next=new URLSearchParams(params);next.set('at',String(ms));if(id)next.set('lyric',id);else next.delete('lyric');if(next.has('end')&&Number(next.get('end'))<=ms)next.delete('end');setParams(next,{replace:true});}
   const { user } = useSession();
   if (!song) return <LoadingError error={error} retry={() => setRetry(x => x + 1)} />;
   const safePosition=position!==null&&position<(song.duration_ms??0)?position:null;
@@ -52,18 +52,18 @@ export function SongPage() {
   const safeEnd=params.has('end')&&Number.isFinite(requestedEnd)&&safePosition!==null&&requestedEnd>safePosition&&requestedEnd<=(song.duration_ms??0)?requestedEnd:null;
   const capture = new URLSearchParams(); for(const key of ['theme','event'])if(params.get(key))capture.set(key,params.get(key)!);if(safePosition!==null)capture.set('at',String(safePosition));if(safeEnd!==null)capture.set('end',String(safeEnd));if(lyricId)capture.set('lyric',lyricId);
   return <section className="journal-page song-journal listening-page">
-    <Link className="back-link" to={backTo} state={{returnTo:location.state?.storyReturnTo}}>← {backTo.startsWith('/stories/')?'回到这段故事':'回到音乐里'}</Link>
+    <BackLink/>
     {params.get('event')&&<EventNote id={params.get('event')!}/>}
     <div className="song-artwork"><img src={songCover(song)} alt={`《${song.title}》配图`}/></div>
     <div className="song-journal-title"><h1>{song.title}</h1><p>{song.artist}</p><span className="journal-eyebrow">{song.recording_label}</span></div>
-    <AudioPlayer song={song} full anchor={safePosition} end={safeEnd} onMark={ms=>{setPosition(ms);setLyricId(null);}}/>
+    <AudioPlayer song={song} full anchor={safePosition} end={safeEnd} onMark={ms=>mark(ms)}/>
     {safePosition !== null && <p className="anchor-notice" role="status">已选中 {formatPosition(safePosition)}，这段音乐会和文字一起保存。</p>}
-    <div className="song-community-actions"><a href="#song-conversation"><ChatCircle size={23}/>听友共鸣</a><Link to={`/discover?song=${song.id}`}><Cards size={23}/>音乐卡片</Link><Link to={`/songs/${song.id}/write?${capture}`}><Plus size={23}/>{safePosition===null?'留下一刻':`留下 ${formatPosition(safePosition)}`}</Link></div>
-    <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);}}/>
+    <div className="song-community-actions"><button type="button" onClick={()=>{const target=document.getElementById('song-conversation');target?.focus({preventScroll:true});target?.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}}><ChatCircle size={23}/>听友共鸣</button><Link to={`/discover?song=${song.id}`}><Cards size={23}/>音乐卡片</Link><Link to={`/songs/${song.id}/write?${capture}`}><Plus size={23}/>{safePosition===null?'留下一刻':`留下 ${formatPosition(safePosition)}`}</Link></div>
+    <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>mark(ms,id)}/>
     <PhotoCredit url={songCover(song)}/>
     <p className="quiet-caption">把照片、故事和这段旋律，留在同一张卡里。</p>
     {user && <SongMemories songId={song.id} />}
-    <div id="song-conversation"><PublicStoryList path={`/api/stories?song_id=${song.id}${lyricId?`&lyric_id=${encodeURIComponent(lyricId)}`:''}`} heading={lyricId?'同一句词，不同的人生':'听友留下的音乐故事'}/></div>
+    <div id="song-conversation" tabIndex={-1}><PublicStoryList path={`/api/stories?song_id=${song.id}${lyricId?`&lyric_id=${encodeURIComponent(lyricId)}`:''}`} heading={lyricId?'同一句词，不同的人生':'听友留下的音乐故事'}/></div>
   </section>;
 }
 
@@ -88,8 +88,10 @@ export function MemoryCollection() {
 function CollectionContent() {
   const [retry,setRetry]=useState(0);
   const {value:memories,error}=useData<Memory[]>('/api/memories',retry);
-  const [songId,setSongId]=useState('');
-  const [view,setView]=useState<'timeline'|'cards'>('timeline');
+  const [params,setParams]=useSearchParams();
+  const songId=params.get('song')??'',view=params.get('view')==='cards'?'cards':'timeline';
+  function setSongId(value:string){const next=new URLSearchParams(params);if(value)next.set('song',value);else next.delete('song');setParams(next,{replace:true});}
+  function setView(value:string){const next=new URLSearchParams(params);if(value==='cards')next.set('view',value);else next.delete('view');setParams(next,{replace:true});}
   const songs=memories?[...new Map(memories.map(card=>[card.song_id,card.song])).values()]:[];
   const visible=memories?.filter(card=>!songId||card.song_id===Number(songId))??[];
   return <section className="journal-page collection-page">
@@ -115,6 +117,9 @@ function CreateContent() {
 
 function MemoryForm({ song, existing, initialPosition = null, initialLyric = null, initialTheme = null, initialEvent = null, initialEnd = null }: { song: Song; existing?: Memory; initialPosition?: number | null; initialLyric?:string|null;initialTheme?:string|null;initialEvent?:string|null;initialEnd?:string|null }) {
   const navigate = useNavigate();
+  const location=useLocation();
+  const {previous,back}=useBackNavigation(existing?`/memories/${existing.id}`:`/songs/${song.id}${location.search}`);
+  const musicOptions=useRef<HTMLDetailsElement>(null),extraOptions=useRef<HTMLDetailsElement>(null);
   const live = useLivePage();
   const [story, setStory] = useState(existing?.story ?? '');
   const [title,setTitle]=useState(existing?.title??'');
@@ -139,39 +144,43 @@ function MemoryForm({ song, existing, initialPosition = null, initialLyric = nul
     event.preventDefault();if (lock.current||uploading) return;
     setError('');
     let offset: number | null, end:number|null;
-    try {offset = parsePosition(timeText, song.duration_ms ?? 0);end=parsePosition(endText,song.duration_ms??0,true);if(end!==null&&(offset===null||end<=offset))throw new Error('播放区间需要起点，结束时间要晚于起点。');} catch (reason) {setError((reason as Error).message);return;}
+    try {offset = parsePosition(timeText, song.duration_ms ?? 0);end=parsePosition(endText,song.duration_ms??0,true);if(end!==null&&(offset===null||end<=offset))throw new Error('播放区间需要起点，结束时间要晚于起点。');} catch (reason) {if(musicOptions.current)musicOptions.current.open=true;setError((reason as Error).message);return;}
     if (!story.trim()) {setError('写一句想留住的线索吧。');return;}
-    const tags=parseTags(tagText);if(tags.length>8||tags.some(tag=>tag.length>24)){setError('最多添加8个标签，每个不超过24字。');return;}
+    const tags=parseTags(tagText);if(tags.length>8||tags.some(tag=>tag.length>24)){if(extraOptions.current)extraOptions.current.open=true;setError('最多添加8个标签，每个不超过24字。');return;}
     lock.current = true;setBusy(true);
     try {
       const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:theme?.id??null,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : 'unknown',offset_ms:offset,...(existing ? {revision:existing.revision} : {song_id:song.id,request_key:requestKey.current})};
       const saved = await apiRequest<Memory>(apiBaseUrl, existing ? `/api/memories/${existing.id}` : '/api/memories', {method:existing ? 'PATCH' : 'POST',body:JSON.stringify(body)});
       if (!live.current) return;
-      navigate(`/memories/${saved.id}`, {replace:true,state:{saved:true}});
+      if(existing&&previous?.url.split('?')[0]===`/memories/${saved.id}`)back();
+      else navigate(`/memories/${saved.id}`, {replace:true,state:{saved:true}});
     } catch (reason) {setError(reason instanceof Error ? reason.message : '没有保存成功，请重试。');}
     finally {lock.current = false;setBusy(false);}
   }
-  return <section className="journal-page">
-    <Link className="back-link" to={existing ? `/memories/${existing.id}` : `/songs/${song.id}`}>← {existing ? '回到这段记忆' : '回到这首歌'}</Link>
-    <span className="journal-eyebrow">{existing ? '整理这一页' : '先留给自己'}</span><h1>{existing ? '把记忆补完整。' : '这一刻，值得留下。'}</h1>
-    <SampleNotice/><SongHeading song={song}/>
-    {eventId&&<div><EventNote id={eventId}/><button className="text-button" type="button" disabled={busy} onClick={()=>setEventId(null)}>不关联这场现场</button></div>}
-    {theme&&<aside className="theme-writing-prompt"><Link to={`/themes/${theme.id}`}>{theme.title} ↗</Link><p>{theme.prompt}</p></aside>}
-    <details className="capture-music-tools"><summary>{lyricId?`已选词句 · ${formatPosition(position)}`:'试听配乐 / 选一句词'} <span>展开 ⌄</span></summary><AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/><LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/></details>
-    <form className="memory-form paper-panel" onSubmit={save}>
+  return <section className="journal-page memory-composer">
+    <header className="composer-heading"><BackLink fallback={existing?`/memories/${existing.id}`:`/songs/${song.id}${location.search}`}/><h1>{existing?'整理这一刻':'留下一刻'}</h1><span>仅自己可见</span></header>
+    <SampleNotice compact/>
+    <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
-      <label htmlFor="memory-title">给这一刻起个标题 <small>选填</small><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="比如：第一次跨城，只为这一晚"/></label>
-      <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading}/>
-      <label htmlFor="memory-story">听到这里，你想起了什么？<textarea id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="比如：散场后，和朋友在路边坐到很晚。"/></label><span className="character-count">一句就好 · {story.length}/500</span>
+      <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="给这一刻起个名字（选填）"/></label>
+      <label className="composer-story" htmlFor="memory-story"><span className="sr-only">听到这里，你想起了什么？</span><textarea id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="听到这里，你想起了什么？&#10;一句心事，或一个难忘的瞬间。"/></label><span className="character-count">{story.length} / 500</span>
+      <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading} compact/>
+      <details ref={musicOptions} className="composer-options composer-music"><summary><img src={songCover(song)} alt=""/><span><strong>{song.title}</strong><small>{song.artist} · {timeText?`${lyricId?'所选词句 · ':''}${timeText}${endText?`—${endText}`:' 起'}`:'整首歌'}</small></span><span className="composer-disclosure">调整配乐</span></summary><div className="composer-options-body">
+      <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/><LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/>
       <div className="music-range"><div className="range-title"><strong>想留下哪一段？</strong><button className="text-button" type="button" onClick={()=>{setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}>用整首歌</button></div><div className="range-inputs"><label>起点<input aria-label="音乐里的位置" value={timeText} onChange={e=>{setTimeText(e.target.value);setLyricId(null);}} placeholder="00:00" disabled={!song.audio_available}/></label><span aria-hidden="true">—</span><label>终点<input aria-label="播放区间终点" value={endText} onChange={e=>setEndText(e.target.value)} placeholder={formatPosition(song.duration_ms)} disabled={!song.audio_available}/></label></div><small>{lyricId?'起点已关联所选词句。':'可以只留一句词的位置。'}填写起止时间后，翻卡只播放这一段；未填写终点时播放整首。</small></div>
-      <label>人生里的年份 <small>选填，用于时间轴</small><input aria-label="人生里的年份" type="number" min="1900" max={new Date().getFullYear()} step="1" value={lifeYear} onChange={e=>setLifeYear(e.target.value)} placeholder="比如 2022"/></label>
+      </div></details>
+      {themeError&&themeId&&<p className="form-error" role="alert">关联主题暂时无法加载，请展开“补充细节”重选主题，或刷新后再试。</p>}
+      <details ref={extraOptions} className="composer-options composer-extra"><summary><span><strong>补充细节</strong><small>{[lifeYear,lifeTime,tagText?'已添加标签':'',theme?.title,eventId?'已关联现场':''].filter(Boolean).join(' · ')||'时间、标签、主题 · 选填'}</small></span><span className="composer-disclosure">展开</span></summary><div className="composer-options-body">
+      <div className="composer-date"><label>年份 <small>用于时间轴</small><input aria-label="人生里的年份" type="number" min="1900" max={new Date().getFullYear()} step="1" value={lifeYear} onChange={e=>setLifeYear(e.target.value)} placeholder="比如 2022"/></label>
       <label>那是什么时候？ <small>选填，记不清也没关系</small><input value={lifeTime} onChange={e => setLifeTime(e.target.value)} maxLength={80} placeholder="毕业那年、去年夏天，或者今天"/></label>
-      <label htmlFor="memory-tags">标签 <small>选填，用逗号分开，最多8个</small><input id="memory-tags" value={tagText} onChange={event=>setTagText(event.target.value)} maxLength={220} placeholder="#演唱会，#散场，#跨城追星"/></label>
+      </div><label htmlFor="memory-tags">标签 <small>用逗号分开，最多8个</small><input id="memory-tags" value={tagText} onChange={event=>setTagText(event.target.value)} maxLength={220} placeholder="#演唱会，#散场，#跨城追星"/></label>
       <label>从哪个主题开始？ <small>选填</small><select value={themeId} onChange={e=>setThemeId(e.target.value)}><option value="">只记录自己的这一刻</option>{themes?.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>{themeError&&<p className="form-error" role="alert">主题暂时无法加载，请稍后重新打开。</p>}
-      <p className="privacy-line">默认仅自己可见 · 保存后可以挑一段原文，自愿分享</p>
+      {theme&&<p className="composer-theme-prompt">{theme.prompt}</p>}
+      {eventId&&<div><EventNote id={eventId}/><button className="text-button" type="button" disabled={busy} onClick={()=>setEventId(null)}>不关联这场现场</button></div>}
+      </div></details>
       {existing?.publication?.published&&<p className="sample-notice">修改原文或坐标后，会先撤回旧的公开片段。保存后可重新预览并分享。</p>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <button className="primary-button" disabled={busy || uploading || !story.trim() || (!!themeId&&!theme)}>{busy ? '正在收好…' : uploading?'正在收好照片…':existing ? '保存修改' : '只为我保存这一刻'}</button>
+      <div className="composer-save"><p className="privacy-line">先留给自己，分享由你决定。</p><button className="primary-button" disabled={busy || uploading || !story.trim() || (!!themeId&&!theme)}>{busy ? '正在收好…' : uploading?'正在收好照片…':existing ? '保存修改' : '保存这一刻'}</button></div>
       </fieldset>
     </form>
   </section>;
@@ -198,7 +207,7 @@ function DetailContent({ edit }: { edit: boolean }) {
     finally {lock.current=false;setBusy(false);}
   }
   return <section className="journal-page memory-detail">
-    <Link className="back-link" to="/memories">← 回到我的记忆</Link>
+    <BackLink fallback="/memories"/>
     {location.state?.saved && <p className="saved-notice" role="status">这一刻，已经好好收下了。</p>}
     <SampleNotice/><span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}</span><h1>{card.title||card.life_time || '那个有音乐的时刻'}</h1>
     <article className={`keepsake-paper${card.photo_url?' has-photo':''}`}>

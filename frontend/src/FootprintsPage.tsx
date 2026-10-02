@@ -17,6 +17,7 @@ import {useFootprintInterests,FollowArtist,WishEvent,InterestsError} from './Foo
 import {selectSchedule,scheduleMonths,eventChangeNote,eventCheckedOn,type SchedulePeriod} from './concertSchedule';
 import { chinaToday, dateLabel, eventPhase, phaseLabel, filterArtists, groupVenues, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong, type AtlasVenue } from './footprintAtlas';
 import './footprints.css';
+import {BackLink,useBackNavigation} from './Navigation';
 
 function Attendance({event,today,next}:{event:AtlasEvent;today:string;next:string}) {
   const {user}=useSession();const [saved,setSaved]=useState<string[]|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [retry,setRetry]=useState(0);
@@ -44,6 +45,7 @@ function ScheduleFacts({event,catalog}:{event:AtlasEvent;catalog:AtlasCatalog}){
 }
 
 export function FootprintsPage() {
+  const navigation=useBackNavigation('/footprints');
   const {user}=useSession();const [params,setParams]=useSearchParams();const [retry,setRetry]=useState(0);const {value:catalog,error}=useData<AtlasCatalog>('/api/footprints/catalog',retry);
   const sceneController=useRef<SceneController|null>(null);const [listOpen,setListOpen]=useState(true);
   const interests=useFootprintInterests();
@@ -91,17 +93,19 @@ export function FootprintsPage() {
   function changeScope(){setParams(filters({...filterLocation(),scope:mine?'':'mine',month:''}),{replace:true});setExpanded(false);}
   useEffect(()=>{setSelectedSong(linkedEvent?.songs[0]??null);setStories(false);},[linkedEvent?.id]);
   function chooseArtist(id:string){setParams(filters({...(id?{artist:id}:{}),month:'',scope:''}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);}
-  function chooseCity(value:AtlasCity){setParams(filters({...(artist?{artist:artist.id}:{}),city:value.id}),{replace:true});setSearchOpen(false);setQuery('');}
+  function chooseCity(value:AtlasCity){setParams(filters({...(artist?{artist:artist.id}:{}),city:value.id}));setSearchOpen(false);setQuery('');}
   function openVenue(value:AtlasVenue){const selected=value.events.find(event=>event.id===linkedEvent?.id)??value.events[0];setParams(filters({...(artist?{artist:artist.id}:{}),city:city!.id,venue:value.id,...(selected?{event:selected.id}:{}),scene:'venue'}));}
   function mapVenue(event:AtlasEvent){const c=cities.find(item=>item.name===event.city);if(c)setParams(filters({...(artist?{artist:artist.id}:{}),city:c.id,venue:`${event.city}:${event.venue}`,event:event.id,scene:'venue'}));}
   function openEvent(value:AtlasEvent){const matchingCity=cities.find(item=>item.name===value.city);setParams(filters({...(artist?{artist:artist.id}:{}),...(matchingCity?{city:matchingCity.id}:{}),venue:`${value.city}:${value.venue}`,event:value.id,scene:'sky'}));setExpanded(false);setSearchOpen(false);}
   function back(){
     setStories(false);
-    if(scene==='sky'&&venue){setParams(filters({...(artist?{artist:artist.id}:{}),city:city!.id,venue:venue.id,...(linkedEvent?{event:linkedEvent.id}:{}),scene:'venue'}));}
-    else if(scene==='venue'&&city){setParams(filters({...(artist?{artist:artist.id}:{}),city:city.id,...(venue?{venue:venue.id}:{}),...(linkedEvent?{event:linkedEvent.id}:{}),scene:'map'}));setExpanded(false);}
-    else{setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}
+    setExpanded(false);
+    if(navigation.previous){navigation.back();return;}
+    if(scene==='sky'&&venue){setParams(filters({...(artist?{artist:artist.id}:{}),city:city!.id,venue:venue.id,...(linkedEvent?{event:linkedEvent.id}:{}),scene:'venue'}),{replace:true});}
+    else if(scene==='venue'&&city){setParams(filters({...(artist?{artist:artist.id}:{}),city:city.id,...(venue?{venue:venue.id}:{}),...(linkedEvent?{event:linkedEvent.id}:{}),scene:'map'}),{replace:true});}
+    else{setParams(filters(artist?{artist:artist.id}:{}),{replace:true});}
   }
-  if(!catalog)return <section className="atlas-page atlas-loading"><span className="atlas-loading-orbit" aria-hidden="true">✧</span>{error?<div role="alert">{error}<button type="button" onClick={()=>setRetry(value=>value+1)}>重新展开地图</button></div>:<p role="status">正在展开山河与歌声…</p>}<Link to="/">返回听见</Link></section>;
+  if(!catalog)return <section className="atlas-page atlas-loading"><span className="atlas-loading-orbit" aria-hidden="true">✧</span>{error?<div role="alert">{error}<button type="button" onClick={()=>setRetry(value=>value+1)}>重新展开地图</button></div>:<p role="status">正在展开山河与歌声…</p>}<BackLink/></section>;
   const next=`/footprints?${params}`;
   const venueEvents=[...(venue?.events??[])].sort((a,b)=>{const ac=a.event_status==='cancelled',bc=b.event_status==='cancelled';if(ac!==bc)return ac?1:-1;const af=eventPhase(a,today)!=='past',bf=eventPhase(b,today)!=='past';return af!==bf?af?-1:1:af?a.date.localeCompare(b.date):b.date.localeCompare(a.date);});
   const stageEvent=linkedEvent??venueEvents[0];
@@ -120,11 +124,11 @@ export function FootprintsPage() {
       <div className="atlas-search-input"><MagnifyingGlass size={23} weight="light"/><input aria-label="搜索歌手或城市" placeholder="搜索喜欢的歌手或城市" value={query} onFocus={()=>setSearchOpen(true)} onChange={event=>{setQuery(event.target.value);setSearchOpen(true);}} onKeyDown={event=>{if(event.key==='Escape')setSearchOpen(false);if(event.key==='Enter'&&matchingArtists.length===1)chooseArtist(matchingArtists[0].id);}}/>{(query||searchOpen)&&<button type="button" aria-label="收起搜索" onClick={()=>{setSearchOpen(false);setQuery('');}}><X size={20}/></button>}</div>
       {searchOpen?<div className="atlas-search-results"><span>{query?'搜索结果':'从一位喜欢的歌手开始'}</span>{matchingArtists.map(item=><button key={item.id} type="button" onClick={()=>chooseArtist(item.id)}>{item.name}<small>查看行程 <CaretRight size={16}/></small></button>)}{matchingCities.map(item=><button key={item.id} type="button" onClick={()=>chooseCity(item)}>{item.name}<small>看看这里的现场 <CaretRight size={16}/></small></button>)}{!matchingArtists.length&&!matchingCities.length&&<p>暂未收录这位歌手，试试邓紫棋或刘雨昕。</p>}</div>:<div className="atlas-artist-pills"><button type="button" aria-pressed={!artist} onClick={()=>chooseArtist('')}>全部</button>{(artist?[artist,...catalog.artists.filter(item=>item.id!==artist.id).slice(0,1)]:catalog.artists.slice(0,2)).map(item=><button key={item.id} type="button" aria-pressed={artist?.id===item.id} onClick={()=>chooseArtist(item.id)}>{item.name}</button>)}{artist&&<FollowArtist artist={artist} next={next} data={interests}/>}</div>}
       <InterestsError data={interests}/>
-    </header>:<header className="atlas-scene-toolbar"><button type="button" onClick={back} aria-label={scene==='sky'?'返回场馆':'返回场馆地图'}><ArrowLeft size={25} weight="light"/></button><span>{scene==='venue'?city?.name:''}</span><button type="button" onClick={()=>{setParams(filters(artist?{artist:artist.id}:{}));setStories(false);setExpanded(false);}} aria-label="返回全国地图"><MapPinArea size={24} weight="light"/></button></header>}
+    </header>:<header className="atlas-scene-toolbar"><button type="button" onClick={back} aria-label="返回上一页"><ArrowLeft size={25} weight="light"/></button><span>{scene==='venue'?city?.name:''}</span><button type="button" onClick={()=>{setParams(filters(artist?{artist:artist.id}:{}));setStories(false);setExpanded(false);}} aria-label="返回全国地图"><MapPinArea size={24} weight="light"/></button></header>}
     {scene==='map'&&<div className="atlas-legend" aria-label="行程图例"><span><i className="past"/>往期</span><span><i className="future"/>今日 / 待演</span></div>}
     {invalidEvent&&<div className="atlas-invalid" role="status">这个场次暂未收录，请从地图重新选择。</div>}
     {scene==='map'&&city?<section ref={mapPanel} className="atlas-panel atlas-city-sheet">
-      <header><div><small>点亮场馆，靠近这一晚</small><h2>{city.name}</h2></div><button type="button" onClick={back} aria-label="返回全国">×</button></header>
+      <header><div><small>点亮场馆，靠近这一晚</small><h2>{city.name}</h2></div><button type="button" onClick={back} aria-label="返回上一页">×</button></header>
       {scheduleFilters()}
       {venues.length?venues.map(item=><button className="atlas-venue-row" type="button" key={item.id} aria-label={`进入${item.name}`} onClick={()=>openVenue(item)}>
         {venuePhotograph(item.name,artist?.id)?<img className="atlas-venue-photo" src={venuePhotograph(item.name,artist?.id)!.url} alt={`${venuePhotograph(item.name,artist?.id)!.description} · 2026.09.26 实拍参考`}/>:<MapPin className="atlas-venue-icon" size={25} weight="light" aria-hidden="true"/>}<span><strong>{item.name}</strong><small>{item.events.length} 场已收录 · {item.events.some(event=>['upcoming','today'].includes(eventPhase(event,today)))?'有今日 / 待演场次':item.events.every(event=>event.event_status==='cancelled')?'场次已取消':'往期现场'}</small></span><CaretRight size={20} aria-hidden="true"/>
