@@ -5,6 +5,7 @@ import {createServer} from 'vite';
 
 test('guest discovery and publication preview expose only consented fields', async () => {
   const dom = new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
+  const originalFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;
   globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};
   const React=await import('react');const {createRoot}=await import('react-dom/client');
@@ -57,6 +58,6 @@ test('guest discovery and publication preview expose only consented fields', asy
     assert.equal(publicationBody.excerpt,'愿意分享的原文。');
     assert.equal(publicationBody.share_life_time,false);assert.equal(publicationBody.anonymous,true);assert.equal(publicationBody.confirmed,true);
   }finally{
-    await React.act(async()=>root.unmount());await server.close();globalThis.fetch=originalFetch;dom.window.close();
+    await React.act(async()=>root.unmount());await server.close();globalThis.fetch=originalFetch;globalThis.FormData=originalFormData;dom.window.close();
   }
 });

@@ -18,8 +18,9 @@ def test_home_can_load_five_clearly_labeled_demo_songs(tmp_path):
         response = client.get("/api/songs")
 
     assert response.status_code == 200
-    songs = response.json()
-    assert len(songs) == 5
+    catalog = response.json()
+    songs = [song for song in catalog if song['is_demo']]
+    assert len(catalog) == 10 and len(songs) == 5
     assert songs[0]["title"] == "散场以后"
     assert all(song["is_demo"] is True for song in songs)
     assert all(song["audio_available"] is True for song in songs)

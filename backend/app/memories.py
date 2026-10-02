@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Literal
 
 from fastapi import Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator, model_validator
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
@@ -15,15 +15,36 @@ from .models import MemoryCard, MemoryCardTag, MemoryReceipt, PublicStory, Song,
 from .content import selected_lyric, THEME_IDS
 from .photos import photo_url, validate_owned_photo
 from .footprints import validate_event
+from .card_metadata import gallery_ids, memory_tags, normalize_tags, serialize_photos, set_memory_tags
 
 
 class Coordinates(BaseModel):
+    title: str | None = Field(default=None, max_length=80)
+    tags: list[StrictStr] = Field(default_factory=list)
+    photo_ids: list[StrictStr] = Field(default_factory=list, max_length=9)
     lyric_id: str | None = Field(default=None, max_length=40)
     life_year: int | None = Field(default=None, ge=1900, strict=True)
     theme_id: str | None = Field(default=None, max_length=40)
     end_ms: StrictInt | None = Field(default=None, ge=0)
     photo_id: str | None = Field(default=None, min_length=1, max_length=36)
     event_id: str | None = Field(default=None, min_length=1, max_length=100)
+
+    @field_validator('title', mode='before')
+    @classmethod
+    def trimmed_title(cls, value):
+        return (value.strip() or None) if isinstance(value, str) else value
+
+    @field_validator('tags')
+    @classmethod
+    def canonical_tags(cls, value):
+        return normalize_tags(value)
+
+    @field_validator('photo_ids')
+    @classmethod
+    def valid_photo_ids(cls, value):
+        if any(not 1 <= len(photo_id) <= 36 for photo_id in value):
+            raise ValueError('照片标识无效')
+        return list(dict.fromkeys(value))
 
     @field_validator('life_year')
     @classmethod
@@ -113,10 +134,10 @@ def serialize_memory(card):
     return {key: getattr(card, key) for key in (
         'id', 'owner_id', 'song_id', 'story', 'life_time', 'life_precision', 'scene',
         'visibility', 'is_demo_sample', 'offset_ms', 'end_ms', 'photo_id', 'event_id',
-        'revision', 'lyric_id', 'life_year', 'theme_id',
+        'revision', 'lyric_id', 'life_year', 'theme_id', 'title',
     )} | {
         'owner_display_name': card.owner.display_name,
-        'tags': [link.tag.name for link in card.tag_links],
+        'tags': memory_tags(card), 'photos': serialize_photos(card),
         'created_at': card.created_at.isoformat(), 'updated_at': card.updated_at.isoformat(),
         'photo_url': photo_url(card.photo_id),
         'reflections': [serialize_reflection(note) for note in json.loads(card.reflections_json)],
@@ -128,6 +149,8 @@ def serialize_memory(card):
             'photo_id': card.publication.photo_id, 'photo_url': photo_url(card.publication.photo_id),
             'offset_ms': card.publication.offset_ms, 'end_ms': card.publication.end_ms,
             'event_id': card.publication.event_id,
+            'title': card.publication.title, 'tags': json.loads(card.publication.tags_json),
+            'photos': serialize_photos(card.publication),
         },
     }
 
@@ -158,6 +181,30 @@ def validate_lyric(song, lyric_id, offset):
             raise HTTPException(422, '词句与音乐位置不一致，请重新选择。')
 
 
+def resolve_gallery(data, card=None):
+    """An explicit gallery bounds its cover; legacy single-cover edits stay valid."""
+    if 'photo_ids' in data.model_fields_set:
+        ids = data.photo_ids
+        cover = data.photo_id if 'photo_id' in data.model_fields_set else (card.photo_id if card and card.photo_id in ids else (ids[0] if ids else None))
+        if cover is not None and cover not in ids:
+            raise HTTPException(422, '封面必须选自这张卡的照片。')
+        if ids and cover is None:
+            cover = ids[0]
+        return ids, cover
+    if 'photo_id' in data.model_fields_set:
+        cover = data.photo_id
+        previous = gallery_ids(card) if card else []
+        if cover and cover in previous:
+            return previous, cover
+        return ([cover] if cover else []), cover
+    return (gallery_ids(card), card.photo_id) if card else ([], None)
+
+
+def validate_gallery(db, ids, user):
+    for photo_id in ids:
+        validate_owned_photo(db, photo_id, user)
+
+
 def update_card(db, card, revision, values, withdraw=False):
     # Claim the revision before flushing a new publication. Two first publishers
     # must conflict here rather than collide on the public_stories primary key.
@@ -179,9 +226,11 @@ def update_card(db, card, revision, values, withdraw=False):
 
 def install_memories(app, get_db, get_user):
     def retry_result(existing, data):
-        fields = ('song_id', 'story', 'offset_ms', 'end_ms', 'photo_id', 'event_id',
+        fields = ('song_id', 'story', 'offset_ms', 'end_ms', 'event_id', 'title',
                   'life_time', 'life_precision', 'lyric_id', 'life_year', 'theme_id')
-        if any(getattr(existing, key) != getattr(data, key) for key in fields):
+        ids, cover = resolve_gallery(data)
+        if (any(getattr(existing, key) != getattr(data, key) for key in fields)
+                or existing.photo_id != cover or gallery_ids(existing) != ids or memory_tags(existing) != data.tags):
             raise HTTPException(409, '先前提交的内容已经保存。请先到“我的记忆”确认，再在那张卡上继续修改；这里的文字仍保留着。')
         return serialize_memory(existing)
 
@@ -216,14 +265,18 @@ def install_memories(app, get_db, get_user):
             raise HTTPException(404, '找不到这首歌。')
         validate_anchor(song, data.offset_ms, data.end_ms)
         validate_lyric(song, data.lyric_id, data.offset_ms)
-        validate_owned_photo(db, data.photo_id, user)
+        ids, cover = resolve_gallery(data)
+        validate_gallery(db, ids, user)
         validate_event(data.event_id)
         try:
             receipt = MemoryReceipt(owner_id=user.id, request_key=data.request_key)
             db.add(receipt)
             db.flush()
-            card = MemoryCard(id=receipt.id, **data.model_dump(), owner_id=user.id, visibility='private', is_demo_sample=user.is_demo)
+            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id'})
+            card = MemoryCard(id=receipt.id, **values, photo_id=cover, photo_ids_json=json.dumps(ids),
+                              owner_id=user.id, visibility='private', is_demo_sample=user.is_demo)
             db.add(card)
+            set_memory_tags(db, card, data.tags)
             db.commit()
         except IntegrityError:
             db.rollback()
@@ -236,17 +289,24 @@ def install_memories(app, get_db, get_user):
     @app.patch('/api/memories/{memory_id}')
     def edit_memory(memory_id: int, data: EditMemory, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
         card = owner_card(db, memory_id, user)
-        values = data.model_dump(exclude_unset=True, exclude={'revision'})
+        values = data.model_dump(exclude_unset=True, exclude={'revision', 'tags', 'photo_ids'})
         if 'offset_ms' in values:
             if 'lyric_id' not in values and values['offset_ms'] != card.offset_ms:
                 values['lyric_id'] = None
         validate_anchor(card.song, values.get('offset_ms', card.offset_ms), values.get('end_ms', card.end_ms))
         validate_lyric(card.song, values.get('lyric_id', card.lyric_id), values.get('offset_ms', card.offset_ms))
-        if 'photo_id' in values:
-            validate_owned_photo(db, values['photo_id'], user)
+        if {'photo_id', 'photo_ids'} & data.model_fields_set:
+            ids, cover = resolve_gallery(data, card)
+            validate_gallery(db, ids, user)
+            values.update(photo_id=cover, photo_ids_json=json.dumps(ids))
         if 'event_id' in values:
             validate_event(values['event_id'])
         changed = any(getattr(card, key) != value for key, value in values.items())
+        if 'tags' in data.model_fields_set:
+            changed = changed or memory_tags(card) != data.tags
+            # Claim the revision before pending links flush in update_card.
+            with db.no_autoflush:
+                set_memory_tags(db, card, data.tags)
         return update_card(db, card, data.revision, values, withdraw=changed)
 
     @app.post('/api/memories/{memory_id}/reflections')

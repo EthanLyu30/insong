@@ -40,7 +40,8 @@ def test_public_snapshot_is_readable_but_private_original_is_owner_only(tmp_path
             assert card["author_name"] == "阿远"
             assert card["song_id"] == 2
             assert 'excerpt' in card
-            assert not {'owner_id', 'story', 'reflections', 'scene', 'tags'} & set(card)
+            assert not {'owner_id', 'story', 'reflections', 'scene'} & set(card)
+            assert card['title'] is None and card['tags'] == [] and card['photos'] == []
         assert owner.get('/api/memories/2').status_code == 200
         assert other.get('/api/memories/2').status_code == 404
         assert guest.get('/api/memories/2').status_code == 404

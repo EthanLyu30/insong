@@ -140,7 +140,7 @@ export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]
         </div>
       </div>
 
-      {!intro && <div className="collage-copy">
+      {intro?<div className="intro-copy"><h1>追过的光，<em>留在歌里。</em></h1><button type="button" className="collage-primary" onClick={onEnter}>翻开我们的音乐故事 <ArrowRight size={20}/></button></div>:<div className="collage-copy">
         <div className="collage-copy-topline">
           <span className="section-kicker">把故事留在旋律里</span>
           <button className="collage-motion-toggle" type="button" disabled={reducedMotion} aria-pressed={!isPaused && !reducedMotion} onClick={() => { setIsPaused((value) => !value); setSelectedId(null); }}>

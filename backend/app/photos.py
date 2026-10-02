@@ -8,7 +8,7 @@ from uuid import uuid4
 from fastapi import Depends, HTTPException, Request, Response
 from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, ValidationError
-from sqlalchemy import exists, false, or_, select
+from sqlalchemy import exists, false, func, or_, select
 from sqlalchemy.orm import Session as OrmSession
 from starlette.concurrency import run_in_threadpool
 
@@ -99,7 +99,9 @@ def install_photos(app, get_db, get_user, get_optional_user):
 
     @app.get('/api/photos/{photo_id}')
     def get_photo(photo_id: str, db: OrmSession = Depends(get_db), user: User | None = Depends(get_optional_user)):
-        published = exists().where(PublicStory.photo_id == Photo.id, PublicStory.published.is_(True))
+        gallery = func.json_each(PublicStory.photo_ids_json).table_valued('value')
+        in_gallery = exists(select(1).select_from(gallery).where(gallery.c.value == Photo.id)).correlate(PublicStory, Photo)
+        published = exists().where(PublicStory.published.is_(True), or_(PublicStory.photo_id == Photo.id, in_gallery))
         owned = Photo.owner_id == user.id if user else false()
         photo = db.scalar(select(Photo).where(Photo.id == photo_id, or_(owned, published)))
         if photo is None:

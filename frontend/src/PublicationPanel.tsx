@@ -6,6 +6,7 @@ import { useSession } from './SessionContext';
 import { useLivePage } from './useLivePage';
 import { EventNote } from './EventNote';
 import { useData } from './useData';
+import {cardPhotos, photoSource} from './cardMedia';
 
 export function PublicationPanel({card,onChange}: {card:Memory;onChange:()=>void}) {
   const {user}=useSession(),live=useLivePage();
@@ -39,8 +40,8 @@ export function PublicationPanel({card,onChange}: {card:Memory;onChange:()=>void
         <label htmlFor="public-excerpt">公开这段原文<textarea id="public-excerpt" value={excerpt} maxLength={500} rows={3} onChange={e=>setExcerpt(e.target.value)}/></label>
         {!excerptValid&&<p className="form-error">请保留原文中连续的一段，可以删去首尾。</p>}
         <details className="sharing-options"><summary>署名与时间</summary><label className="check-option"><input type="checkbox" checked={anonymous} onChange={e=>setAnonymous(e.target.checked)}/>用“匿名听友”分享</label><label className="check-option"><input type="checkbox" checked={shareLife} onChange={e=>setShareLife(e.target.checked)}/>也分享人生年份与阶段</label></details>
-        <article className="share-preview compact-preview" aria-label="公开卡片预览">{card.photo_url&&<img src={apiBaseUrl+card.photo_url} alt="将随这段文字公开的照片"/>}<div><small>{anonymous?'匿名听友':user?.display_name} · {card.song.title}</small>{shareLife&&<small>{[card.life_year,card.life_time].filter(Boolean).join(' · ')}</small>}<p>{excerpt}</p>{card.lyric&&<p>“{card.lyric.text}”</p>}<small>{formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</small>{card.theme_id&&<small>{theme?`也会出现在「${theme.title}」主题`:themeError?'主题加载失败，请重新打开后再公开。':'正在读取关联主题…'}</small>}</div>{card.event_id&&<EventNote id={card.event_id}/>}</article>
-        <p className="resource-note">{card.photo_url?'上面的照片和文字将公开':'上面的文字将公开'}，听友可搜索到这张卡。后来的补记仍仅自己可见。</p>
+        <article className="share-preview compact-preview" aria-label="公开卡片预览"><div className="preview-gallery">{cardPhotos(card).map(photo=><img key={photo.id} src={photoSource(photo.url)} alt="将随这段文字公开的照片"/>)}</div><div><small>{anonymous?'匿名听友':user?.display_name} · {card.song.title}</small>{card.title&&<h3>{card.title}</h3>}{shareLife&&<small>{[card.life_year,card.life_time].filter(Boolean).join(' · ')}</small>}<p>{excerpt}</p><div className="preview-tags">{card.tags.map(tag=><span key={tag}>#{tag}</span>)}</div>{card.lyric&&<p>“{card.lyric.text}”</p>}<small>{formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</small>{card.theme_id&&<small>{theme?`也会出现在「${theme.title}」主题`:themeError?'主题加载失败，请重新打开后再公开。':'正在读取关联主题…'}</small>}</div>{card.event_id&&<EventNote id={card.event_id}/>}</article>
+        <p className="resource-note">上面预览的标题、标签、{cardPhotos(card).length?`${cardPhotos(card).length}张照片与`:''}文字将公开，听友可搜索到这张卡。后来的补记仍仅自己可见。</p>
         <button className="primary-button" disabled={!valid||busy}>{busy?'正在保存…':'确认公开这张卡'}</button>
       </fieldset></form>}
     </section>}

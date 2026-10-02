@@ -1,15 +1,19 @@
 """Consented public excerpts, separate from owner-only originals."""
+import json
+
 from fastapi import Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
-from sqlalchemy import select
+from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session as OrmSession
 
 from .content import THEMES, selected_lyric
 from .media import serialize_song
-from .memories import CreateMemory, owner_card, update_card
+from .memories import CreateMemory, owner_card, update_card, validate_gallery
 from .models import MemoryCard, PublicStory, User, utc_now
 from .recall import SearchInput, keyword_score
 from .photos import photo_url
+from .card_metadata import gallery_ids, memory_tags, normalize_tag, serialize_photos
+from .footprints import load_catalog
 
 
 class PublishInput(BaseModel):
@@ -37,12 +41,14 @@ class PublicSearch(SearchInput):
     theme_id: str | None = Field(default=None, max_length=40)
     lyric_id: str | None = Field(default=None, max_length=40)
     event_id: str | None = Field(default=None, max_length=100)
+    tag: str | None = Field(default=None, max_length=25)
 
 
 def serialize_story(public):
     card = public.memory
     return {
-        'id': public.memory_id, 'excerpt': public.excerpt,
+        'id': public.memory_id, 'excerpt': public.excerpt, 'title': public.title,
+        'tags': json.loads(public.tags_json or '[]'), 'photos': serialize_photos(public),
         'song_id': card.song_id, 'song': serialize_song(card.song),
         'author_name': public.author_name, 'life_time': public.life_time,
         'life_year': public.life_year, 'offset_ms': public.offset_ms,
@@ -54,7 +60,7 @@ def serialize_story(public):
     }
 
 
-def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None):
+def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None, tag=None):
     query = select(PublicStory).join(MemoryCard).where(PublicStory.published.is_(True))
     if song_id is not None:
         query = query.where(MemoryCard.song_id == song_id)
@@ -64,7 +70,26 @@ def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None):
         query = query.where(PublicStory.lyric_id == lyric_id)
     if event_id is not None:
         query = query.where(PublicStory.event_id == event_id)
+    if tag is not None:
+        tags = func.json_each(PublicStory.tags_json).table_valued('value')
+        query = query.where(exists(select(1).select_from(tags).where(tags.c.value == normalize_tag(tag))).correlate(PublicStory))
     return query.order_by(PublicStory.published_at.desc(), PublicStory.memory_id.desc())
+
+
+def public_search_text(public, catalog):
+    """Use approved snapshots plus publicly available catalog metadata only."""
+    song = public.memory.song
+    aliases = [alias for artist in catalog['artists']
+               if artist['name'] == song.artist or song.artist in artist.get('aliases', [])
+               for alias in artist.get('aliases', [])]
+    event = next((item for item in catalog['events'] if item['id'] == public.event_id), {})
+    fields = [public.excerpt, public.title or '', public.life_time or '', song.title, song.artist,
+              *json.loads(public.tags_json or '[]'), *aliases,
+              *(str(event.get(key) or '') for key in ('title', 'city', 'venue', 'date'))]
+    # The GEM spelling is a documented alias even when an imported catalog omits it.
+    if song.artist == '邓紫棋':
+        fields.extend(['G.E.M.', 'GEM', '鄧紫棋'])
+    return ' '.join(fields)
 
 
 def install_stories(app, get_db, get_user):
@@ -77,11 +102,15 @@ def install_stories(app, get_db, get_user):
         card = owner_card(db, memory_id, user)
         if data.excerpt not in card.story:
             raise HTTPException(422, '请选择原文中连续的一段，公开前不会替你改写故事。')
+        validate_gallery(db, gallery_ids(card), user)
         public = card.publication
         if public is None:
             public = PublicStory(memory_id=card.id, version=0)
             db.add(public)
         public.excerpt = data.excerpt
+        public.title = card.title
+        public.tags_json = json.dumps(memory_tags(card), ensure_ascii=False)
+        public.photo_ids_json = json.dumps(gallery_ids(card))
         public.share_life_time = data.share_life_time
         public.life_time = card.life_time if data.share_life_time else None
         public.life_year = card.life_year if data.share_life_time else None
@@ -102,17 +131,22 @@ def install_stories(app, get_db, get_user):
     @app.get('/api/stories')
     def list_stories(song_id: int | None = Query(default=None, gt=0, lt=2**63),
                      theme_id: str | None = None, lyric_id: str | None = None, event_id: str | None = None,
+                     tag: str | None = Query(default=None, max_length=25),
                      db: OrmSession = Depends(get_db)):
-        return [serialize_story(public) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id))]
+        return [serialize_story(public) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id, tag))]
 
     @app.post('/api/stories/search')
     def search(data: PublicSearch, db: OrmSession = Depends(get_db)):
-        candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id)))
+        exact_tag = normalize_tag(data.query) if data.query.startswith('#') else None
+        candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id, exact_tag or data.tag)))
         versions = {public.memory_id: public.version for public in candidates}
         # Never pass private originals, reflections, or unshared life metadata to inference.
-        texts = [public.excerpt + ' ' + (public.life_time or '') + ' ' + public.memory.song.title for public in candidates]
+        catalog = load_catalog()
+        texts = [public_search_text(public, catalog) for public in candidates]
         lexical = [keyword_score(data.query, text) for text in texts]
-        mode, notice, scores = data.mode, '', lexical
+        mode, notice, scores = ('keyword' if exact_tag else data.mode), '', lexical
+        if exact_tag:
+            scores = [1.] * len(candidates)
         if candidates and mode == 'semantic':
             try:
                 scores = app.state.recall.scores(data.query, texts)
@@ -120,7 +154,9 @@ def install_stories(app, get_db, get_user):
                 mode, notice = 'keyword', '经历匹配暂时不可用，已按关键词查找公开原文。'
         threshold = .865 if mode == 'semantic' else .14
         ranked = sorted(zip(candidates, scores, lexical), key=lambda row: (row[1], row[2]), reverse=True)
-        ids = [public.memory_id for public, score, exact in ranked if score >= threshold or exact == 1.][:3]
+        ids = [public.memory_id for public, score, exact in ranked if score >= threshold or exact == 1.]
+        if mode == 'semantic':
+            ids = ids[:3]
         db.rollback()
         db.expire_all()
         items = []

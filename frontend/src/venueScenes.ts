@@ -30,6 +30,7 @@ for(const [id,covered,names] of profiles){
 }
 
 // Never substitute a different city's architecture for an unknown venue.
-export function venueScene(event?:Pick<AtlasEvent,'venue'>):VenueScene|undefined{
+export function venueScene(event?:Pick<AtlasEvent,'venue'>&Partial<Pick<AtlasEvent,'artist_id'>>):VenueScene|undefined{
+  // Small editorial photos must never replace the full-screen depth texture.
   return event?scenes.get(event.venue):undefined;
 }
