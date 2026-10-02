@@ -61,7 +61,7 @@ export function SongPage() {
     <div className="song-community-actions"><button type="button" onClick={()=>{const target=document.getElementById('song-conversation');target?.focus({preventScroll:true});target?.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}}><ChatCircle size={23}/>听友共鸣</button><Link to={`/discover?song=${song.id}`}><Cards size={23}/>音乐卡片</Link><Link to={`/songs/${song.id}/write?${capture}`}><Plus size={23}/>{safePosition===null?'留下一刻':`留下 ${formatPosition(safePosition)}`}</Link></div>
     <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>mark(ms,id)}/>
     <PhotoCredit url={songCover(song)}/>
-    <p className="quiet-caption">把照片、故事和这段旋律，留在同一张卡里。</p>
+
     {user && <SongMemories songId={song.id} />}
     <div id="song-conversation" tabIndex={-1}><PublicStoryList path={`/api/stories?song_id=${song.id}${lyricId?`&lyric_id=${encodeURIComponent(lyricId)}`:''}`} heading={lyricId?'同一句词，不同的人生':'听友留下的音乐故事'}/></div>
   </section>;
@@ -69,13 +69,13 @@ export function SongPage() {
 
 function SongMemories({ songId }: { songId: number }) {
   const { value, error } = useData<Memory[]>(`/api/memories?song_id=${songId}`);
-  return <section className="song-memory-section"><h2>这首歌里的我</h2>{error ? <p role="alert">{error}</p> : !value ? <p role="status">正在翻找…</p> : value.length ? <><p className="page-intro">不同的日子，都可以在这里留下。</p>{value.map(card => <MemoryEntry key={card.id} memory={card}/>)}</> : <p className="page-intro">还没有为这首歌留下记录。今天，会是第一页。</p>}</section>;
+  return <section className="song-memory-section"><h2>这首歌里的我</h2>{error ? <p role="alert">{error}</p> : !value ? <p role="status">正在翻找…</p> : value.length ? <>{value.map(card => <MemoryEntry key={card.id} memory={card}/>)}</> : <p className="page-intro">还没有为这首歌留下记录。今天，会是第一页。</p>}</section>;
 }
 
 function MemoryEntry({ memory, evidence, matchLabel }: { memory: Memory; evidence?: string; matchLabel?: string }) {
   return <Link className="memory-entry memory-snapshot" to={`/memories/${memory.id}`}>
     <span className="snapshot-date">{[memory.life_year,memory.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(memory.created_at)}`}</span>
-    <div className="snapshot-image"><img src={cardCover(memory)} alt={memory.photo_url?'记忆里的照片':'歌曲配图'} loading="lazy"/></div>
+    <div className="snapshot-image"><img src={cardCover(memory)} alt={memory.photo_url?'记忆里的照片':'歌曲配图'} loading="lazy"/>{cardPhotos(memory).length>1&&<span className="photo-count">{cardPhotos(memory).length} 张</span>}</div>
     <div className="snapshot-copy">{matchLabel&&<span className="match-label">{matchLabel}</span>}{memory.title&&<h3>{memory.title}</h3>}<p>{evidence||memory.story}</p><strong>{memory.song.title}</strong><small>{memory.song.artist}</small><span className="snapshot-status">{memory.is_demo_sample?'虚构样例 · ':''}{memory.publication?.published?'已公开':'仅自己'}</span></div>
   </Link>;
 }
@@ -96,9 +96,9 @@ function CollectionContent() {
   const visible=memories?.filter(card=>!songId||card.song_id===Number(songId))??[];
   return <section className="journal-page collection-page">
     <div className="journal-title-row"><div><span className="journal-eyebrow">追过的现场，留住的喜欢</span><h1>我的音乐记忆</h1></div><Link className="round-action" to="/?choose=1" aria-label="选择歌曲留下一刻"><Plus size={24}/></Link></div>
-    <p className="page-intro">一张照片、一段旋律，把每一次喜欢慢慢收好。</p><SampleNotice/>
+    <SampleNotice compact/>
     <div className="collection-tools"><Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link><label className="song-filter"><span className="sr-only">按歌曲筛选</span><select value={songId} onChange={event=>setSongId(event.target.value)}><option value="">所有歌曲</option>{songs.map(song=><option key={song.id} value={song.id}>{song.title}</option>)}</select></label></div>
-    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline"><p className="resource-note">按你填写的年份排列；未标年份的记忆也会保留。</p>{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper"><h3>你的第一页，留给哪首歌？</h3><p>喜欢的现场，值得被好好记住。</p><Link className="soft-button" to="/?choose=1">选一首歌</Link></div>}</section>}
+    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper"><h3>你的第一页，留给哪首歌？</h3><p>喜欢的现场，值得被好好记住。</p><Link className="soft-button" to="/?choose=1">选一首歌</Link></div>}</section>}
   </section>;
 }
 export function CreateMemoryPage() {
@@ -209,13 +209,13 @@ function DetailContent({ edit }: { edit: boolean }) {
   return <section className="journal-page memory-detail">
     <BackLink fallback="/memories"/>
     {location.state?.saved && <p className="saved-notice" role="status">这一刻，已经好好收下了。</p>}
-    <SampleNotice/><span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}</span><h1>{card.title||card.life_time || '那个有音乐的时刻'}</h1>
+    <span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}</span><h1>{card.title||card.life_time || '那个有音乐的时刻'}</h1>
     <article className={`keepsake-paper${card.photo_url?' has-photo':''}`}>
-      <span className="paper-date">{[card.life_year,card.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(card.created_at)}`}</span><p className="original-story">{card.story}</p><PhotoGallery photos={cardPhotos(card)} fallback={songCover(card.song)}/><TagLinks tags={card.tags}/><span className="paper-caption">{card.offset_ms === null ? '这首歌，陪我经过。' : `我最喜欢的片段 · ${formatPosition(card.offset_ms)}${card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}。`}</span>
+      <span className="paper-date">{[card.life_year,card.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(card.created_at)}`}</span><p className="original-story">{card.story}</p><PhotoGallery photos={cardPhotos(card)} fallback={songCover(card.song)}/><TagLinks tags={card.tags}/>{card.offset_ms!==null&&<span className="paper-caption">我最喜欢的片段 · {formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</span>}
       <PublicationPanel key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
     </article>
     {card.event_id&&<EventNote id={card.event_id}/>}
-    {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句 · 歌曲里的这一刻</small></blockquote>}
+    {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句</small></blockquote>}
     <SongHeading song={card.song}/><AudioPlayer song={card.song} anchor={card.offset_ms} end={card.end_ms}/>
     <div className="inline-actions detail-actions"><Link className="text-button" to={`/memories/${card.id}/edit`}>整理这段记忆</Link><Link className="text-button" to={`/songs/${card.song_id}`}>这首歌里的其他时刻 →</Link></div>
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>

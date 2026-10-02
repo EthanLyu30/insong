@@ -72,8 +72,6 @@
 .flip-front { min-height: 0; }
 .story-cover { aspect-ratio: 4/5; }
 .story-cover::after { content: ''; position: absolute; inset: auto 0 -1px; height: 30px; background: linear-gradient(transparent,#fffdf7); pointer-events: none; }
-img[src$="concert-phone.webp"] { object-position: 65% 80%; }
-img[src$="festival-day.webp"] { object-position: 50% 64%; }
 .photo-credit { color: #796550; font-size: 11px; line-height: 1.7; margin: 10px 0 15px; }
 .photo-credit summary { cursor: pointer; min-height: 34px; display: flex; align-items: center; gap: 7px; list-style: none; }
 .photo-credit summary::before { content: '+'; color: #a77b59; font-size: 15px; }
@@ -224,3 +222,6 @@ img[src$="festival-day.webp"] { object-position: 50% 64%; }
 @media (prefers-reduced-motion: reduce) {
   .flip-rotor,.story-cover img { transition: none; }
 }
+
+.snapshot-image{position:relative}
+.snapshot-image .photo-count{position:absolute;right:7px;bottom:7px;top:auto;font-size:10px;padding:3px 6px;border-radius:8px;background:#211e1a99;color:#fff}

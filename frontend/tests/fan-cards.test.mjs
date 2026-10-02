@@ -38,7 +38,7 @@ async function harness(path,respond,work,fixtures={}){
 
 test('Hear keeps its full collage after story entry and navigation back from discovery',async()=>{
   await harness('/',async url=>{
-    if(url==='/api/songs')return Response.json(Array.from({length:5},(_,i)=>({...song,id:i+1,title:`原版歌曲${i+1}`,cover_url:'/photos/live-lights.webp'})));
+    if(url==='/api/songs')return Response.json(Array.from({length:5},(_,i)=>({...song,id:i+1,title:`原版歌曲${i+1}`,cover_url:'/photos/memory-concert-20261002.webp'})));
     if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-01',artists:[],events:[]});
     throw new Error(url);
   },async({act})=>{

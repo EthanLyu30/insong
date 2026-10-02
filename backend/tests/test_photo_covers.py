@@ -56,12 +56,12 @@ def test_existing_showcase_cover_refresh_preserves_custom_data_and_deletions(tmp
         db.commit()
     initialize_database(engine)
     with Session(engine) as db:
-        assert db.get(Song, 101).cover_url == '/photos/live-lights.webp'
-        assert db.get(Song, 101).source_label == '歌手作品资料 · 摄影配图'
+        assert db.get(Song, 101).cover_url == '/photos/memory-concert-20261002.webp'
+        assert db.get(Song, 101).source_label == '歌手作品资料 · 场景配图'
         assert db.get(Song, 102).cover_url == '/custom/my-photo.jpg'
         assert db.get(Song, 102).source_label == '自己的封面'
         assert db.get(Song, 103).cover_url == '/scenes/venues/shanghai-stadium-exterior.webp'
-        assert db.get(Song, 1).cover_url == '/photos/live-lights.webp'
+        assert db.get(Song, 1).cover_url == '/photos/memory-concert-20261002.webp'
         assert db.get(MemoryCard, removed_id) is None
         assert db.get(SeedMigration, 'showcase-photography-v1') is not None
         db.get(Song, 101).cover_url = '/custom/later.jpg'

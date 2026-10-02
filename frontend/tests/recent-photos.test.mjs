@@ -15,12 +15,12 @@ test('recent Shenzhen stadium photography never substitutes for another venue or
   assert.equal(liu?.captured,undefined,'tour-year evidence cannot invent an exact concert date');
 });
 
-test('night scene changes with artist even at the same stadium, while the exterior is retained',()=>{
+test('full-screen night keeps the detailed virtual scene instead of enlarging a video cover',()=>{
   const gem=venueScene({venue:'深圳大运中心体育场',artist_id:'gem'});
   const other=venueScene({venue:'深圳大运中心体育场',artist_id:'liu-yuxin'});
-  assert.equal(gem.interior,'/photos/gem-shenzhen-20260926-bowl.webp');
-  assert.equal(gem.interiorPhoto?.captured,'2026.09.26');
+  assert.equal(gem.interior,'/scenes/stadium-interior-detail.webp');
+  assert.equal(gem.interiorPhoto,undefined);
   assert.equal(gem.exterior,other.exterior);
-  assert.notEqual(gem.id,other.id,'the texture cache must reload on artist changes');
-  assert.notEqual(gem.interior,other.interior);
+  assert.equal(gem.interior,other.interior);
+  assert.equal(venueScene({venue:'宝能广州国际体育演艺中心',artist_id:'liu-yuxin'}).interior,'/scenes/venues/guangzhou-arena-interior.webp');
 });

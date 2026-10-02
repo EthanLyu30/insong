@@ -12,14 +12,14 @@ DEMO_SONGS = [
 # 稻香: https://www.jvrmusic.com/artist/gallery/detail/1151772159916511232?lang=zh_CN&type=album
 # 倔强: https://bin-music.com/artist/MAYDAY
 # 邓紫棋/刘雨昕: source-backed song entries in footprint_catalog.json.
-# Recent artist-specific concert photos and stock photos illustrate fictional
+# Recent artist-specific concert photos and generated scenes illustrate fictional
 # samples, not attendance or a confirmed setlist. Sources live in photos/README.md.
 FANDOM_SONGS = [
-    {'id': 101, 'title': '稻香', 'artist': '周杰伦', 'cover_url': '/photos/live-lights.webp'},
+    {'id': 101, 'title': '稻香', 'artist': '周杰伦', 'cover_url': '/photos/memory-concert-20261002.webp'},
     {'id': 102, 'title': '光年之外', 'artist': '邓紫棋', 'cover_url': '/photos/gem-shenzhen-20260926-stage.webp'},
     {'id': 103, 'title': '泡沫', 'artist': '邓紫棋', 'cover_url': '/photos/gem-shenzhen-20260926-detail.webp'},
     {'id': 104, 'title': 'REALITY', 'artist': '刘雨昕', 'cover_url': '/photos/liu-yuxin-2026-lightstick.webp'},
-    {'id': 105, 'title': '倔强', 'artist': '五月天', 'cover_url': '/photos/festival-day.webp'},
+    {'id': 105, 'title': '倔强', 'artist': '五月天', 'cover_url': '/photos/memory-festival-20261002.webp'},
 ]
 
 PREVIOUS_FANDOM_PHOTO_COVERS = {
@@ -35,9 +35,9 @@ LEGACY_FANDOM_COVERS = {
     105: '/scenes/venues/xiamen-egret-interior.webp',
 }
 DEMO_PHOTO_COVERS = {
-    1: '/photos/live-lights.webp', 2: '/photos/journey-sunset.webp',
-    3: '/photos/festival-day.webp', 4: '/photos/journey-sunset.webp',
-    5: '/photos/concert-phone.webp',
+    1: '/photos/memory-concert-20261002.webp', 2: '/photos/memory-journey-20261002.webp',
+    3: '/photos/memory-festival-20261002.webp', 4: '/photos/memory-journey-20261002.webp',
+    5: '/photos/memory-concert-20261002.webp',
 }
 
 # Explicitly fictional walkthrough samples, unrelated to real attendance records.

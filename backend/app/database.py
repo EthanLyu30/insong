@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from .models import Base, MemoryCard, PublicStory
 from .seed import seed_demo_data, seed_fandom_showcase, refresh_showcase_photos, refresh_recent_showcase_photos
+from .sample_media import refresh_generated_covers, seed_sample_galleries
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
 
@@ -83,3 +84,5 @@ def initialize_database(engine: Engine) -> None:
         seed_fandom_showcase(db)
         refresh_showcase_photos(db)
         refresh_recent_showcase_photos(db)
+        refresh_generated_covers(db)
+        seed_sample_galleries(db)

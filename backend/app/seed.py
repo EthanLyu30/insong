@@ -61,7 +61,7 @@ def seed_fandom_showcase(db: OrmSession) -> None:
             if db.get(Song, song_id) is not None:
                 song_id = max(101, (db.scalar(select(func.max(Song.id))) or 100) + 1)
             song = Song(**(sample | {'id': song_id}), version='曲目资料（无音频）',
-                        source_label='歌手作品资料 · 摄影配图', is_demo=False, audio_available=False)
+                        source_label=('歌手作品资料 · 场景配图' if '/memory-' in sample['cover_url'] else '歌手作品资料 · 摄影配图'), is_demo=False, audio_available=False)
             db.add(song)
             db.flush()
         songs[sample['id']] = song
@@ -119,7 +119,7 @@ def refresh_showcase_photos(db: OrmSession) -> None:
             Song.is_demo.is_(False),
         )):
             song.cover_url = sample['cover_url']
-            song.source_label = '歌手作品资料 · 摄影配图'
+            song.source_label = '歌手作品资料 · 场景配图' if '/memory-' in sample['cover_url'] else '歌手作品资料 · 摄影配图'
     for sample in DEMO_SONGS:
         for song in db.scalars(select(Song).where(
             Song.title == sample['title'], Song.artist == sample['artist'],

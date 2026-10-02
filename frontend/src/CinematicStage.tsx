@@ -3,18 +3,16 @@ import {ArrowRight} from '@phosphor-icons/react';
 import {eventPhase,type AtlasEvent,type AtlasSong} from './footprintAtlas';
 import {isSceneTap,type SceneController} from './sceneInteraction';
 import {SongConstellation} from './SongConstellation';
-import {venueScene} from './venueScenes';
 
 type Props={scene:string;controller:RefObject<SceneController|null>;event?:AtlasEvent;venueName?:string;city?:string;artistName?:string;selected:AtlasSong|null;playing?:string;onSong:(song:AtlasSong)=>void;onEnter:()=>void};
 
 // Shared input: geographic approach, then the restored portrait depth camera.
 export function CinematicStage({scene,controller,event,venueName,city,artistName,selected,playing,onSong,onEnter}:Props){
   const located=Number.isFinite(event?.venue_lng)&&Number.isFinite(event?.venue_lat);
-  const photo=scene==='sky'?venueScene(event)?.interiorPhoto:undefined;
   const points=useRef(new Map<number,[number,number]>());
   const gesture=useRef<{start:[number,number];enter:boolean;moved:boolean;handled:boolean}|null>(null);
   function pointerDown(e:ReactPointerEvent<HTMLDivElement>){
-    if((e.target as HTMLElement).closest('.atlas-song-stars,.cinematic-photo-source')||e.button!==0)return;
+    if((e.target as HTMLElement).closest('.atlas-song-stars')||e.button!==0)return;
     points.current.set(e.pointerId,[e.clientX,e.clientY]);
     if(points.current.size===1)gesture.current={start:[e.clientX,e.clientY],enter:!!(e.target as HTMLElement).closest('.cinematic-enter'),handled:false,moved:false};
     else if(gesture.current)gesture.current.moved=true;
@@ -43,6 +41,6 @@ export function CinematicStage({scene,controller,event,venueName,city,artistName
       <div className="cinematic-night-title"><h1>{artistName??'我们'} · 这一晚</h1><p>{event.date.replaceAll('-','.')} · {venueName??city}</p>{event.event_status==='cancelled'?<span>这场演出已取消 · 仅保留记录</span>:<span>把歌声，留在星光里。</span>}</div>
       <SongConstellation eventId={event.id} songs={event.songs} selected={selected} playing={playing} onSong={onSong}/>
     </>}
-    {scene!=='map'&&(photo?<a className="cinematic-demo-label cinematic-photo-source" href={photo.source} target="_blank" rel="noopener noreferrer" title={`${photo.description} · ${photo.captured} · ${photo.author}。${photo.context}`}>{photo.captured?.slice(5)} {photo.captured?.replaceAll('.','-')===event?.date?'现场实拍':'实拍参考 · 非本场照片'} · {photo.author} ↗</a>:<span className="cinematic-demo-label">{located?'氛围示意 · 非实拍':'城市位置 · 氛围示意'}</span>)}
+    {scene!=='map'&&<span className="cinematic-demo-label">{located?'虚拟场景 · 非实拍':'城市位置 · 虚拟场景'}</span>}
   </div>;
 }
