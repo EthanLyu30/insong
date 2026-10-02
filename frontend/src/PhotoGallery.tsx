@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
 import {CaretLeft, CaretRight, X} from '@phosphor-icons/react';
 import type {Photo} from './memoryClient';
 import {photoSource} from './cardMedia';
@@ -7,13 +8,28 @@ import {PhotoCredit} from './PhotoCredit';
 
 export function PhotoGallery({photos,fallback}:{photos:Photo[];fallback?:string}) {
   const [selected,setSelected]=useState<number|null>(null);
+  const lightbox=useRef<HTMLDivElement>(null);
+  const open=selected!==null;
   useEffect(()=>{
-    if(selected===null)return;
-    function key(event:KeyboardEvent){if(event.key==='Escape')setSelected(null);if(event.key==='ArrowRight')setSelected(index=>index===null?null:(index+1)%photos.length);if(event.key==='ArrowLeft')setSelected(index=>index===null?null:(index+photos.length-1)%photos.length);}
-    window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
-  },[selected,photos.length]);
+    if(!open)return;
+    const opener=document.activeElement as HTMLElement|null;
+    const previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
+    lightbox.current?.querySelector('button')?.focus();
+    function key(event:KeyboardEvent){
+      if(event.key==='Escape')setSelected(null);
+      if(event.key==='ArrowRight'){event.preventDefault();setSelected(index=>index===null?null:(index+1)%photos.length);}
+      if(event.key==='ArrowLeft'){event.preventDefault();setSelected(index=>index===null?null:(index+photos.length-1)%photos.length);}
+      if(event.key==='Tab'){
+        const buttons=lightbox.current?.querySelectorAll('button');if(!buttons?.length)return;
+        const first=buttons[0],last=buttons[buttons.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+      }
+    }
+    window.addEventListener('keydown',key);return()=>{window.removeEventListener('keydown',key);document.body.style.overflow=previousOverflow;opener?.focus();};
+  },[open,photos.length]);
   if(!photos.length)return fallback?<><img className="story-fallback-image" src={fallback} alt="这首歌的配图"/><PhotoCredit url={fallback}/></>:null;
-  return <><div className={`moment-gallery moment-gallery-${Math.min(photos.length,4)}`} aria-label="这一刻的照片">{photos.map((photo,index)=><button key={photo.id} type="button" onClick={()=>setSelected(index)} aria-label={`查看第${index+1}张照片`}><img src={photoSource(photo.url)} alt={`这一刻的照片 ${index+1}`} loading="lazy"/></button>)}</div>{selected!==null&&photos[selected]&&<div className="photo-lightbox" role="dialog" aria-modal="true" aria-label="照片大图" onClick={()=>setSelected(null)}><button autoFocus type="button" aria-label="关闭照片大图" onClick={()=>setSelected(null)}><X size={25}/></button><img src={photoSource(photos[selected].url)} alt={`第${selected+1}张照片大图`}/>{photos.length>1&&<div className="lightbox-controls" onClick={event=>event.stopPropagation()}><button type="button" aria-label="上一张照片" onClick={()=>setSelected((selected+photos.length-1)%photos.length)}><CaretLeft/></button><span>{selected+1} / {photos.length}</span><button type="button" aria-label="下一张照片" onClick={()=>setSelected((selected+1)%photos.length)}><CaretRight/></button></div>}</div>}</>;
+  return <><div className={`moment-gallery moment-gallery-${photos.length}`} aria-label="这一刻的照片">{photos.map((photo,index)=><button key={photo.id} type="button" onClick={()=>setSelected(index)} aria-label={`查看第${index+1}张照片`}><img src={photoSource(photo.url)} alt={`这一刻的照片 ${index+1}`} loading="lazy"/></button>)}</div>{selected!==null&&photos[selected]&&createPortal(<div ref={lightbox} className="photo-lightbox" role="dialog" aria-modal="true" aria-label="照片大图" onClick={event=>{if(event.target===event.currentTarget)setSelected(null);}}><button type="button" aria-label="关闭照片大图" onClick={()=>setSelected(null)}><X size={25}/></button><img src={photoSource(photos[selected].url)} alt={`第${selected+1}张照片大图`}/>{photos.length>1&&<div className="lightbox-controls"><button type="button" aria-label="上一张照片" onClick={()=>setSelected((selected+photos.length-1)%photos.length)}><CaretLeft/></button><span aria-live="polite">{selected+1} / {photos.length}</span><button type="button" aria-label="下一张照片" onClick={()=>setSelected((selected+1)%photos.length)}><CaretRight/></button></div>}</div>,document.body)}</>;
 }
 
 export function GalleryPicker({photos,cover,onChange,onCover,onBusyChange,disabled}:{photos:Photo[];cover:string|null;onChange:(photos:Photo[])=>void;onCover:(id:string|null)=>void;onBusyChange:(busy:boolean)=>void;disabled:boolean}) {

@@ -9,6 +9,7 @@ const card={id:88,owner_id:3,song_id:1,song,title:'把这一晚带回家',story:
 
 async function harness(path,respond,work){
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
+  const priorFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};
   window.matchMedia=()=>({matches:true,addEventListener(){},removeEventListener(){}});
   globalThis.ResizeObserver=class {observe(){} disconnect(){}};
@@ -30,7 +31,7 @@ async function harness(path,respond,work){
   const act=React.act;
   const fill=async(id,text)=>act(async()=>{const input=document.getElementById(id);assert.ok(input,`missing ${id}`);const proto=input.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,text);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
   try{await act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(App))));await work({act,fill});}
-  finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;delete globalThis.ResizeObserver;dom.window.close();}
+  finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;globalThis.FormData=priorFormData;delete globalThis.ResizeObserver;dom.window.close();}
 }
 
 test('Hear keeps its full collage after story entry and navigation back from discovery',async()=>{
@@ -127,7 +128,59 @@ test('discovery connects current catalog concerts and excludes cancelled dates',
     if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-01',artists:[{id:'gem',name:'邓紫棋'}],events:[{id:'cancelled',artist_id:'gem',city:'北京',venue:'五棵松体育馆',date:'2026-10-02',event_status:'cancelled'},{id:'shenzhen',artist_id:'gem',city:'深圳',venue:'深圳大运中心体育场',date:'2026-10-01',event_status:'scheduled'}]});
     throw new Error(url);
   },async()=>{
-    const links=[...document.querySelectorAll('.recent-concerts a')];assert.equal(links.length,1);
+    const links=[...document.querySelectorAll('.recent-concerts > div > a')];assert.equal(links.length,1);
     assert.ok(links[0].textContent.includes('邓紫棋'));assert.ok(links[0].textContent.includes('10.01'));assert.ok(links[0].href.includes('event=shenzhen'));
+  });
+});
+
+test('reading a searched story and returning restores the search; player keeps the entire clip',async()=>{
+  const story={...card,excerpt:card.story,author_name:'听友',is_demo_sample:false};
+  const searches=[];
+  await harness('/discover?q=散场&mode=semantic',async(url,options)=>{
+    if(url==='/api/stories/search'){searches.push(JSON.parse(options.body));return Response.json({mode:'semantic',items:[{story,match_label:'相近经历'}]});}
+    if(url==='/api/stories/88')return Response.json(story);
+    if(url==='/api/footprints/catalog')return Response.json({artists:[],events:[]});
+    throw new Error(url);
+  },async({act})=>{
+    assert.equal(document.querySelector('#public-query').value,'散场');
+    const read=document.querySelector('.card-read');assert.ok(read,'URL search loads matching cards');
+    await act(async()=>read.click());
+    assert.ok(document.querySelector('.public-detail .back-link').href.endsWith('/discover?q=%E6%95%A3%E5%9C%BA&mode=semantic') || document.querySelector('.public-detail .back-link').href.endsWith('/discover?q=散场&mode=semantic'));
+    const player=[...document.querySelectorAll('a')].find(link=>link.textContent==='走进这首歌 →');
+    assert.ok(player.href.includes('at=10000&end=14000'));
+    await act(async()=>player.click());
+    await act(async()=>document.querySelector('.listening-page .back-link').click());
+    await act(async()=>document.querySelector('.public-detail .back-link').click());
+    assert.equal(document.querySelector('#public-query').value,'散场');
+    assert.equal(searches.at(-1).mode,'semantic');
+    assert.ok(document.querySelector('.flip-card').textContent.includes(card.title));
+  });
+});
+
+test('six-photo story uses a three-column gallery and supports keyboard exit to the opener',async()=>{
+  const story={...card,excerpt:card.story,author_name:'听友',photos:Array.from({length:6},(_,i)=>({id:String(i),url:`/api/photos/${i}`}))};
+  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({act})=>{
+    const gallery=document.querySelector('.moment-gallery');
+    assert.ok(!gallery.classList.contains('moment-gallery-4'),'5–9 photos must not use the four-photo layout');
+    assert.equal(gallery.querySelectorAll('button').length,6);
+    const opener=gallery.querySelectorAll('button')[2];opener.focus();
+    await act(async()=>opener.click());
+    assert.equal(document.body.style.overflow,'hidden');
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'ArrowRight'})));
+    assert.equal(document.querySelector('.photo-lightbox img').getAttribute('alt'),'第4张照片大图');
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape'})));
+    assert.equal(document.querySelector('.photo-lightbox'),null);
+    assert.equal(document.activeElement,opener);
+    assert.equal(document.body.style.overflow,'');
+  });
+});
+
+test('song without a recording retains a clearly disabled conventional player',async()=>{
+  await harness('/songs/102',async url=>{if(url==='/api/songs/102')return Response.json({...song,id:102,title:'光年之外',audio_url:null,audio_available:false,duration_ms:null,is_demo:false});throw new Error(url);},async()=>{
+    const play=document.querySelector('[aria-label="播放光年之外"]');
+    assert.ok(play);assert.equal(play.disabled,true);
+    assert.ok(document.querySelector('.missing-audio').textContent.includes('暂未接入'));
+    assert.equal(document.querySelector('audio'),null,'never substitute another recording');
+    assert.ok(document.querySelector('a[href="/discover?song=102"]'));
   });
 });

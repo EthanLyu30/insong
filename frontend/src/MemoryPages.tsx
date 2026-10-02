@@ -36,6 +36,9 @@ function SongHeading({ song }: { song: Song }) {
 
 export function SongPage() {
   const { songId } = useParams();
+  const location=useLocation();
+  const candidate=location.state?.returnTo;
+  const backTo=typeof candidate==='string'&&/^\/(stories\/|discover|memories\/)/.test(candidate)?candidate:'/';
   const [params] = useSearchParams();
   const [retry, setRetry] = useState(0);
   const { value: song, error } = useData<Song>(`/api/songs/${songId}`, retry);
@@ -49,15 +52,15 @@ export function SongPage() {
   const safeEnd=params.has('end')&&Number.isFinite(requestedEnd)&&safePosition!==null&&requestedEnd>safePosition&&requestedEnd<=(song.duration_ms??0)?requestedEnd:null;
   const capture = new URLSearchParams(); for(const key of ['theme','event'])if(params.get(key))capture.set(key,params.get(key)!);if(safePosition!==null)capture.set('at',String(safePosition));if(safeEnd!==null)capture.set('end',String(safeEnd));if(lyricId)capture.set('lyric',lyricId);
   return <section className="journal-page song-journal listening-page">
-    <Link className="back-link" to="/">← 回到音乐里</Link>
+    <Link className="back-link" to={backTo} state={{returnTo:location.state?.storyReturnTo}}>← {backTo.startsWith('/stories/')?'回到这段故事':'回到音乐里'}</Link>
     {params.get('event')&&<EventNote id={params.get('event')!}/>}
     <div className="song-artwork"><img src={songCover(song)} alt={`《${song.title}》配图`}/></div>
-    <PhotoCredit url={songCover(song)}/>
     <div className="song-journal-title"><h1>{song.title}</h1><p>{song.artist}</p><span className="journal-eyebrow">{song.recording_label}</span></div>
     <AudioPlayer song={song} full anchor={safePosition} end={safeEnd} onMark={ms=>{setPosition(ms);setLyricId(null);}}/>
-    <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);}}/>
     {safePosition !== null && <p className="anchor-notice" role="status">已选中 {formatPosition(safePosition)}，这段音乐会和文字一起保存。</p>}
     <div className="song-community-actions"><a href="#song-conversation"><ChatCircle size={23}/>听友共鸣</a><Link to={`/discover?song=${song.id}`}><Cards size={23}/>音乐卡片</Link><Link to={`/songs/${song.id}/write?${capture}`}><Plus size={23}/>{safePosition===null?'留下一刻':`留下 ${formatPosition(safePosition)}`}</Link></div>
+    <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);}}/>
+    <PhotoCredit url={songCover(song)}/>
     <p className="quiet-caption">把照片、故事和这段旋律，留在同一张卡里。</p>
     {user && <SongMemories songId={song.id} />}
     <div id="song-conversation"><PublicStoryList path={`/api/stories?song_id=${song.id}${lyricId?`&lyric_id=${encodeURIComponent(lyricId)}`:''}`} heading={lyricId?'同一句词，不同的人生':'听友留下的音乐故事'}/></div>
@@ -71,8 +74,9 @@ function SongMemories({ songId }: { songId: number }) {
 
 function MemoryEntry({ memory, evidence, matchLabel }: { memory: Memory; evidence?: string; matchLabel?: string }) {
   return <Link className="memory-entry memory-snapshot" to={`/memories/${memory.id}`}>
+    <span className="snapshot-date">{[memory.life_year,memory.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(memory.created_at)}`}</span>
     <div className="snapshot-image"><img src={cardCover(memory)} alt={memory.photo_url?'记忆里的照片':'歌曲配图'} loading="lazy"/></div>
-    <div className="snapshot-copy"><span className="snapshot-date">{[memory.life_year,memory.life_time].filter(Boolean).join(' · ')||'某个有音乐的日子'}</span>{matchLabel&&<span className="match-label">{matchLabel}</span>}{memory.title&&<h3>{memory.title}</h3>}<p>{evidence||memory.story}</p><strong>{memory.song.title}</strong><small>{memory.song.artist}</small><span className="snapshot-status">{memory.is_demo_sample?'虚构样例 · ':''}{memory.publication?.published?'已公开':'仅自己'}</span></div>
+    <div className="snapshot-copy">{matchLabel&&<span className="match-label">{matchLabel}</span>}{memory.title&&<h3>{memory.title}</h3>}<p>{evidence||memory.story}</p><strong>{memory.song.title}</strong><small>{memory.song.artist}</small><span className="snapshot-status">{memory.is_demo_sample?'虚构样例 · ':''}{memory.publication?.published?'已公开':'仅自己'}</span></div>
   </Link>;
 }
 
