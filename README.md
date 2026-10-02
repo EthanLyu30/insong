@@ -1,6 +1,6 @@
 # 歌里有我
 
-2026-10-01 近期实拍更新：从用户已登录的小红书核对并接入4张近期现场素材。邓紫棋深圳9.26舞台实拍用于两首歌曲配图，同场观众视频封面用于深圳大运体育场预览、对应歌手夜场与散场主题；不同日期显示“实拍参考 · 非本场照片”。刘雨昕的2026巡演应援棒实拍用于REALITY配图，具体场馆未确认，未映射至场馆场景。2017年全景退出当前页面；其余场馆与夕阳外景保留标注的概念素材。用户照片仍优先，听见首页保留原设计。摄影作者、日期核对、权利与用途见[素材来源](frontend/public/photos/README.md)，实际效果见[手机端实录](docs/recent-concert-photography-20261001.png)。
+2026-10-02 更新：清理旧图片引用，记忆样例改为多张照片；场馆夜场恢复各自的虚拟场景并明确标注。4 张近期实拍仅用于适配的配图和预览。首页保留原构图、动态与手写字体，封面/背景改为原分辨率 WebP，字体增加完整字符集 WOFF2；图片与字体首次传输合计从约 17.1 MiB 降至 3.2 MiB。
 
 一个面向歌迷的音乐记忆 H5：**歌曲或现场 → 照片与故事 × 音乐位置与人生时刻 → 私密保存 → 时间轴回看 → 自愿公开原文片段 → 按歌手、歌曲、标签或经历发现共鸣 → 重听对应片段**。
 
@@ -42,6 +42,17 @@
 
 ## 本地启动（Windows PowerShell）
 
+使用 Python 3.12、Node.js 22.12 或更高版本。基础体验不需要模型、GPU、QQ 音乐密钥或本机旧数据库。先确认 `python --version`、`node --version` 正常。
+
+开发中的最新修改先推送到 **lxy**，由作者手动合并到 main。新协作者可在空目录执行（浅克隆跳过历史大图）：
+
+```powershell
+git clone --branch lxy --single-branch --depth 1 https://github.com/Saskia-1/TME.git
+cd TME
+```
+
+在仓库根目录打开两个终端。后端：
+
 ```powershell
 cd backend
 python -m venv .venv
@@ -49,25 +60,38 @@ python -m venv .venv
 .venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-另开终端：
+另开终端，仍从仓库根目录开始。前端优先按已提交的锁文件安装：
 
 ```powershell
 cd frontend
-npm install
-npm run dev -- --host 127.0.0.1
+pnpm install --frozen-lockfile
+pnpm dev --host 127.0.0.1
 ```
 
-仓库维护 `pnpm-lock.yaml`，也可用 `pnpm install --frozen-lockfile`、`pnpm dev --host 127.0.0.1` 启动。原生 MapLibre 使用 Esri World Imagery 卫星影像，叠加 Mapterhorn 地形阴影和 OpenFreeMap / OpenStreetMap 矢量道路，无需地图密钥；网络不可用时底图不能正常呈现，署名可在地图信息按钮中查看。三维场景需要 WebGL 2，不支持时保留城市、日程与歌单操作。
+没有 pnpm 时先运行 `npm install -g pnpm@11.19.0`。也可用 `npm install`、`npm run dev -- --host 127.0.0.1`，但 npm 不读取 pnpm 锁文件，依赖版本可能不同。原生 MapLibre 使用 Esri World Imagery 卫星影像，叠加 Mapterhorn 地形阴影和 OpenFreeMap / OpenStreetMap 矢量道路，无需地图密钥；网络不可用时底图不能正常呈现，会显示提示；本地地点、日程、场馆与歌单仍可操作，不再等待外部瓦片就绪。Three.js 与场馆贴图在进入场馆时才加载，署名可在地图信息按钮中查看。三维场景需要 WebGL 2，不支持时保留城市、日程与歌单操作。
 
 打开 `http://localhost:5173`。Vite 代理 `/api` 到本机后端；同源访问保留会话 Cookie。当前会话有效期为 24 小时，过期后重新登录。SQLite 位于 `backend/data/demo.db`；启动会增量补齐旧表字段，不重置已有内容。请保留该目录。
 
 macOS/Linux 用 `python3` 创建环境，然后使用 `.venv/bin/python`、`.venv/bin/hf`，其余命令相同。
 
-### 启用本地经历匹配
+### 启动或加载很慢时
 
-首次安装后，在 `backend` 目录下载固定版本的公开模型：
+| 卡在哪里 | 如何区分与处理 |
+| --- | --- |
+| `git clone` / `git pull` | 查看终端停在网络连接还是对象下载。仓库有图片、字体和音频，首次克隆可用上面的 `--depth 1`。Git 历史仍包含以前的大图，优化当前文件不会缩小旧历史。 |
+| 依赖安装 | 基础版只安装 `requirements.txt`；不要先下载可选模型。保留安装失败的最后几行，区分网络、Python/Node 版本和包安装错误。 |
+| 页面一直加载 | 两个终端都要保持运行；访问 `http://127.0.0.1:8000/api/songs` 应能看到歌曲 JSON。读取请求最多等待 12 秒，保存/上传最多 30 秒；超时可重试。保存超时不代表服务端未写入，先查看最新状态。 |
+| 首页有图，足迹底图慢 | 场馆图片在仓库内，卫星/街道瓦片来自外部地图服务。这是不同的资源链路。外部服务慢时仍能通过日程进入本地场馆。 |
+| 某张图不显示 | 浏览器 Network 查看是否 404，以及具体 URL。`frontend/public` 图片与字体、`backend/app/sample_photos` 样例照片、`backend/media` 原创音频均随代码提交。用户上传的照片存放在 SQLite，其他人的新数据库不会包含你的私人照片。 |
+
+开发和构建预览固定使用 5173；被占用时明确报错，不会悄悄换端口造成登录/保存失败。检查占用的终端后再启动。测试构建版可先停开发服务，再执行 `pnpm build`、`pnpm preview --host 127.0.0.1`；预览也代理到 8000 后端。
+
+### 启用本地经历匹配（可选，先确认基础版能打开）
+
+基础安装不包含 ONNX、分词器及模型下载工具；缺少模型时仍可浏览、记录、播放原创样例、搜索关键词、使用足迹。仅需要本地语义匹配时，在 `backend` 目录额外安装并下载：
 
 ```powershell
+.venv/Scripts/python.exe -m pip install -r requirements-ai.txt
 .venv/Scripts/hf.exe download Xenova/multilingual-e5-small onnx/model_quantized.onnx tokenizer.json config.json tokenizer_config.json --revision 761b726dd34fb83930e26aab4e9ac3899aa1fa78 --local-dir models/multilingual-e5-small
 ```
 

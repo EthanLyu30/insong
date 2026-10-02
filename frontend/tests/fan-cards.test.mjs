@@ -51,7 +51,7 @@ test('Hear keeps its full collage after story entry and navigation back from dis
     assert.equal(document.querySelector('.collage-copy'),null,'the compact alternative copy never replaces home');
     assert.equal(document.querySelector('.intro-copy h1').textContent,'追过的光，留在歌里。');
     assert.deepEqual([...document.querySelectorAll('.collage-card')].map(card=>card.style.transform),projection);
-    assert.deepEqual([...document.querySelectorAll('.collage-card-art img.is-visible')].map(img=>img.getAttribute('src')),Array.from({length:5},(_,i)=>`/covers/song-${i+1}.png`));
+    assert.deepEqual([...document.querySelectorAll('.collage-card-art img.is-visible')].map(img=>img.getAttribute('src')),Array.from({length:5},(_,i)=>`/covers/song-${i+1}.webp`));
     await act(async()=>document.querySelector('.scene-enter').click());
     assert.ok(document.querySelector('.discover-page'),'background entry also opens discovery');
     await act(async()=>document.querySelector('.brand').click());

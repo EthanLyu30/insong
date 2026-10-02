@@ -3,7 +3,7 @@ import {Link,useLocation,useSearchParams} from 'react-router';
 import {BookmarkSimple,Check,Play,Pause} from '@phosphor-icons/react';
 import {useSession} from './SessionContext';
 import {apiBaseUrl} from './api';
-import {apiRequest,dayLabel} from './memoryClient';
+import {ApiError,apiRequest,dayLabel} from './memoryClient';
 import type {AtlasEvent,AtlasSong} from './footprintAtlas';
 import './playlistVersions.css';
 import {BackLink} from './Navigation';
@@ -19,19 +19,15 @@ export type SavedPlaylist={
 class PlaylistConflict extends Error {}
 
 async function refreshSnapshot(playlist:SavedPlaylist,signal:AbortSignal):Promise<SavedPlaylist>{
-  let response:Response;
   try{
-    response=await fetch(`${apiBaseUrl}/api/playlists/${playlist.id}/refresh`,{
-      method:'POST',credentials:'include',signal,headers:{'Content-Type':'application/json'},
+    return await apiRequest<SavedPlaylist>(apiBaseUrl,`/api/playlists/${playlist.id}/refresh`,{
+      method:'POST',signal,
       body:JSON.stringify({expected_snapshot_version:playlist.snapshot_version,expected_current_version:playlist.current_version}),
     });
   }catch(reason){
-    if(signal.aborted)throw reason;
-    throw new Error('暂时连接不上，歌单仍保留收藏时的版本。请稍后再试。');
+    if(reason instanceof ApiError&&reason.status===409)throw new PlaylistConflict('收藏版本已变化，请核对后再更新。');
+    throw reason;
   }
-  if(response.status===409)throw new PlaylistConflict('收藏版本已变化，请核对后再更新。');
-  if(!response.ok){const body=await response.json().catch(()=>null);throw new Error(typeof body?.detail==='string'?body.detail:'歌单暂时没有更新成功，请重试。');}
-  return await response.json() as SavedPlaylist;
 }
 
 function usePlaylistRefresh(scope:string){

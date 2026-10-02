@@ -6,7 +6,7 @@ export function photoSource(url:string):string {
 }
 
 export function songCover(song:Song):string {
-  return song.cover_url ?? `/covers/song-${song.id}.png`;
+  return song.cover_url ?? `/covers/song-${song.id}.webp`;
 }
 
 export function cardPhotos(card:Pick<Memory | PublicStory,'photos'|'photo_id'|'photo_url'>):Photo[] {

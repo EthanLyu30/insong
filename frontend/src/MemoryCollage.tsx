@@ -38,7 +38,7 @@ function Artwork({ songs, activeId, className }: { songs: Song[]; activeId: numb
   return (
     <span className={className} aria-hidden="true">
       {songs.map((song) => (
-        <img key={song.id} src={`/covers/song-${song.id}.png`} alt="" className={song.id === activeId ? "is-visible" : ""} draggable={false} />
+        <img key={song.id} src={`/covers/song-${song.id}.webp`} alt="" className={song.id === activeId ? "is-visible" : ""} draggable={false} />
       ))}
     </span>
   );
@@ -109,7 +109,7 @@ export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]
       <div className={`collage-scene${isPaused || reducedMotion ? " is-paused" : ""}`} ref={sceneRef}>
         {intro && <><button className="scene-enter" aria-label="进入我的音乐故事" onClick={onEnter}/><span className="scene-invitation" aria-hidden="true">轻触空白，翻开下一页 ↗</span></>}
         <div className="collage-stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
-          <img className="collage-backdrop" src="/collage-scene.png" alt="" draggable={false} />
+          <img className="collage-backdrop" src="/collage-scene.webp" alt="" draggable={false} />
           <span className="collage-scene-label">我的生活，有它的配乐。</span>
           {visibleSongs.map((song, index) => (
             <button
