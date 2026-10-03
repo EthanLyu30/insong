@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {Link,useNavigate} from 'react-router';
-import {DotsThree,Trash} from '@phosphor-icons/react';
+import {PencilSimple,Trash} from '@phosphor-icons/react';
 import {apiBaseUrl} from './api';
 import {apiRequest,type Memory} from './memoryClient';
 import {useLivePage} from './useLivePage';
@@ -9,7 +9,7 @@ import './memoryExperience.css';
 
 export function MemoryActions({card,onReload}:{card:Memory;onReload:()=>void}){
   const [confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const menu=useRef<HTMLDetailsElement>(null),more=useRef<HTMLElement>(null),dialog=useRef<HTMLDivElement>(null),lock=useRef(false);
+  const removeButton=useRef<HTMLButtonElement>(null),dialog=useRef<HTMLDivElement>(null),lock=useRef(false);
   const navigate=useNavigate(),live=useLivePage();
   useEffect(()=>{
     if(!confirm)return;
@@ -27,7 +27,7 @@ export function MemoryActions({card,onReload}:{card:Memory;onReload:()=>void}){
       }
     }
     window.addEventListener('keydown',key);
-    return()=>{window.removeEventListener('keydown',key);document.body.style.overflow=overflow;if(shell)shell.inert=wasInert??false;more.current?.focus();};
+    return()=>{window.removeEventListener('keydown',key);document.body.style.overflow=overflow;if(shell)shell.inert=wasInert??false;removeButton.current?.focus();};
   },[confirm]);
   async function remove(){
     if(lock.current)return;lock.current=true;setBusy(true);setError('');
@@ -36,8 +36,8 @@ export function MemoryActions({card,onReload}:{card:Memory;onReload:()=>void}){
     finally{lock.current=false;if(live.current)setBusy(false);}
   }
   return <div className="memory-toolbar-actions">
-    <Link className="memory-edit-link" to={`/memories/${card.id}/edit`}>编辑</Link>
-    <details ref={menu} className="memory-more"><summary ref={more} aria-label="更多记忆操作"><DotsThree size={27}/></summary><div className="memory-action-menu"><button type="button" aria-label="删除这段记忆" onClick={()=>{if(menu.current)menu.current.open=false;setError('');setConfirm(true);}}><Trash size={17}/>删除记忆</button></div></details>
+    <Link className="memory-edit-link" to={`/memories/${card.id}/edit`}><PencilSimple size={17} aria-hidden="true"/>编辑</Link>
+    <button ref={removeButton} className="memory-delete-link" type="button" aria-label="删除这段记忆" onClick={()=>{setError('');setConfirm(true);}}><Trash size={17} aria-hidden="true"/>删除记忆</button>
     {confirm&&createPortal(<div className="memory-delete-backdrop" onClick={event=>{if(event.target===event.currentTarget&&!busy)setConfirm(false);}}><div ref={dialog} className="memory-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="memory-delete-title" aria-describedby="memory-delete-description" tabIndex={-1}><h2 id="memory-delete-title">删除这段记忆？</h2><p id="memory-delete-description">原文、照片关联和补记会移除，无法恢复。</p>{error&&<p role="alert" className="form-error">{error}<button type="button" className="text-button reload-memory" disabled={busy} onClick={()=>{setConfirm(false);onReload();}}>重新加载</button></p>}<div><button type="button" className="soft-button" disabled={busy} onClick={()=>setConfirm(false)}>取消</button><button type="button" className="danger-button" disabled={busy} onClick={()=>void remove()}>{busy?'正在删除…':'确认删除'}</button></div></div></div>,document.body)}
   </div>;
 }

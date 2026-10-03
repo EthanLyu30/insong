@@ -17,6 +17,7 @@ import { EventNote } from './EventNote';
 import { PhotoCredit } from './PhotoCredit';
 import {BackLink,useBackNavigation} from './Navigation';
 import {MemoryActions} from './MemoryActions';
+import {ChoicePicker} from './ChoicePicker';
 import './composer.css';
 
 export function LoginGate() {
@@ -116,7 +117,7 @@ function CollectionContent() {
   return <section className="journal-page collection-page">
     <div className="journal-title-row"><div><span className="journal-eyebrow">追过的现场，留住的喜欢</span><h1>我的音乐记忆</h1></div></div>
     <SampleNotice compact/>
-    <div className="collection-tools"><Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link><label className="song-filter"><span className="sr-only">按歌曲筛选</span><select value={songId} onChange={event=>setSongId(event.target.value)}><option value="">所有歌曲</option>{songs.map(song=><option key={song.id} value={song.id}>{song.title}</option>)}</select></label></div>
+    <div className="collection-tools"><Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link><div className="song-filter"><ChoicePicker label="按歌曲筛选" value={songId} onChange={setSongId} options={[{value:'',label:'所有歌曲'},...songs.map(song=>({value:String(song.id),label:song.title}))]}/></div></div>
     {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper"><h3>你的第一页，留给哪首歌？</h3><p>喜欢的现场，值得被好好记住。</p><Link className="soft-button" to="/create">记录第一刻</Link></div>}</section>}
   </section>;
 }
@@ -212,7 +213,7 @@ function DetailContent({ edit }: { edit: boolean }) {
   if (card.owner_id !== user?.id) return <LoadingError error="这不是当前账号的私人记忆。"/>;
   if (edit) return <MemoryForm key={card.id + ':' + card.revision} song={card.song} existing={card}/>;
   return <section className="journal-page memory-detail">
-    <header className="memory-toolbar"><BackLink fallback="/memories"/><MemoryActions key={card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/></header>
+    <header className="memory-toolbar"><BackLink fallback="/memories"/></header>
     {location.state?.saved && <p className="saved-notice" role="status">这一刻，已经好好收下了。</p>}
     <span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}</span><h1>{card.title||card.life_time || '那个有音乐的时刻'}</h1>
     <article className={`keepsake-paper${card.photo_url?' has-photo':''}`}>
@@ -223,5 +224,6 @@ function DetailContent({ edit }: { edit: boolean }) {
     {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句</small></blockquote>}
     <SongHeading song={card.song}/><AudioPlayer song={card.song} anchor={card.offset_ms} end={card.end_ms}/>
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
+    <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
   </section>;
 }

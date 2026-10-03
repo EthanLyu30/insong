@@ -6,6 +6,7 @@ import { apiRequest } from './memoryClient';
 import { useSession } from './SessionContext';
 import { useData } from './useData';
 import { PublicStoryList } from './PublicPages';
+import {ChoicePicker} from './ChoicePicker';
 import { AtlasMap } from './AtlasMap';
 import { CinematicStage } from './CinematicStage';
 import {venuePhotograph} from './photoSources';
@@ -133,7 +134,7 @@ export function FootprintsPage() {
   const matchingArtists=filterArtists(catalog.artists,query);
   const matchingCities=query.trim()?cities.filter(item=>item.name.includes(query.trim())).slice(0,6):[];
   const invalidEvent=params.get('event')&&!linkedEvent;
-  function scheduleFilters(){return <div className="atlas-schedule-filters"><div aria-label="日程时期" role="group"><button type="button" aria-pressed={period==='past'} onClick={()=>changePeriod('past')}>往期</button><button type="button" aria-pressed={period==='upcoming'} onClick={()=>changePeriod('upcoming')}>接下来</button></div>{period==='past'?<label className="atlas-month-filter"><span className="sr-only">筛选演出月份</span><select aria-label="筛选演出月份" value={month} onChange={e=>changeMonth(e.target.value)}><option value="">全部月份</option>{month&&!months.includes(month)&&<option value={month}>{month.replace('-','年')}月</option>}{months.map(value=><option key={value} value={value}>{value.replace('-','年')}月</option>)}</select></label>:<span className="atlas-week-window">未来 7 天</span>}</div>;}
+  function scheduleFilters(){return <div className="atlas-schedule-filters"><div aria-label="日程时期" role="group"><button type="button" aria-pressed={period==='past'} onClick={()=>changePeriod('past')}>往期</button><button type="button" aria-pressed={period==='upcoming'} onClick={()=>changePeriod('upcoming')}>接下来</button></div>{period==='past'?<div className="atlas-month-filter"><ChoicePicker label="筛选演出月份" value={month} onChange={changeMonth} options={[{value:'',label:'全部月份'},...[...new Set([...(month?[month]:[]),...months])].map(value=>({value,label:`${value.replace('-','年')}月`}))]}/></div>:<span className="atlas-week-window">未来 7 天</span>}</div>;}
   return <section className={`atlas-page atlas-${scene} ${city&&scene==='map'?'is-venue-map':''}`} data-scene={scene}>
     <div className="atlas-scene">
       <AtlasMap cities={cities} events={visibleEvents} today={today} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} onVenue={mapVenue} onNation={()=>{setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}} scene={scene} venueEvent={stageEvent} controller={sceneController}/>

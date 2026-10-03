@@ -312,7 +312,7 @@
 .atlas-schedule-filters [role=group] button{border:0;background:none;border-radius:19px;color:#716452;padding:6px 9px;min-height:36px;font-size:12px}
 .atlas-schedule-filters [role=group] button[aria-pressed=true]{background:#fffbf2;box-shadow:0 1px 5px #77562c12;color:#643b20}
 .atlas-month-filter{min-width:0;flex:1;max-width:112px}
-.atlas-month-filter select{width:100%;font-size:11px;min-height:44px;border:0;background:transparent;color:#665842;padding:4px 0;cursor:pointer}
+.atlas-month-filter .choice-trigger{width:100%;font-size:11px;min-height:44px;border-color:#e1d6c8;background:transparent;color:#665842;padding:6px 8px;cursor:pointer}
 .atlas-interest-filter{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;border:0;background:none;color:#6c6457;padding:5px 0;font-size:12px;white-space:nowrap}
 .atlas-interest-filter[aria-pressed=true]{color:#4e6848;font-weight:600}
 .atlas-schedule-empty{padding:10px 0 3px;font-size:13px;color:#71624f;line-height:1.65}

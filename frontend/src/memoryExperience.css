@@ -17,14 +17,14 @@
 .creation-empty{padding:24px 0;color:#947f6b;font-size:13px}
 .memory-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
 .memory-toolbar .back-link{margin:0;min-height:44px;display:flex;align-items:center}
-.memory-toolbar-actions{display:flex;align-items:center;gap:8px}
-.memory-edit-link{display:flex;align-items:center;min-height:44px;padding:0 12px;text-decoration:none;color:#a36b48;font-size:14px}
-.memory-more{position:relative}
-.memory-more>summary{list-style:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;color:#6d5b4b;cursor:pointer}
-.memory-more>summary::-webkit-details-marker{display:none}
-.memory-more[open]>summary{background:#eee5d9}
-.memory-action-menu{position:absolute;z-index:40;right:0;top:49px;background:#fffdf8;border:1px solid #e6d8c8;border-radius:13px;box-shadow:0 8px 24px #5b453522;padding:5px;min-width:144px}
-.memory-action-menu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:10px;border:0;background:none;color:#a75e49;font-size:13px;border-radius:9px}
+.memory-toolbar-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #e6dbcd}
+.memory-toolbar-actions>:is(a,button){display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 12px;border:0;border-radius:12px;text-decoration:none;font:inherit;font-size:13px;cursor:pointer}
+.memory-edit-link{background:#eadbca;color:#725139}
+.memory-delete-link{background:transparent;color:#9e7562}
+.memory-delete-link:hover{background:#f1e8dd}
+.creation-recent h2{font-size:13px;color:#89715c;margin:26px 0 12px}
+.song-filter{max-width:45%;min-width:0}
+.song-filter .choice-trigger{font-size:11px;width:100%;background:#fbf7f0}
 .memory-delete-backdrop{position:fixed;inset:0;z-index:120;background:#34271e66;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px}
 .memory-delete-dialog{width:min(100%,360px);border-radius:22px;padding:26px 22px;background:#fffaf2;box-shadow:0 22px 75px #34271e35;outline:none}
 .memory-delete-dialog h2{font-size:20px;font-weight:600;margin:0 0 14px;color:#44372b}

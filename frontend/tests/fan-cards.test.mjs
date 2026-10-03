@@ -12,6 +12,8 @@ async function harness(path,respond,work,fixtures={}){
   const priorFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};
   window.matchMedia=()=>({matches:true,addEventListener(){},removeEventListener(){}});
+  const originalRect=window.HTMLElement.prototype.getBoundingClientRect;
+  window.HTMLElement.prototype.getBoundingClientRect=function(){return this.classList.contains('choice-trigger')?{left:200,top:100,right:320,bottom:144,width:120,height:44}:originalRect.call(this);};
   globalThis.ResizeObserver=class {observe(){} disconnect(){}};
   window.HTMLMediaElement.prototype.play=async function(){this.dispatchEvent(new window.Event('play'));};
   window.HTMLMediaElement.prototype.pause=function(){this.dispatchEvent(new window.Event('pause'));};
@@ -24,7 +26,7 @@ async function harness(path,respond,work,fixtures={}){
     if(url==='/api/themes')return fixtures.themesError?Response.json({detail:'主题服务不可用'},{status:503}):Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
     if(url==='/api/memories/88'&&!options.method)return Response.json(fixtures.memory?fixtures.memory():card);
-    if(url==='/api/memories'&&!options.method)return Response.json([card]);
+    if(url==='/api/memories'&&!options.method)return Response.json(fixtures.memories??[card]);
     if(url.startsWith('/api/stories?'))return Response.json(fixtures.stories??[]);
     return respond(url,options);
   };
@@ -183,18 +185,86 @@ test('central creation has its own route and returns to the filtered reading col
   });
 });
 
-test('memory detail has clear edit and an isolated, cancellable delete confirmation',async()=>{
+test('creation starts from personal listening choices rather than an unsolicited catalog',async()=>{
+  let catalogs=0;
+  await harness('/create',async url=>{if(url==='/api/songs'){catalogs++;return Response.json([song,{...song,id:2,title:'陌生的配乐',artist:'别人的歌手'}]);}throw new Error(url);},async({fill})=>{
+    assert.equal(catalogs,0,'an empty search does not request the full catalog');
+    assert.ok(!document.querySelector('.creation-page').textContent.includes('陌生的配乐'),'the full catalog is not a recommendation');
+    const recent=[...document.querySelectorAll('.creation-recent a')];
+    assert.equal(recent.length,1);assert.equal(recent[0].getAttribute('href'),'/songs/1/write');
+    await fill('create-song-query','别人的歌手');
+    assert.equal(catalogs,1,'the catalog loads when the user searches');
+    assert.equal(document.querySelectorAll('.creation-song-list a').length,1);
+    assert.ok(document.querySelector('.creation-song-list a').textContent.includes('陌生的配乐'));
+    assert.ok(!document.querySelector('.creation-recent'),'recent history does not compete with search results');
+  });
+});
+
+test('choice list measures wrapped content and closes when its anchor leaves the mobile viewport',async()=>{
+  await harness('/memories',async url=>{throw new Error(url);},async({act})=>{
+    const trigger=document.querySelector('.song-filter button');
+    trigger.getBoundingClientRect=()=>({left:230,top:650,right:340,bottom:694,width:110,height:44});
+    Object.defineProperty(window.HTMLElement.prototype,'scrollHeight',{configurable:true,get(){return this.classList.contains('choice-panel')?280:0;}});
+    Object.defineProperty(window,'innerHeight',{configurable:true,value:844});
+    Object.defineProperty(window,'innerWidth',{configurable:true,value:360});
+    await act(async()=>trigger.click());
+    const list=document.querySelector('[role="listbox"]');assert.ok(list);
+    assert.ok(Number.parseFloat(list.style.top)<=360,'wrapped options are measured before opening above the control');
+    assert.ok(Number.parseFloat(list.style.left)+Number.parseFloat(list.style.width)<=348);
+    Object.defineProperty(window,'innerHeight',{configurable:true,value:390});
+    await act(async()=>window.dispatchEvent(new window.Event('resize')));
+    assert.equal(document.querySelector('[role="listbox"]'),null,'rotation closes an off-screen anchor');
+    assert.equal(trigger.getAttribute('aria-expanded'),'false');
+  });
+});
+
+test('memory song filter opens an in-page choice list, preserves the view and supports keyboard dismissal',async()=>{
+  await harness('/memories?view=cards',async url=>{if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,location})=>{
+    const trigger=document.querySelector('.song-filter button');assert.ok(trigger,'replace the external native popup');
+    await act(async()=>trigger.click());
+    assert.equal(trigger.getAttribute('aria-expanded'),'true');
+    assert.equal(document.querySelectorAll('[role="listbox"] [role="option"]').length,2);
+    await act(async()=>document.querySelector('[role="option"][data-value="1"]').click());
+    assert.equal(new URLSearchParams(location().search).get('song'),'1');
+    assert.equal(new URLSearchParams(location().search).get('view'),'cards');
+    assert.equal(document.querySelector('[role="listbox"]'),null);
+    assert.equal(document.activeElement,trigger);
+    await act(async()=>trigger.click());
+    await act(async()=>document.activeElement.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true})));
+    assert.equal(document.querySelector('[role="listbox"]'),null);assert.equal(document.activeElement,trigger);
+    await act(async()=>trigger.dispatchEvent(new window.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true})));
+    assert.equal(document.activeElement.dataset.value,'1','keyboard opening starts on the current selection');
+    await act(async()=>document.activeElement.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Home',bubbles:true})));
+    assert.equal(document.activeElement.dataset.value,'');
+    await act(async()=>document.querySelector('.collection-page h1').dispatchEvent(new window.MouseEvent('pointerdown',{bubbles:true})));
+    assert.equal(document.querySelector('[role="listbox"]'),null,'outside interactions dismiss the list without changing the filter');
+    assert.equal(new URLSearchParams(location().search).get('song'),'1');
+  });
+});
+
+test('sample memories are not treated as the user’s musical preferences',async()=>{
+  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async()=>{
+    assert.ok(!document.querySelector('.creation-recent'));
+    assert.ok(!document.querySelector('.creation-song-list'));
+    assert.ok(document.querySelector('#create-song-query'));
+  },{memories:[{...card,is_demo_sample:true}]});
+});
+
+test('memory detail groups explicit edit and delete after the content without a redundant menu',async()=>{
   let deletions=0;
   await harness('/memories/88',async(url,options)=>{if(url==='/api/memories/88?revision=1'&&options.method==='DELETE'){deletions++;return new Response(null,{status:204});}throw new Error(url);},async({act})=>{
-    const edit=document.querySelector('.memory-toolbar a[href="/memories/88/edit"]');assert.equal(edit?.textContent.trim(),'编辑');
+    const edit=document.querySelector('.memory-detail a[href="/memories/88/edit"]');assert.equal(edit?.textContent.trim(),'编辑');
     assert.ok(!document.querySelector('.memory-detail').textContent.includes('这首歌里的其他时刻'));
     assert.ok(!document.querySelector('.memory-detail .delete-trigger'));
-    const more=document.querySelector('[aria-label="更多记忆操作"]');assert.ok(more);
-    await act(async()=>more.click());await act(async()=>document.querySelector('[aria-label="删除这段记忆"]').click());
+    assert.ok(!document.querySelector('[aria-label="更多记忆操作"]'));
+    assert.ok(!document.querySelector('.memory-toolbar a[href$="/edit"]'),'the reading header stays focused on navigation');
+    const remove=document.querySelector('[aria-label="删除这段记忆"]');assert.ok(remove);
+    assert.equal(edit.parentElement,remove.parentElement,'both actions belong to the same visible operation row');
+    await act(async()=>remove.click());
     const dialog=document.querySelector('[role="alertdialog"]');assert.ok(dialog);assert.equal(deletions,0,'opening the dialog never deletes');
     await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape'})));
     assert.equal(document.querySelector('[role="alertdialog"]'),null);assert.equal(deletions,0);
-    assert.equal(document.activeElement,more,'closing returns focus to the menu');
+    assert.equal(document.activeElement,remove,'closing returns focus to the explicit delete button');
   });
 });
 
@@ -320,7 +390,7 @@ test('playlist back returns to the actual filtered memory collection, including 
     await until('.saved-playlists .back-link');
     await act(async()=>document.querySelector('.saved-playlists .back-link').click());
     assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
-    assert.equal(document.querySelector('.song-filter select').value,'1');
+    assert.equal(document.querySelector('.song-filter button').textContent,'散场以后');
     assert.equal(document.querySelector('.timeline-toggle button:last-child').getAttribute('aria-pressed'),'true');
     await go(1);await until('.saved-playlists .back-link');assert.equal(location().pathname,'/playlists','back must POP, not push another memory page');
     await go(-1);assert.equal(location().pathname,'/memories');

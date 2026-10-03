@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { transformWithEsbuild } from "vite";
+import { createServer } from "vite";
 import { getDemoIdentity, switchDemoIdentity } from "../src/demoAuth.ts";
 
 const users = {
@@ -65,15 +63,10 @@ test("network failures surface Chinese identity errors", async () => {
   await assert.rejects(switchDemoIdentity("", 1, offline), /演示帐号切换失败/);
 });
 
-test("topbar switcher labels all demo identities and shows retryable errors", async () => {
-  const entry = fileURLToPath(new URL("../src/DemoAccountSwitcher.tsx", import.meta.url));
-  const source = await readFile(entry, "utf8");
-  const compiled = await transformWithEsbuild(source, entry, {
-    loader: "tsx", jsx: "transform", jsxFactory: "React.createElement", format: "cjs",
-  });
-  const componentModule = { exports: {} };
-  new Function("React", "module", "exports", compiled.code)(React, componentModule, componentModule.exports);
-  const { DemoAccountSwitcher } = componentModule.exports;
+test("topbar switcher exposes the current identity and retryable errors", async () => {
+  const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
+  try {
+  const { DemoAccountSwitcher } = await server.ssrLoadModule('/src/DemoAccountSwitcher.tsx');
   const markup = renderToStaticMarkup(React.createElement(DemoAccountSwitcher, {
     identity: { user: null }, loading: false, error: "切换失败",
     onSwitch: async () => {}, onRetry: () => {},
@@ -81,8 +74,9 @@ test("topbar switcher labels all demo identities and shows retryable errors", as
 
   assert.match(markup, /演示帐号，仅用于黑客松功能验证/);
   assert.match(markup, /访客/);
-  assert.match(markup, /小林/);
-  assert.match(markup, /阿远/);
+  assert.match(markup, /aria-haspopup="listbox"/);
+  assert.match(markup, /aria-label="切换演示帐号"/);
   assert.match(markup, /切换失败/);
   assert.match(markup, /重试/);
+  } finally {await server.close();}
 });
