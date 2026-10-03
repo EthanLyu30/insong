@@ -11,7 +11,7 @@ import { PublicStoryList, TagLinks } from './PublicPages';
 import { PublicationPanel } from './PublicationPanel';
 import { PhotoGallery, GalleryPicker } from './PhotoGallery';
 import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
-import { Plus } from '@phosphor-icons/react';
+import { Plus, X } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
 import {BackLink,useBackNavigation} from './Navigation';
@@ -108,16 +108,32 @@ function CollectionContent() {
   const [retry,setRetry]=useState(0);
   const {value:memories,error}=useData<Memory[]>('/api/memories',retry);
   const [params,setParams]=useSearchParams();
-  const songId=params.get('song')??'',view=params.get('view')==='cards'?'cards':'timeline';
-  function setSongId(value:string){const next=new URLSearchParams(params);if(value)next.set('song',value);else next.delete('song');setParams(next,{replace:true});}
+  const songId=params.get('song')??'',tag=params.get('tag')??'',untagged=!tag&&params.get('withoutTags')==='1';
+  const view=params.get('view')==='cards'?'cards':'timeline';
+  const experience=tag?`tag:${tag}`:untagged?'untagged':'';
+  function setExperience(value:string){
+    const next=new URLSearchParams(params);
+    next.delete('song');next.delete('tag');next.delete('withoutTags');
+    if(value.startsWith('tag:'))next.set('tag',value.slice(4));
+    else if(value==='untagged')next.set('withoutTags','1');
+    setParams(next,{replace:true});
+  }
+  function clearSong(){const next=new URLSearchParams(params);next.delete('song');setParams(next,{replace:true});}
   function setView(value:string){const next=new URLSearchParams(params);if(value==='cards')next.set('view',value);else next.delete('view');setParams(next,{replace:true});}
-  const songs=memories?[...new Map(memories.map(card=>[card.song_id,card.song])).values()]:[];
-  const visible=memories?.filter(card=>!songId||card.song_id===Number(songId))??[];
+  // The user's explicit tags organize experiences; never infer a category from prose or music.
+  const tags=[...new Set((memories??[]).flatMap(card=>card.tags))];
+  if(tag&&!tags.includes(tag))tags.push(tag);
+  const options=[{value:'',label:'全部经历'},...tags.map(tag=>({value:`tag:${tag}`,label:tag})),
+    ...(untagged||memories?.some(card=>!card.tags.length)?[{value:'untagged',label:'未加标签'}]:[])];
+  const visible=memories?.filter(card=>(!songId||card.song_id===Number(songId))&&(!tag||card.tags.includes(tag))&&(!untagged||!card.tags.length))??[];
+  const filtered=Boolean(songId||experience);
+  const songTitle=memories?.find(card=>card.song_id===Number(songId))?.song.title??'指定歌曲';
   return <section className="journal-page collection-page">
     <div className="journal-title-row"><div><span className="journal-eyebrow">追过的现场，留住的喜欢</span><h1>我的音乐记忆</h1></div></div>
     <SampleNotice compact/>
-    <div className="collection-tools"><Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link><div className="song-filter"><ChoicePicker label="按歌曲筛选" value={songId} onChange={setSongId} options={[{value:'',label:'所有歌曲'},...songs.map(song=>({value:String(song.id),label:song.title}))]}/></div></div>
-    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper"><h3>你的第一页，留给哪首歌？</h3><p>喜欢的现场，值得被好好记住。</p><Link className="soft-button" to="/create">记录第一刻</Link></div>}</section>}
+    <div className="collection-tools"><Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link><div className="memory-filter"><ChoicePicker label="按经历标签筛选" value={experience} onChange={setExperience} options={options} disabled={!memories}/></div></div>
+    {songId&&<button type="button" className="collection-song-context" aria-label="清除歌曲筛选" onClick={clearSong}><span>配乐：{songTitle}</span><X size={14} aria-hidden="true"/></button>}
+    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span aria-live="polite">{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper">{filtered?<><h3>没有符合筛选的记忆</h3><button type="button" className="soft-button" onClick={()=>setExperience('')}>查看全部记忆</button></>:<><h3>你的第一页，留给哪个瞬间？</h3><Link className="soft-button" to="/create">记录第一刻</Link></>}</div>}</section>}
   </section>;
 }
 export function CreateMemoryPage() {
@@ -223,7 +239,7 @@ function DetailContent({ edit }: { edit: boolean }) {
     {location.state?.saved && <p className="saved-notice" role="status">这一刻，已经好好收下了。</p>}
     <span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}</span><h1>{card.title||card.life_time || '那个有音乐的时刻'}</h1>
     <article className={`keepsake-paper${card.photo_url?' has-photo':''}`}>
-      <span className="paper-date">{[card.life_year,card.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(card.created_at)}`}</span><p className="original-story">{card.story}</p><PhotoGallery photos={cardPhotos(card)} fallback={songCover(card.song)}/><TagLinks tags={card.tags}/>{card.offset_ms!==null&&<span className="paper-caption">我最喜欢的片段 · {formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</span>}
+      <span className="paper-date">{[card.life_year,card.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(card.created_at)}`}</span><p className="original-story">{card.story}</p><PhotoGallery photos={cardPhotos(card)} fallback={songCover(card.song)}/><TagLinks tags={card.tags} scope="mine"/>{card.offset_ms!==null&&<span className="paper-caption">我最喜欢的片段 · {formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</span>}
       <PublicationPanel key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
     </article>
     <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>

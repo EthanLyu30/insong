@@ -221,7 +221,7 @@ test('writing first requires a chosen song before saving and changing music pres
 
 test('choice list measures wrapped content and closes when its anchor leaves the mobile viewport',async()=>{
   await harness('/memories',async url=>{throw new Error(url);},async({act})=>{
-    const trigger=document.querySelector('.song-filter button');
+    const trigger=document.querySelector('.memory-filter button');
     trigger.getBoundingClientRect=()=>({left:230,top:650,right:340,bottom:694,width:110,height:44});
     Object.defineProperty(window.HTMLElement.prototype,'scrollHeight',{configurable:true,get(){return this.classList.contains('choice-panel')?280:0;}});
     Object.defineProperty(window,'innerHeight',{configurable:true,value:844});
@@ -238,14 +238,15 @@ test('choice list measures wrapped content and closes when its anchor leaves the
   });
 });
 
-test('memory song filter opens an in-page choice list, preserves the view and supports keyboard dismissal',async()=>{
+test('memory experience filter opens an in-page choice list, preserves the view and supports keyboard dismissal',async()=>{
   await harness('/memories?view=cards',async url=>{if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,location})=>{
-    const trigger=document.querySelector('.song-filter button');assert.ok(trigger,'replace the external native popup');
+    const trigger=document.querySelector('.memory-filter button');assert.ok(trigger,'replace the external native popup');
     await act(async()=>trigger.click());
     assert.equal(trigger.getAttribute('aria-expanded'),'true');
-    assert.equal(document.querySelectorAll('[role="listbox"] [role="option"]').length,2);
-    await act(async()=>document.querySelector('[role="option"][data-value="1"]').click());
-    assert.equal(new URLSearchParams(location().search).get('song'),'1');
+    assert.equal(document.querySelectorAll('[role="listbox"] [role="option"]').length,3);
+    await act(async()=>document.querySelector('[role="option"][data-value="tag:演唱会"]').click());
+    assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
+    assert.equal(new URLSearchParams(location().search).has('song'),false);
     assert.equal(new URLSearchParams(location().search).get('view'),'cards');
     assert.equal(document.querySelector('[role="listbox"]'),null);
     assert.equal(document.activeElement,trigger);
@@ -253,12 +254,84 @@ test('memory song filter opens an in-page choice list, preserves the view and su
     await act(async()=>document.activeElement.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true})));
     assert.equal(document.querySelector('[role="listbox"]'),null);assert.equal(document.activeElement,trigger);
     await act(async()=>trigger.dispatchEvent(new window.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true})));
-    assert.equal(document.activeElement.dataset.value,'1','keyboard opening starts on the current selection');
+    assert.equal(document.activeElement.dataset.value,'tag:演唱会','keyboard opening starts on the current selection');
     await act(async()=>document.activeElement.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Home',bubbles:true})));
     assert.equal(document.activeElement.dataset.value,'');
     await act(async()=>document.querySelector('.collection-page h1').dispatchEvent(new window.MouseEvent('pointerdown',{bubbles:true})));
     assert.equal(document.querySelector('[role="listbox"]'),null,'outside interactions dismiss the list without changing the filter');
-    assert.equal(new URLSearchParams(location().search).get('song'),'1');
+    assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
+  });
+});
+
+test('experience tags find memories across different songs and survive detail navigation',async()=>{
+  const other={...card,id:89,song_id:2,song:{...song,id:2,title:'另一首歌'},tags:['演唱会','朋友']};
+  const third={...card,id:90,tags:['音乐节']};
+  await harness('/memories?tag=演唱会&view=cards',async url=>{throw new Error(url);},async({act,location})=>{
+    assert.deepEqual([...document.querySelectorAll('.memory-entry')].map(entry=>new URL(entry.href).pathname),['/memories/88','/memories/89']);
+    assert.equal(document.querySelector('.memory-filter button').textContent,'演唱会');
+    await act(async()=>document.querySelector('.memory-entry').click());
+    await act(async()=>document.querySelector('.memory-detail .back-link').click());
+    assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
+    assert.equal(new URLSearchParams(location().search).get('view'),'cards');
+    await act(async()=>document.querySelector('.memory-filter button').click());
+    const labels=[...document.querySelectorAll('[role="option"]')].map(option=>option.textContent);
+    assert.equal(labels.filter(label=>label==='演唱会').length,1,'shared tags appear once');
+    assert.ok(!labels.includes(song.title)&&!labels.includes(other.song.title),'songs are context rather than memory categories');
+  },{memories:[card,other,third]});
+});
+
+test('untagged memories stay retrievable without inferring categories from their text or song',async()=>{
+  const untagged={...card,id:89,tags:[],story:'演唱会之后，想念那个夏天。'};
+  await harness('/memories?withoutTags=1&view=cards',async url=>{throw new Error(url);},async({act,location})=>{
+    assert.equal(document.querySelector('.memory-filter button').textContent,'未加标签');
+    assert.equal(document.querySelectorAll('.memory-entry').length,1);
+    assert.ok(document.querySelector('.memory-entry').href.endsWith('/memories/89'));
+    await act(async()=>document.querySelector('.memory-filter button').click());
+    await act(async()=>document.querySelector('[role="option"][data-value="tag:演唱会"]').click());
+    assert.equal(new URLSearchParams(location().search).has('withoutTags'),false);
+    assert.equal(document.querySelectorAll('.memory-entry').length,1);
+    assert.ok(document.querySelector('.memory-entry').href.endsWith('/memories/88'),'only explicit tags determine a match');
+  },{memories:[card,untagged]});
+});
+
+test('unmatched experience links show the chosen label and recover to all memories without losing the view',async()=>{
+  await harness('/memories?tag=旅行&view=cards',async url=>{throw new Error(url);},async({act,location})=>{
+    assert.equal(document.querySelector('.memory-filter button').textContent,'旅行');
+    assert.equal(document.querySelectorAll('.memory-entry').length,0);
+    assert.ok(document.querySelector('.empty-paper').textContent.includes('没有符合筛选的记忆'));
+    assert.equal(document.querySelector('.empty-paper a[href="/create"]'),null,'a filter miss is not a first-use empty state');
+    await act(async()=>document.querySelector('.empty-paper button').click());
+    assert.equal(location().search,'?view=cards');
+    assert.equal(document.querySelectorAll('.memory-entry').length,1);
+  });
+});
+
+test('legacy song links remain visibly constrained and switching experiences clears that constraint',async()=>{
+  const other={...card,id:89,song_id:2,song:{...song,id:2,title:'另一首歌'}};
+  await harness('/memories?song=1&view=cards',async url=>{throw new Error(url);},async({act,location})=>{
+    assert.equal(document.querySelectorAll('.memory-entry').length,1);
+    assert.ok(document.querySelector('[aria-label="清除歌曲筛选"]').textContent.includes(song.title));
+    await act(async()=>document.querySelector('.memory-filter button').click());
+    await act(async()=>document.querySelector('[role="option"][data-value="tag:演唱会"]').click());
+    assert.equal(new URLSearchParams(location().search).has('song'),false);
+    assert.equal(document.querySelectorAll('.memory-entry').length,2);
+    assert.equal(document.querySelector('[aria-label="清除歌曲筛选"]'),null);
+  },{memories:[card,other]});
+});
+
+test('private memory tags retrieve personal experiences while public story tags discover shared stories',async()=>{
+  const story={...card,excerpt:card.story,author_name:'听友'};
+  await harness('/memories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({act,go,location})=>{
+    const tag=document.querySelector('.memory-detail .story-tags a');
+    assert.equal(new URL(tag.href).pathname,'/memories');
+    await act(async()=>tag.click());
+    assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
+    assert.equal(document.querySelectorAll('.memory-entry').length,1);
+    await act(async()=>document.querySelector('.memory-entry').click());
+    await act(async()=>document.querySelector('.memory-detail .back-link').click());
+    assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
+    await go('/stories/88');
+    assert.equal(new URL(document.querySelector('.public-detail .story-tags a').href).pathname,'/discover');
   });
 });
 
@@ -411,7 +484,7 @@ test('playlist back returns to the actual filtered memory collection, including 
     await until('.saved-playlists .back-link');
     await act(async()=>document.querySelector('.saved-playlists .back-link').click());
     assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
-    assert.equal(document.querySelector('.song-filter button').textContent,'散场以后');
+    assert.ok(document.querySelector('[aria-label="清除歌曲筛选"]').textContent.includes('散场以后'));
     assert.equal(document.querySelector('.timeline-toggle button:last-child').getAttribute('aria-pressed'),'true');
     await go(1);await until('.saved-playlists .back-link');assert.equal(location().pathname,'/playlists','back must POP, not push another memory page');
     await go(-1);assert.equal(location().pathname,'/memories');

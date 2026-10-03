@@ -12,8 +12,9 @@ import {chinaToday, dateLabel, phaseLabel, type AtlasCatalog} from './footprintA
 import {venuePhotograph} from './photoSources';
 import {BackLink} from './Navigation';
 
-export function TagLinks({tags=[]}:{tags?:string[]}) {
-  return tags.length?<div className="story-tags">{tags.map(tag=><Link key={tag} to={`/discover?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>)}</div>:null;
+export function TagLinks({tags=[],scope='public'}:{tags?:string[];scope?:'public'|'mine'}) {
+  const destination=scope==='mine'?'/memories':'/discover';
+  return tags.length?<div className="story-tags">{tags.map(tag=><Link key={tag} to={`${destination}?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>)}</div>:null;
 }
 
 export function ThemeLinks() {

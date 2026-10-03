@@ -12,8 +12,11 @@
 .memory-edit-link{background:#eadbca;color:#725139}
 .memory-delete-link{background:transparent;color:#9e7562}
 .memory-delete-link:hover{background:#f1e8dd}
-.song-filter{max-width:45%;min-width:0}
-.song-filter .choice-trigger{font-size:11px;width:100%;background:#fbf7f0}
+.memory-filter{width:116px;max-width:45%;min-width:0}
+.memory-filter .choice-trigger{font-size:12px;width:100%;background:#fbf7f0}
+.collection-song-context{display:flex;align-items:center;gap:8px;max-width:100%;min-height:44px;margin:0 0 14px;padding:8px 12px;border:1px solid #e6dacc;border-radius:10px;background:#f4ebe0;color:#725139;font:inherit;font-size:12px;cursor:pointer}
+.collection-song-context span{min-width:0;overflow-wrap:anywhere}
+.collection-song-context svg{flex-shrink:0}
 .memory-delete-backdrop{position:fixed;inset:0;z-index:120;background:#34271e66;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px}
 .memory-delete-dialog{width:min(100%,360px);border-radius:22px;padding:26px 22px;background:#fffaf2;box-shadow:0 22px 75px #34271e35;outline:none}
 .memory-delete-dialog h2{font-size:20px;font-weight:600;margin:0 0 14px;color:#44372b}
