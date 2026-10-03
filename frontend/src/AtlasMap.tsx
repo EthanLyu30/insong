@@ -149,15 +149,15 @@ export function AtlasMap(props:Props){
     else map.flyTo({...cameraTarget(scene,selectedCity,venueEvent,reduced),elevation:scene==='sky'?32:0,essential:false,curve:1.2,padding:{top:scene==='map'?190:scene==='sky'?145:170,bottom:scene==='map'?230:scene==='sky'?230:200,left:20,right:20}});
     latest.current.controller.current={
       orbit(dx,dy){
-        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.orbit(dx,dy);return;}
+        if(venueLayer.current&&latest.current.scene!=='map'){venueLayer.current.orbit(dx,dy);return;}
         stopProjection();map.stop();map.jumpTo(orbitScene({bearing:map.getBearing(),pitch:map.getPitch(),zoom:map.getZoom()},dx,dy,latest.current.scene??'venue'));
       },
       pinch(from,to){
-        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.pinch(from,to);return;}
+        if(venueLayer.current&&latest.current.scene!=='map'){venueLayer.current.pinch(from,to);return;}
         stopProjection();map.stop();map.jumpTo({zoom:pinchScene(map.getZoom(),from,to,latest.current.scene??'venue')});
       },
       zoom(delta){
-        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.zoom(delta);return;}
+        if(venueLayer.current&&latest.current.scene!=='map'){venueLayer.current.zoom(delta);return;}
         stopProjection();map.stop();map.easeTo({zoom:pinchScene(map.getZoom(),1,2**delta,latest.current.scene??'venue'),duration:180});
       },
       home(){

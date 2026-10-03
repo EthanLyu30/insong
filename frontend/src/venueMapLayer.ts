@@ -5,13 +5,15 @@ import {HOME_PHOTO_VIEW,clampPhotoView,photoCoverage,sceneFrame,settlePhotoView,
 import type {SceneController} from './sceneInteraction';
 import {updateDepthSurface} from './sceneDepthSurface';
 import {venueScene} from './venueScenes';
+import {createDroneVenue} from './droneVenue';
+import {HOME_DRONE,dragDrone,zoomDrone,dronePosition,settleDrone,type DroneView} from './droneOrbit';
 
 export type VenueLayer=SceneController&{location:(event?:AtlasEvent)=>void;scene:(mode:string)=>void;dispose:()=>void};
 const smooth=(value:number)=>{const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t);};
 const DISTANCE=3.2,FOV=35;
 
-// Preserve the selected portrait views. A depth relief adds restrained perspective;
-// a single photograph cannot truthfully represent a 360-degree surveyed venue.
+// Preserve the cinematic arrival and night textures. Exterior drag enters a
+// separate architectural volume, with an unrestricted orbit around its center.
 // One map canvas survives the journey, including interrupted camera flights.
 export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'|'error')=>void=()=>{}):VenueLayer{
   const world=new THREE.Scene(),camera=new THREE.PerspectiveCamera(FOV,1,.1,100);
@@ -26,6 +28,9 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   let profileId:string|null=null,profileFailed=false,loadVersion=0;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const canvas=map.getCanvas();
+  const droneCamera=new THREE.PerspectiveCamera(56,1,1,5000);
+  let drone:ReturnType<typeof createDroneVenue>|undefined,droneActive=false,droneStarted=0;
+  let droneView:DroneView={...HOME_DRONE},droneTarget:DroneView={...HOME_DRONE};
 
   function configureTexture(texture:THREE.Texture){
     texture.colorSpace=THREE.SRGBColorSpace;
@@ -38,6 +43,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
     configureTexture(texture);
     const previous=materials[index].map;materials[index].map=texture;materials[index].needsUpdate=true;
     dimensions[index]=[texture.image.width,texture.image.height];detailReady[index]=detail;
+    if(index===0)drone?.setBackdrop(texture);
     if(!readyAt[index])readyAt[index]=performance.now();
     surfaces[index].visible=true;sized='';previous?.dispose();map.triggerRepaint();
   }
@@ -45,6 +51,8 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
     located=Number.isFinite(event?.venue_lng)&&Number.isFinite(event?.venue_lat);
     const profile=venueScene(event),id=profile?.id??'';if(profileId===id&&!profileFailed)return;
     profileId=id;const version=++loadVersion;
+    drone?.dispose();drone=profile?createDroneVenue(profile):undefined;
+    droneActive=false;droneStarted=0;droneView={...HOME_DRONE};droneTarget={...HOME_DRONE};delete canvas.dataset.droneView;
     profileFailed=false;
     readyAt=[0,0];detailReady=[false,false];sized='';target={...HOME_PHOTO_VIEW};view={...target};
     materials.forEach((material,index)=>{material.map?.dispose();material.map=null;material.needsUpdate=true;surfaces[index].visible=false;});
@@ -81,6 +89,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
     id:'concert-architecture',type:'custom',renderingMode:'3d',
     onAdd(_map,gl){
       renderer=new THREE.WebGLRenderer({canvas,context:gl as WebGL2RenderingContext,antialias:true});renderer.autoClear=false;
+      renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
       renderer.resetState();
     },
     render(){
@@ -97,25 +106,37 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
       // Clear arrival even when nothing is drawn, so a later approach cannot use stale readiness.
       canvas.dataset.sceneArrival=visible.toFixed(3);canvas.dataset.night=night.toFixed(3);
       const fades=readyAt.map(t=>t?smooth((now-t)/500):0);
-      materials[0].opacity=visible*fades[0];materials[1].opacity=night*visible*fades[1];
+      const droneMix=droneActive?(reduced.matches?1:smooth((now-droneStarted)/900)):0;
+      materials[0].opacity=visible*fades[0]*(1-droneMix);materials[1].opacity=night*visible*fades[1];
       if(visible<=0)return;
       resize();
-      const settled=reduced.matches?{view:{...target},moving:false}:settlePhotoView(view,target,(now-lastFrame)/1000);
+      const seconds=(now-lastFrame)/1000;
+      const settled=reduced.matches?{view:{...target},moving:false}:settlePhotoView(view,target,seconds);
+      const droneSettled=reduced.matches?{view:{...droneTarget},moving:false}:settleDrone(droneView,droneTarget,seconds);
+      droneView=droneSettled.view;
       view=settled.view;lastFrame=now;
       const cover=photoCoverage(camera.aspect,view.yaw,view.pitch);surfaces.forEach(surface=>surface.scale.set(cover,cover,1));
       const push=1+(mode==='sky'&&!reduced.matches ? .055*Math.sin(Math.PI*elapsed) : 0);
       const radius=DISTANCE/(view.zoom*push),yaw=THREE.MathUtils.degToRad(view.yaw),pitch=THREE.MathUtils.degToRad(view.pitch);
       camera.position.set(Math.sin(yaw)*Math.cos(pitch)*radius,Math.sin(pitch)*radius,Math.cos(yaw)*Math.cos(pitch)*radius);camera.lookAt(0,0,0);
-      renderer.resetState();renderer.render(world,camera);renderer.resetState();
-      canvas.dataset.model='portrait-depth';
+      renderer.resetState();
+      if(drone&&droneMix>0&&night<.999){
+        droneCamera.aspect=camera.aspect;droneCamera.updateProjectionMatrix();
+        droneCamera.position.set(...dronePosition(droneView));droneCamera.lookAt(0,34,0);
+        drone.setOpacity(visible);renderer.render(drone.scene,droneCamera);renderer.clearDepth();
+        canvas.dataset.droneView=JSON.stringify(droneView);
+      }
+      renderer.render(world,camera);renderer.resetState();
+      canvas.dataset.model=droneMix>=.999&&night<.001?'drone-volume':'portrait-depth';
       canvas.dataset.photoView=JSON.stringify({...view,maxZoom,source:dimensions[mode==='sky'?1:0],detail:detailReady[mode==='sky'?1:0]});
-      if(!document.hidden&&(settled.moving||!!departureInterrupted||elapsed<1||fades.some(fade=>fade>0&&fade<1)))map.triggerRepaint();
+      if(!document.hidden&&(settled.moving||droneSettled.moving||droneMix>0&&droneMix<1||!!departureInterrupted||elapsed<1||fades.some(fade=>fade>0&&fade<1)))map.triggerRepaint();
     },
     onRemove(){dispose();},
   };
   function dispose(){
     if(disposed)return;disposed=true;loadVersion++;document.removeEventListener('visibilitychange',visibility);map.off('movestart',interruptDeparture);
     geometries.forEach(geometry=>geometry.dispose());materials.forEach(material=>{material.map?.dispose();material.dispose();});renderer?.dispose();
+    drone?.dispose();drone=undefined;
   }
   const interruptDeparture=(event:unknown)=>{
     if(mode!=='map'||!departing||departureInterrupted||!event||typeof event!=='object'||!('originalEvent' in event)||!event.originalEvent)return;
@@ -124,10 +145,12 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   const visibility=()=>{if(!document.hidden&&!disposed){lastFrame=performance.now();map.triggerRepaint();}};document.addEventListener('visibilitychange',visibility);
   map.addLayer(layer);
   function move(next:PhotoView){resize();const bounded=clampPhotoView(next,pixelZoom);maxZoom=Math.max(1,pixelZoom/photoCoverage(camera.aspect,bounded.yaw,bounded.pitch));target=clampPhotoView(bounded,maxZoom);lastFrame=performance.now();map.triggerRepaint();}
+  function flyDrone(next:DroneView){if(!drone)return;if(!droneActive){droneActive=true;droneStarted=performance.now();}droneTarget=next;lastFrame=performance.now();map.triggerRepaint();}
   return {
     location(event){setLocation(event);map.triggerRepaint();},
     scene(value){
       if(mode===value)return;
+      if(mode==='map'&&value!=='map'){droneActive=false;droneStarted=0;droneView={...HOME_DRONE};droneTarget={...HOME_DRONE};}
       departing=value==='map';
       // A venue map stays close (zoom 14.3), so departure must finish by time,
       // independently of the geographic approach threshold.
@@ -135,9 +158,9 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
       departureInterrupted=departing?performance.now():0;
       fromNight=night;mode=value;changed=lastFrame=performance.now();target={...HOME_PHOTO_VIEW};sized='';map.triggerRepaint();
     },
-    orbit(dx,dy){move({...target,yaw:target.yaw-dx*.1,pitch:target.pitch+dy*.055});},
-    pinch(from,to){move({...target,zoom:target.zoom*Math.max(to,1)/Math.max(from,1)});},
-    zoom(delta){move({...target,zoom:target.zoom*2**(delta*.4)});},
-    home(){move({...HOME_PHOTO_VIEW});},dispose,
+    orbit(dx,dy){if(mode==='venue')flyDrone(dragDrone(droneTarget,dx,dy));else move({...target,yaw:target.yaw-dx*.1,pitch:target.pitch+dy*.055});},
+    pinch(from,to){if(mode==='venue')flyDrone(zoomDrone(droneTarget,Math.max(to,1)/Math.max(from,1)));else move({...target,zoom:target.zoom*Math.max(to,1)/Math.max(from,1)});},
+    zoom(delta){if(mode==='venue')flyDrone(zoomDrone(droneTarget,2**(delta*.4)));else move({...target,zoom:target.zoom*2**(delta*.4)});},
+    home(){if(mode==='venue')flyDrone({...HOME_DRONE});else move({...HOME_PHOTO_VIEW});},dispose,
   };
 }
