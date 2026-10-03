@@ -167,8 +167,23 @@
 .full-controls button:disabled { opacity: .4; }
 .full-player .player-actions { margin: 8px 0; justify-content: center; }
 .full-player .resource-note { text-align: center; }
-.song-community-actions { display: flex; align-items: center; justify-content: space-between; border-block: 1px solid #e8d9c3; gap: 10px; padding: 12px 4px; margin-top: 14px; }
-.song-community-actions > :is(a,button) { border: 0; background: none; padding: 0; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 7px; color: #977047; font-size: 12px; }
+.song-reading-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-bottom: 10px; border-bottom: 1px solid #e6dbcd; }
+.song-reading-tabs { display: flex; gap: 16px; min-width: 0; }
+.song-reading-tabs > button { position: relative; border: 0; background: none; padding: 12px 0; min-height: 44px; color: #9a8977; font: 400 14px/1.4 'Microsoft YaHei',sans-serif; white-space: nowrap; }
+.song-reading-tabs > button[aria-selected="true"] { color: #65472f; font-weight: 600; }
+.song-reading-tabs > button[aria-selected="true"]::after { content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px; border-radius: 2px; background: #a77050; }
+.song-write-entry { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 8px 12px; border-radius: 11px; background: #ab7257; color: #fffaf5; font-size: 13px; white-space: nowrap; }
+.song-write-entry:hover { background: #965e44; }
+.song-reading-panel { padding-top: 18px; }
+.song-reading-panel .song-memory-section { margin: 0; padding: 0; border: 0; }
+.song-reading-panel .empty-paper { margin-top: 4px; }
+.song-reading-panel .story-masonry { display: flex; flex-direction: column; gap: 12px; }
+.song-reading-panel .story-card-main { display: grid; grid-template-columns: minmax(0,30%) minmax(0,1fr); gap: 12px; padding: 12px; }
+.song-reading-panel .story-cover { aspect-ratio: 3/4; border-radius: 8px; align-self: start; }
+.song-reading-panel .story-cover::after { display: none; }
+.song-reading-panel .story-front-copy { min-width: 0; padding: 4px 0 0; }
+.song-reading-panel .story-front-copy h3 { font-size: 17px; }
+.song-reading-panel .story-card-body > .story-tags { margin-top: 0; }
 .unavailable-player .missing-audio { padding: 0; margin: 12px 0 4px; background: none; text-align: center; font-size: 12px; color: #816c55; }
 .missing-audio strong { color: #8b6a45; font-size: 13px; }
 .missing-audio p { font-size: 12px; line-height: 1.8; margin: 8px 0 0; }

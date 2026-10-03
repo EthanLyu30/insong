@@ -20,12 +20,12 @@ async function harness(path,respond,work,fixtures={}){
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');const prior=globalThis.fetch;
   globalThis.fetch=async(url,options={})=>{
-    if(url==='/api/me')return Response.json({user:{id:3,display_name:'我',is_demo:false}});
-    if(url==='/api/themes')return Response.json(fixtures.themes??[]);
+    if(url==='/api/me')return Response.json({user:fixtures.guest?null:{id:3,display_name:'我',is_demo:false}});
+    if(url==='/api/themes')return fixtures.themesError?Response.json({detail:'主题服务不可用'},{status:503}):Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
     if(url==='/api/memories/88'&&!options.method)return Response.json(fixtures.memory?fixtures.memory():card);
     if(url==='/api/memories'&&!options.method)return Response.json([card]);
-    if(url.startsWith('/api/stories?'))return Response.json([]);
+    if(url.startsWith('/api/stories?'))return Response.json(fixtures.stories??[]);
     return respond(url,options);
   };
   const root=createRoot(document.getElementById('root'));
@@ -90,13 +90,13 @@ test('timeline removes private recall search and places complete date above memo
   });
 });
 
-test('large music player and song cards entrance are available on the regular song route',async()=>{
+test('large music player keeps the selected clip beside a single memory-writing entry',async()=>{
   await harness('/songs/1?at=10000&end=14000',async url=>{throw new Error(url);},async({act})=>{
     const play=document.querySelector('[aria-label="播放散场以后"]');assert.ok(play);
     const audio=document.querySelector('audio');await act(async()=>audio.dispatchEvent(new window.Event('loadedmetadata')));
     await act(async()=>play.click());assert.equal(audio.currentTime,10);
     assert.ok(document.querySelector('[aria-label="播放进度"]'));
-    assert.ok(document.querySelector('a[href="/discover?song=1"]'));
+    assert.ok(document.querySelector('.song-write-entry[href="/songs/1/write?at=10000&end=14000"]'));
   });
 });
 
@@ -111,15 +111,14 @@ test('marking a new listening position preserves loaded controls and survives a 
     assert.equal(document.querySelector('[aria-label="播放散场以后"]').disabled,false);
     await act(async()=>document.querySelector('[aria-label="播放散场以后"]').click());
     assert.equal(audio.currentTime,12);
-    await act(async()=>document.querySelector('.song-community-actions a:last-child').click());
+    await act(async()=>document.querySelector('.song-write-entry').click());
     await act(async()=>document.querySelector('.memory-composer .back-link').click());
     assert.equal(location().pathname,'/songs/1');assert.equal(location().search,'?at=12000');
     const restored=document.querySelector('audio');await act(async()=>restored.dispatchEvent(new window.Event('loadedmetadata')));
     assert.equal(restored.currentTime,12,'return preserves the selected music position');
-    const visitKey=location().key;
-    await act(async()=>document.querySelector('.song-community-actions > button').click());
-    assert.equal(location().key,visitKey,'scrolling to listeners must not add a native hash history entry');
-    assert.equal(document.activeElement.id,'song-conversation');
+    await act(async()=>document.querySelector('[role="tab"][data-view="mine"]').click());
+    assert.equal(location().hash,'','choosing a reading view never creates a scroll anchor');
+    assert.equal(document.querySelector('[role="tab"][aria-selected="true"]').dataset.view,'mine');
   });
 });
 
@@ -157,7 +156,7 @@ test('reading a searched story and returning restores the search; player keeps t
     const read=document.querySelector('.card-read');assert.ok(read,'URL search loads matching cards');
     await act(async()=>read.click());
     assert.ok(document.querySelector('.public-detail .back-link').href.endsWith('/discover?q=%E6%95%A3%E5%9C%BA&mode=semantic') || document.querySelector('.public-detail .back-link').href.endsWith('/discover?q=散场&mode=semantic'));
-    const player=[...document.querySelectorAll('a')].find(link=>link.textContent==='走进这首歌 →');
+    const player=[...document.querySelectorAll('a')].find(link=>link.textContent==='查看歌曲 →');
     assert.ok(player.href.includes('at=10000&end=14000'));
     await act(async()=>player.click());
     await act(async()=>document.querySelector('.listening-page .back-link').click());
@@ -240,7 +239,7 @@ test('song without a recording retains a clearly disabled conventional player',a
     assert.ok(play);assert.equal(play.disabled,true);
     assert.ok(document.querySelector('.missing-audio').textContent.includes('暂未接入'));
     assert.equal(document.querySelector('audio'),null,'never substitute another recording');
-    assert.ok(document.querySelector('a[href="/discover?song=102"]'));
+    assert.ok(document.querySelector('.song-write-entry[href="/songs/102/write"]'));
   });
 });
 
@@ -256,6 +255,63 @@ test('composer is concise while collapsed options preserve existing metadata on 
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   });
   assert.equal(sent.life_year,2025);assert.equal(sent.life_time,card.life_time);assert.deepEqual(sent.tags,card.tags);assert.equal(sent.offset_ms,10000);assert.equal(sent.end_ms,14000);
+});
+
+test('song separates public stories from personal memories and restores the selected view after reading and writing',async()=>{
+  const story={...card,excerpt:card.story,author_name:'听友'};
+  await harness('/songs/1?at=10000&end=14000',async url=>{
+    if(url==='/api/stories/88')return Response.json(story);
+    if(url==='/api/memories?song_id=1')return Response.json([card]);
+    throw new Error(url);
+  },async({act,location})=>{
+    assert.equal(document.querySelector('[role="tab"][aria-selected="true"]')?.dataset.view,'stories');
+    assert.equal(document.querySelectorAll('.listening-page .memory-entry').length,0,'private records must not duplicate public stories in the same reading view');
+    await act(async()=>document.querySelector('.listening-page .card-read').click());
+    assert.equal(location().pathname,'/stories/88');
+    await act(async()=>document.querySelector('.public-detail .back-link').click());
+    assert.equal(location().pathname,'/songs/1');assert.equal(location().search,'?at=10000&end=14000');
+    await act(async()=>document.querySelector('[role="tab"][data-view="mine"]').click());
+    assert.equal(document.querySelectorAll('.listening-page .memory-entry').length,1);
+    assert.equal(document.querySelector('.listening-page .public-story-list'),null);
+    const origin=location().search;
+    await act(async()=>document.querySelector('.song-write-entry').click());
+    assert.equal(location().pathname,'/songs/1/write');assert.equal(location().search,'?at=10000&end=14000');
+    await act(async()=>document.querySelector('.memory-composer .back-link').click());
+    assert.equal(location().search,origin);assert.equal(document.querySelector('[role="tab"][aria-selected="true"]').dataset.view,'mine');
+  },{stories:[story]});
+});
+
+test('a filtered discovery page can return to its actual song entry without clearing the selected clip',async()=>{
+  await harness('/songs/1?at=10000&end=14000',async url=>{throw new Error(url);},async({act,go,location})=>{
+    await go('/discover?song=1');
+    const back=document.querySelector('.discover-page > .back-link');assert.ok(back,'legacy filtered links need an in-app return');
+    await act(async()=>back.click());
+    assert.equal(location().pathname,'/songs/1');assert.equal(location().search,'?at=10000&end=14000');
+  });
+});
+
+test('guest personal view offers contextual login without requesting private memories',async()=>{
+  const requests=[];
+  await harness('/songs/1?at=10000&end=14000',async url=>{requests.push(url);throw new Error(url);},async({act,location})=>{
+    await act(async()=>document.querySelector('[role="tab"][data-view="mine"]').click());
+    assert.equal(document.querySelectorAll('.song-reading-panel .memory-entry').length,0);
+    const login=document.querySelector('.song-reading-panel a[href^="/account?"]');assert.ok(login);
+    assert.equal(new URL(login.href).searchParams.get('next'),location().pathname+location().search);
+    assert.ok(!requests.some(path=>path.startsWith('/api/memories')));
+  },{guest:true});
+});
+
+test('memory editing does not depend on the theme catalog and preserves an existing association when saving',async()=>{
+  let sent;
+  await harness('/memories/88/edit',async(url,options)=>{
+    if(url==='/api/memories/88'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);
+  },async({act,fill})=>{
+    await fill('memory-story','整理正文时保留原有数据。');
+    const save=document.querySelector('.composer-save button');assert.equal(save.disabled,false);
+    assert.ok(!document.querySelector('.composer-extra select'),'there is no competing theme picker');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(sent.theme_id,'summer');
+  },{memory:()=>({...card,theme_id:'summer'}),themesError:true});
 });
 
 test('playlist back returns to the actual filtered memory collection, including browser forward/back',async()=>{
@@ -319,7 +375,7 @@ test('theme → song chooser → compose returns through the actual pages, and a
   await harness('/themes/summer',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,location})=>{
     await act(async()=>document.querySelector('.theme-page .primary-button').click());
     await act(async()=>document.querySelector('.song-selection a').click());
-    assert.equal(document.querySelector('.composer-extra select').value,'summer');
+    assert.equal(new URLSearchParams(location().search).get('theme'),'summer');
     await act(async()=>document.querySelector('.memory-composer .back-link').click());
     assert.equal(location().pathname,'/');assert.equal(location().search,'?theme=summer');
     await act(async()=>document.querySelector('.home-page > .back-link').click());

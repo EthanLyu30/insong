@@ -33,7 +33,6 @@
 .composer-extra { border-bottom: 1px solid #e3d8c8; }
 .composer-date { display: grid; grid-template-columns: minmax(80px,.65fr) minmax(0,1.65fr); gap: 12px; }
 .composer-options-body select { border: 1px solid #decfbf; border-radius: 7px; padding: 12px; background: #fffefb; color: #655346; max-width: 100%; font: inherit; }
-.composer-theme-prompt { margin: 0; font-size: 12px; color: #806c57; }
 .memory-composer .form-error,.memory-composer .form-fields > .sample-notice { margin-top: 12px; }
 .composer-save { position: sticky; bottom: calc(72px + env(safe-area-inset-bottom,0px)); display: flex; align-items: center; gap: 16px; background: #faf7eff5; padding: 14px 0 10px; margin-top: 8px; z-index: 2; }
 .composer-save .privacy-line { flex: 1; font-size: 11px; line-height: 1.7; }
