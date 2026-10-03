@@ -225,14 +225,15 @@ test('creation visibility stays private by default and publishes only after the 
     if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);writes++;return Response.json({...card,publication:{published:true}});}throw new Error(url);
   },async({act,fill,location})=>{
     const picker=document.querySelector('[aria-label="设置记忆可见范围"]');assert.ok(picker);
-    assert.match(picker.textContent,/仅自己/);
+    assert.match(picker.textContent,/私密/);
     await fill('memory-story','想与听友分享的这一晚。');
     await act(async()=>picker.click());
     await act(async()=>document.querySelector('[role="option"][data-value="public"]').click());
     assert.match(document.querySelector('.composer-save button').textContent,/发布/);
     assert.equal(writes,0,'choosing public must not publish an unfinished draft');
-    assert.equal(document.querySelector('[aria-label="匿名分享"]').checked,true);
-    assert.equal(document.querySelector('[aria-label="公开人生时间"]').checked,false);
+    assert.equal(document.querySelector('[aria-label="匿名发布"]').checked,true);
+    assert.equal(document.querySelector('[aria-label="公开年份和时间"]').checked,false);
+    assert.equal(document.querySelector('[aria-label="匿名发布"]').closest('.composer-extra').open,false,'optional public settings do not take space in the writing area');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
     assert.equal(location().pathname,'/memories/88');
   });
@@ -248,10 +249,10 @@ test('switching public creation back to private preserves the draft and does not
     await fill('memory-story','这一段最后还是只留给自己。');
     await act(async()=>document.querySelector('[aria-label="设置记忆可见范围"]').click());
     await act(async()=>document.querySelector('[role="option"][data-value="public"]').click());
-    await act(async()=>document.querySelector('[aria-label="匿名分享"]').click());
+    await act(async()=>document.querySelector('[aria-label="匿名发布"]').click());
     await act(async()=>document.querySelector('[aria-label="设置记忆可见范围"]').click());
     await act(async()=>document.querySelector('[role="option"][data-value="private"]').click());
-    assert.equal(document.querySelector('[aria-label="匿名分享"]'),null);
+    assert.equal(document.querySelector('[aria-label="匿名发布"]'),null);
     assert.equal(document.querySelector('#memory-story').value,'这一段最后还是只留给自己。');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   });
@@ -529,7 +530,7 @@ test('composer is concise while collapsed options preserve existing metadata on 
     assert.equal(composer.querySelectorAll('details[open]').length,0);
     assert.ok(document.querySelector('#memory-story').closest('details')===null,'story stays immediately available');
     assert.ok(document.querySelector('#memory-title').closest('details')===null,'short title remains optional and visible');
-    for(const selector of ['#memory-tags','[aria-label="人生里的年份"]','[aria-label="音乐里的位置"]'])assert.ok(document.querySelector(selector).closest('details'),'optional controls are disclosed on demand');
+    for(const selector of ['#memory-tags','[aria-label="年份"]','[aria-label="音乐里的位置"]'])assert.ok(document.querySelector(selector).closest('details'),'optional controls are disclosed on demand');
     await fill('memory-story','修改正文，折叠的时间与标签不丢失。');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   });
