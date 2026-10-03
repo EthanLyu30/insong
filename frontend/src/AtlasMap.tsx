@@ -29,6 +29,7 @@ export function AtlasMap(props:Props){
   const [sceneImageLoading,setSceneImageLoading]=useState(false);
   const [layerRetry,setLayerRetry]=useState(0);
   const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[imageryError,setImageryError]=useState(false);
+  const needsModel=scene!=='map';
   const target=cameraTarget(scene,selectedCity,venueEvent);
   const route=useMemo(()=>{
     const seen=new Set<string>();return events.filter(event=>event.event_status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).flatMap(event=>{const city=cities.find(c=>c.name===event.city);if(!city||seen.has(city.id))return [];seen.add(city.id);return [[city.lng,city.lat]];});
@@ -46,12 +47,21 @@ export function AtlasMap(props:Props){
       makeVenueMarker.current=(element,point)=>new gl.Marker({element,anchor:'bottom'}).setLngLat(point).addTo(map);
       map.addControl(new gl.AttributionControl({compact:true,customAttribution:'省界 DataV'}),'bottom-left');
       const resources=new MapResourceStatus();
-      const showResourceError=()=>{if(!cancelled)setImageryError(resources.unavailable(map.getZoom()));};
-      map.on('load',()=>{if(!cancelled){
+      let pendingSource='',pendingSince=performance.now();
+      const showResourceError=()=>{
+        if(cancelled)return;
+        const source=map.getZoom()>=7.5?'openmaptiles':'satellite';
+        if(source!==pendingSource||map.isSourceLoaded(source)){pendingSource=source;pendingSince=performance.now();}
+        setImageryError(resources.unavailable(map.getZoom())||performance.now()-pendingSince>10000);
+      };
+      // The local style is sufficient for camera/layers. Waiting for `load` also
+      // waits for external tiles and can block every venue indefinitely.
+      map.on('style.load',()=>{if(!cancelled){
         const credit=map.getContainer().querySelector<HTMLDetailsElement>('.maplibregl-ctrl-attrib');
         if(credit){credit.open=false;credit.classList.remove('maplibregl-compact-show');}
         setReady(true);showResourceError();
       }});
+      const resourceTimer=setInterval(showResourceError,1000);
       map.on('error',event=>{if(!cancelled){if('sourceId' in event&&['satellite','openmaptiles'].includes(String(event.sourceId))){resources.failed(String(event.sourceId),resourceTileKey(event));showResourceError();}if(container.current)container.current.dataset.mapError=event.error.message;}});
       map.on('sourcedata',event=>{
         if(cancelled||!['satellite','openmaptiles'].includes(event.sourceId))return;
@@ -98,7 +108,7 @@ export function AtlasMap(props:Props){
         if(changed&&latest.current.scene==='map'&&!latest.current.selectedCity)fitNation(map,h,0);
         arrange();
       });resize.observe(container.current);
-      cleanup=()=>{latest.current.controller.current=null;markers.current.forEach(marker=>marker.remove());markers.current=[];venuePins.current.forEach(marker=>marker.remove());venuePins.current=[];makeVenueMarker.current=null;engine.current=null;map.remove();venueLayer.current=null;};
+      cleanup=()=>{clearInterval(resourceTimer);latest.current.controller.current=null;markers.current.forEach(marker=>marker.remove());markers.current=[];venuePins.current.forEach(marker=>marker.remove());venuePins.current=[];makeVenueMarker.current=null;engine.current=null;map.remove();venueLayer.current=null;};
     }).catch(()=>{if(!cancelled)setFailed(true);});
     return()=>{cancelled=true;resize?.disconnect();cleanup();};
   },[]);
@@ -124,7 +134,8 @@ export function AtlasMap(props:Props){
     map.setTransformCameraUpdate(()=>{const t=reduced?1:Math.min((performance.now()-start)/2600,1);return {elevation:fromElevation+(toElevation-fromElevation)*t*t*(3-2*t)};});
     const project=(now:number)=>{const t=reduced?1:Math.min((now-start)/2600,1),ease=t*t*(3-2*t);map.setVerticalFieldOfView(fromFov+(toFov-fromFov)*ease);if(t<1||map.isMoving())projectionFrame=requestAnimationFrame(project);else map.once('idle',settleProjection);};
     if(reduced)map.setVerticalFieldOfView(toFov);else projectionFrame=requestAnimationFrame(project);
-    venueLayer.current?.location(venueEvent);venueLayer.current?.scene(scene);
+    if(scene!=='map')venueLayer.current?.location(venueEvent);
+    venueLayer.current?.scene(scene);
     map.setPaintProperty('buildings','fill-extrusion-opacity',scene==='map'?.93:0);
     map.setSky({'sky-color':scene==='sky'?'#17304a':'#c8d8dc','horizon-color':scene==='sky'?'#a88470':'#f9dec0','fog-color':scene==='sky'?'#243a4b':'#e7dfd0','sky-horizon-blend':.8,'horizon-fog-blend':.65,'fog-ground-blend':.25,'atmosphere-blend':0});
     // Do not unmount or swap surfaces: every step uses the same native map camera.
@@ -138,15 +149,15 @@ export function AtlasMap(props:Props){
     else map.flyTo({...cameraTarget(scene,selectedCity,venueEvent,reduced),elevation:scene==='sky'?32:0,essential:false,curve:1.2,padding:{top:scene==='map'?190:scene==='sky'?145:170,bottom:scene==='map'?230:scene==='sky'?230:200,left:20,right:20}});
     latest.current.controller.current={
       orbit(dx,dy){
-        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.orbit(dx,dy);return;}
+        if(venueLayer.current&&latest.current.scene!=='map'){venueLayer.current.orbit(dx,dy);return;}
         stopProjection();map.stop();map.jumpTo(orbitScene({bearing:map.getBearing(),pitch:map.getPitch(),zoom:map.getZoom()},dx,dy,latest.current.scene??'venue'));
       },
       pinch(from,to){
-        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.pinch(from,to);return;}
+        if(venueLayer.current&&latest.current.scene!=='map'){venueLayer.current.pinch(from,to);return;}
         stopProjection();map.stop();map.jumpTo({zoom:pinchScene(map.getZoom(),from,to,latest.current.scene??'venue')});
       },
       zoom(delta){
-        if(Number(canvas.dataset.sceneArrival)>.95){venueLayer.current?.zoom(delta);return;}
+        if(venueLayer.current&&latest.current.scene!=='map'){venueLayer.current.zoom(delta);return;}
         stopProjection();map.stop();map.easeTo({zoom:pinchScene(map.getZoom(),1,2**delta,latest.current.scene??'venue'),duration:180});
       },
       home(){
@@ -159,11 +170,11 @@ export function AtlasMap(props:Props){
     return()=>{stopProjection();map.off('idle',settleProjection);map.stop();map.setTransformCameraUpdate(null);};
   },[ready,modelReady,selectedCity?.id,scene,venueEvent?.venue,artistSelected]);
   useEffect(()=>{
-    const map=engine.current;if(!map||!ready||venueLayer.current)return;
+    const map=engine.current;if(!map||!ready||!needsModel||venueLayer.current)return;
     let cancelled=false;
-    void import('./venueMapLayer').then(({createVenueLayer})=>{if(cancelled)return;const layer=createVenueLayer(map,state=>{if(!cancelled){setSceneImageError(state==='error');setSceneImageLoading(state==='loading');}});venueLayer.current=layer;layer.location(latest.current.venueEvent);layer.scene(latest.current.scene??'map');setModelReady(true);}).catch(()=>{if(!cancelled){setModelReady(true);setSceneImageLoading(false);setSceneImageError(true);if(container.current)container.current.dataset.modelError='unavailable';}});
+    void import('./venueMapLayer').then(({createVenueLayer})=>{if(cancelled)return;const layer=createVenueLayer(map,state=>{if(engine.current===map){setSceneImageError(state==='error');setSceneImageLoading(state==='loading');}});venueLayer.current=layer;layer.location(latest.current.venueEvent);layer.scene(latest.current.scene??'map');setModelReady(true);}).catch(()=>{if(!cancelled){setModelReady(true);setSceneImageLoading(false);setSceneImageError(true);if(container.current)container.current.dataset.modelError='unavailable';}});
     return()=>{cancelled=true;};
-  },[ready,layerRetry]);
+  },[ready,needsModel,layerRetry]);
   useEffect(()=>{
     const map=engine.current;if(!map||!ready)return;
     const nextEvent=events.filter(event=>['upcoming','today'].includes(eventPhase(event,today))).sort((a,b)=>a.date.localeCompare(b.date))[0];

@@ -23,6 +23,7 @@ test('time input is explicit and rejects out of range or malformed values', () =
 });
 test('login destination cannot leave this app', () => {
   assert.equal(safeNext('/songs/1/write?at=12'), '/songs/1/write?at=12');
+  assert.equal(safeNext('/create?event=concert'), '/create?event=concert');
   assert.equal(safeNext('/footprints?artist=gem&event=gem-sanya-20251207'), '/footprints?artist=gem&event=gem-sanya-20251207');
   assert.equal(safeNext('//evil.example'), '/memories');
   assert.equal(safeNext('https://evil.example'), '/memories');

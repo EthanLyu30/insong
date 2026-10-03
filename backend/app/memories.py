@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Literal
 
 from fastapi import Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator, model_validator
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
@@ -61,6 +61,20 @@ class Coordinates(BaseModel):
         return value
 
 
+class PublicationConsent(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    share_life_time: StrictBool = False
+    anonymous: StrictBool = True
+    confirmed: StrictBool
+
+    @field_validator('confirmed')
+    @classmethod
+    def explicit_consent(cls, value):
+        if not value:
+            raise ValueError('请先确认公开内容')
+        return value
+
+
 class CreateMemory(Coordinates):
     model_config = ConfigDict(extra='forbid')
     song_id: int = Field(gt=0, lt=2**63, strict=True)
@@ -69,6 +83,7 @@ class CreateMemory(Coordinates):
     life_time: str | None = Field(default=None, max_length=80)
     life_precision: str = 'unknown'
     request_key: str = Field(min_length=10, max_length=80)
+    publication: PublicationConsent | None = None
 
     @field_validator('story')
     @classmethod
@@ -224,6 +239,26 @@ def update_card(db, card, revision, values, withdraw=False):
     return serialize_memory(card)
 
 
+def set_publication_snapshot(card, excerpt, consent, user):
+    """Creation and later sharing use the same explicitly consented snapshot."""
+    public = card.publication
+    if public is None:
+        public = PublicStory(memory_id=card.id, version=0)
+        card.publication = public
+    public.excerpt, public.title = excerpt, card.title
+    public.tags_json = json.dumps(memory_tags(card), ensure_ascii=False)
+    public.photo_ids_json = json.dumps(gallery_ids(card))
+    public.share_life_time = consent.share_life_time
+    public.life_time = card.life_time if consent.share_life_time else None
+    public.life_year = card.life_year if consent.share_life_time else None
+    public.anonymous = consent.anonymous
+    public.author_name = '匿名听友' if consent.anonymous else user.display_name
+    public.offset_ms, public.lyric_id, public.theme_id = card.offset_ms, card.lyric_id, card.theme_id
+    public.photo_id, public.end_ms, public.event_id = card.photo_id, card.end_ms, card.event_id
+    public.published, public.published_at = True, utc_now()
+    public.version += 1
+
+
 def install_memories(app, get_db, get_user):
     def retry_result(existing, data):
         fields = ('song_id', 'story', 'offset_ms', 'end_ms', 'event_id', 'title',
@@ -232,6 +267,15 @@ def install_memories(app, get_db, get_user):
         if (any(getattr(existing, key) != getattr(data, key) for key in fields)
                 or existing.photo_id != cover or gallery_ids(existing) != ids or memory_tags(existing) != data.tags):
             raise HTTPException(409, '先前提交的内容已经保存。请先到“我的记忆”确认，再在那张卡上继续修改；这里的文字仍保留着。')
+        public = existing.publication
+        # Replaying creation never publishes, revokes, or changes an existing snapshot.
+        if data.publication:
+            if (not public or not public.published or public.excerpt != data.story
+                    or public.anonymous != data.publication.anonymous
+                    or public.share_life_time != data.publication.share_life_time):
+                raise HTTPException(409, '这段记忆的可见范围已经变化，请到“我的记忆”确认后再调整。')
+        elif public and public.published:
+            raise HTTPException(409, '这段记忆已公开，请到“我的记忆”调整可见范围。')
         return serialize_memory(existing)
 
     def prior_request(db, data, user):
@@ -272,11 +316,13 @@ def install_memories(app, get_db, get_user):
             receipt = MemoryReceipt(owner_id=user.id, request_key=data.request_key)
             db.add(receipt)
             db.flush()
-            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id'})
+            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id', 'publication'})
             card = MemoryCard(id=receipt.id, **values, photo_id=cover, photo_ids_json=json.dumps(ids),
                               owner_id=user.id, visibility='private', is_demo_sample=user.is_demo)
             db.add(card)
             set_memory_tags(db, card, data.tags)
+            if data.publication:
+                set_publication_snapshot(card, data.story, data.publication, user)
             db.commit()
         except IntegrityError:
             db.rollback()

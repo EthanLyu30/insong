@@ -69,7 +69,7 @@
 .atlas-schedule-list small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#8a7866;font-size:12px;margin-top:2px;line-height:1.5}
 .atlas-schedule-list em{font-size:12px;font-style:normal;white-space:nowrap;color:#aa784c}
 .atlas-primary-action{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;padding:10px 15px;border:0;border-radius:25px;background:#38342f;color:#fffbf4;font-size:16px;font-weight:400}
-.map-primary-action{background:#a3633c}
+
 .atlas-itinerary h2{font-family:'Songti SC','SimSun',serif;font-size:23px;font-weight:600}
 .atlas-itinerary footer{display:flex;justify-content:space-between;font-size:11px;color:#938371;padding-top:10px}
 .atlas-itinerary footer a{color:#8c6e50}
@@ -122,8 +122,6 @@
 .atlas-night-panel>header{margin-bottom:5px}
 .atlas-night-panel h2{font:600 20px/1.5 'Songti SC','SimSun',serif}
 .atlas-night-panel header>button{font-size:13px;color:#8d7c6b;min-height:30px}
-.song-list-toggle>svg{transition:rotate .2s}
-.song-list-toggle[aria-expanded=false]>svg{rotate:180deg}
 .concert-song-list{padding:0;margin:0;list-style:none;overflow:auto;max-height:108px;scrollbar-width:thin;scrollbar-color:#b09b81 transparent}
 .concert-song-list li{list-style:none}
 .concert-song-list button{display:flex;align-items:center;gap:14px;width:100%;min-height:36px;padding:7px 11px;color:inherit;border:0;border-top:1px solid #b8a99130;background:none;text-align:left}
@@ -205,7 +203,7 @@
 .atlas-itinerary .atlas-schedule-list>button{min-height:56px;border-top:0}
 .atlas-itinerary .atlas-schedule-list time{font-size:27px;border-right:1px solid #baab9366;padding-right:16px}
 .atlas-itinerary .atlas-schedule-list strong{font-size:17px}
-.map-primary-action{background:#9d572b;min-height:46px}
+
 .atlas-show-sheet .atlas-schedule-list>button{min-height:51px;padding:3px 0 5px}
 .atlas-show-sheet .atlas-schedule-list time small{font-size:9px;margin-top:1px}
 .atlas-show-sheet h2{font-size:16px}
@@ -251,8 +249,8 @@
 .atlas-night-actions summary{padding:4px 0}
 .atlas-night-actions{margin-top:2px}
 .atlas-star-field{height:min(340px,calc(100dvh - 64px - var(--concert-sheet-height,226px) - 231px))}
-.cinematic-orbit-hint{position:absolute;top:64%;left:20px;right:20px;display:flex;align-items:center;justify-content:center;gap:10px;color:#fffaf0;font-size:13px;font-weight:400;letter-spacing:.02em;text-shadow:0 1px 6px #18281c;pointer-events:none}
-.cinematic-orbit-hint>span{width:7px;height:7px;border-radius:50%;background:#fffaf0}
+
+
 .cinematic-enter>span{font-size:11px;bottom:-14px;opacity:.88}
 .cinematic-gesture-surface{cursor:grab}
 .cinematic-stage:active .cinematic-gesture-surface{cursor:grabbing}
@@ -274,7 +272,7 @@
 @keyframes concert-spin{to{transform:rotate(360deg)}}
 @keyframes concert-star-breathe{50%{opacity:.65;filter:drop-shadow(0 0 10px #ffe4ae)}}
 @media(prefers-reduced-motion:reduce){.atlas-song-star.is-playing svg,.concert-loading{animation:none}}
-@media(max-height:720px){.cinematic-orbit-hint{top:auto;bottom:251px}.cinematic-enter>span{bottom:0}.concert-player{padding:3px 0 6px}.atlas-star-field{height:calc(100dvh - 64px - var(--concert-sheet-height,226px) - 189px)}}
+@media(max-height:720px){.cinematic-enter>span{bottom:0}.concert-player{padding:3px 0 6px}.atlas-star-field{height:calc(100dvh - 64px - var(--concert-sheet-height,226px) - 189px)}}
 
 .cinematic-stage{touch-action:auto}
 .cinematic-gesture-surface{position:absolute;inset:0;touch-action:none}
@@ -314,7 +312,7 @@
 .atlas-schedule-filters [role=group] button{border:0;background:none;border-radius:19px;color:#716452;padding:6px 9px;min-height:36px;font-size:12px}
 .atlas-schedule-filters [role=group] button[aria-pressed=true]{background:#fffbf2;box-shadow:0 1px 5px #77562c12;color:#643b20}
 .atlas-month-filter{min-width:0;flex:1;max-width:112px}
-.atlas-month-filter select{width:100%;font-size:11px;min-height:44px;border:0;background:transparent;color:#665842;padding:4px 0;cursor:pointer}
+.atlas-month-filter .choice-trigger{width:100%;font-size:11px;min-height:44px;border-color:#e1d6c8;background:transparent;color:#665842;padding:6px 8px;cursor:pointer}
 .atlas-interest-filter{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;border:0;background:none;color:#6c6457;padding:5px 0;font-size:12px;white-space:nowrap}
 .atlas-interest-filter[aria-pressed=true]{color:#4e6848;font-weight:600}
 .atlas-schedule-empty{padding:10px 0 3px;font-size:13px;color:#71624f;line-height:1.65}
@@ -334,16 +332,14 @@
 .cinematic-night-title{isolation:isolate}
 .cinematic-night-title::before{content:'';position:absolute;z-index:-1;inset:-22px -24px -36px;background:linear-gradient(#0b213da6,#0b213d65 55%,#0b213d00);pointer-events:none}
 .cinematic-night-title p{color:#fff1de;font-size:13px;line-height:1.7;text-shadow:0 1px 4px #081e3b}
-.cinematic-orbit-hint{left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);padding:7px 13px;border-radius:24px;background:#19302970;border:1px solid #fff7e52e;font-size:12px}
+
 .cinematic-enter>span{left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);padding:5px 11px;border-radius:22px;background:#16261a80;color:#fffaf0;opacity:1}
-@media(max-height:720px){.atlas-schedule-row{min-height:49px}.atlas-event-facts{font-size:10px}.atlas-schedule-list{max-height:24vh}.atlas-show-sheet .atlas-schedule-list{max-height:20vh}.cinematic-location p{font-size:12px}.cinematic-orbit-hint{bottom:calc(var(--atlas-sheet-height,230px) + 118px)}.cinematic-enter{height:auto;bottom:calc(var(--atlas-sheet-height,230px) + 78px)}.atlas-itinerary{padding-top:12px}.atlas-schedule-filters{margin-bottom:3px}}
+@media(max-height:720px){.atlas-schedule-row{min-height:49px}.atlas-event-facts{font-size:10px}.atlas-schedule-list{max-height:24vh}.atlas-show-sheet .atlas-schedule-list{max-height:20vh}.cinematic-location p{font-size:12px}.cinematic-enter{height:auto;bottom:calc(var(--atlas-sheet-height,230px) + 78px)}.atlas-itinerary{padding-top:12px}.atlas-schedule-filters{margin-bottom:3px}}
 @media(max-width:370px){.atlas-schedule-filters [role=group] button{padding:6px 7px}.atlas-interest-filter{font-size:11px}.atlas-month-filter{max-width:94px}}
 .atlas-map:not(.atlas-venue) .real-map-canvas .maplibregl-ctrl-bottom-left{top:246px;bottom:auto;left:24px;right:auto}
 .atlas-legend i.past{background:#bdc6ad;box-shadow:none}.atlas-legend i.future{background:#ffe5a1}
 .atlas-venue-row .atlas-venue-icon{display:block;color:#a77346;flex:none}
 .atlas-venue-photo{width:74px;height:52px;object-fit:cover;border-radius:8px;flex:none}
-.atlas-city-sheet .photo-credit{margin:3px 0 0;font-size:10px}
-.atlas-city-sheet .photo-credit[open]{max-height:180px;overflow:auto}
 .cinematic-load-error{z-index:10;pointer-events:auto;padding:12px;border-radius:16px;background:#fcf7eced;box-shadow:0 5px 25px #30281f22}
 .cinematic-load-error button{display:block;min-height:44px;margin:8px auto 0;border:0;border-radius:22px;padding:8px 18px;background:#9e6e43;color:#fff9ec}
 @media(max-height:720px){
@@ -353,3 +349,33 @@
 /* Keep the source label above the actual sheet height, including short screens. */
 .cinematic-demo-label{bottom:calc(var(--atlas-sheet-height,230px) + 76px)}
 .is-night .cinematic-demo-label{bottom:calc(var(--concert-sheet-height,290px) + 76px)}
+
+.atlas-week-window{font-size:12px;color:#817361;padding-right:3px}
+.atlas-month-filter{margin-left:auto}
+.atlas-schedule-row time>span{display:block}
+.atlas-schedule-row time>small{display:block;font-size:10px;line-height:1.6;font-weight:400;color:#7b6c58;margin-top:4px}
+.atlas-schedule-item.is-run .atlas-schedule-row time{font-size:21px;line-height:1.1;min-width:88px}
+.atlas-panel header .atlas-venue-search-toggle{width:40px;height:40px;display:grid;place-items:center;border:1px solid #d4c8b8;border-radius:50%;padding:0;color:#66523c;background:#fffaf1;flex:none}
+.atlas-venue-search{display:flex;align-items:center;gap:9px;background:#fffaf3;border:1px solid #ddd2c1;border-radius:12px;padding:0 12px;margin:6px 0 12px;color:#88745c}
+.atlas-venue-search input{width:100%;min-width:0;min-height:42px;font:inherit;font-size:13px;color:#4c3d2c;border:0;outline:0;background:none}
+.atlas-run-warning{font-size:11px;color:#925736}
+.atlas-show-sheet{padding-bottom:15px}
+
+.cinematic-enter{top:32%;height:auto;bottom:calc(var(--atlas-sheet-height,230px) + 77px)}
+.cinematic-enter>span{display:none}
+.atlas-page .cinematic-enter{touch-action:none}
+.atlas-show-sheet .atlas-schedule-list{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;max-height:19dvh;touch-action:pan-y}
+.atlas-show-sheet .atlas-schedule-item{border-bottom:1px solid #dbcdb754}
+.atlas-show-sheet .atlas-schedule-item:last-child{border-bottom:0}
+.atlas-schedule-item.is-run .atlas-schedule-row time{min-width:120px;font-size:18px;white-space:nowrap}
+.atlas-show-sheet .atlas-schedule-row{gap:12px;min-height:72px}
+.atlas-night-panel{padding-top:0;overflow-x:hidden;transition:background .25s,box-shadow .25s}
+.atlas-night-panel::before{display:none}
+.atlas-night-handle{display:flex;align-items:center;justify-content:center;width:52px;min-height:44px;padding:0;margin:0 auto;border:0;background:none;color:#8e7455;cursor:pointer;touch-action:manipulation}
+.atlas-night-handle svg{transition:transform .25s}
+.atlas-night-handle[aria-expanded=true] svg{transform:rotate(180deg)}
+.atlas-night-content[hidden]{display:none}
+.atlas-night-content>header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.atlas-night-panel.is-collapsed{padding:0;overflow:visible;background:none;border:0;backdrop-filter:none;box-shadow:none;pointer-events:none;min-height:44px}
+.atlas-night-panel.is-collapsed .atlas-night-handle{pointer-events:auto;color:#fff2d4;filter:drop-shadow(0 2px 5px #201e2ce0)}
+@media(max-width:370px){.atlas-schedule-item.is-run .atlas-schedule-row time{min-width:109px;font-size:16px}.atlas-show-sheet .atlas-schedule-row{gap:9px}}

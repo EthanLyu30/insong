@@ -43,23 +43,50 @@ export function parsePosition(value: string, duration: number, allowEnd = false)
 }
 
 export function safeNext(path: string | null): string {
-  return path && /^\/(songs\/\d+(\/write)?|memories(\/\d+(\/edit)?)?|discover|footprints|playlists)(\?[^\\]*)?$/.test(path) ? path : '/memories';
+  return path && /^\/(songs\/\d+(\/write)?|memories(\/\d+(\/edit)?)?|create|discover|footprints|playlists)(\?[^\\]*)?$/.test(path) ? path : '/memories';
 }
 
 
-export async function apiRequest<T>(base: string, path: string, options: RequestInit = {}, request: typeof fetch = fetch): Promise<T> {
-  let response: Response;
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) { super(message); this.status = status; }
+}
+
+export async function apiRequest<T>(base: string, path: string, options: RequestInit = {}, request: typeof fetch = fetch, timeoutMs?: number): Promise<T> {
+  const readOnly = ['GET', 'HEAD'].includes((options.method ?? 'GET').toUpperCase());
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let abortCaller = () => {};
+  const cancelled = new Promise<never>((_, reject) => {
+    abortCaller = () => { reject(options.signal!.reason); controller.abort(options.signal!.reason); };
+    if (options.signal?.aborted) { abortCaller(); return; }
+    options.signal?.addEventListener('abort', abortCaller, {once:true});
+    timer = setTimeout(() => {
+      const error = new Error(readOnly ? '服务响应超时，请重试。' : '等待服务回应超时，操作结果尚未确认。请先查看最新状态，填写的内容还在。');
+      // Reject before aborting fetch so the useful timeout message wins the race.
+      reject(error); controller.abort(error);
+    }, timeoutMs ?? (readOnly ? 12000 : 30000));
+  });
   try {
-    response = await request(base + path, { ...options, credentials: 'include', headers: { 'Content-Type': 'application/json', ...options.headers } });
-  } catch (error) {
-    if (options.signal?.aborted) throw error;
-    throw new Error('暂时连接不上，请检查服务后再试。填写的内容还在。');
+    return await Promise.race([cancelled, (async () => {
+      controller.signal.throwIfAborted();
+      let response: Response;
+      try {
+        response = await request(base + path, { ...options, signal: controller.signal, credentials: 'include', headers: { 'Content-Type': 'application/json', ...options.headers } });
+      } catch (error) {
+        if (controller.signal.aborted) throw error;
+        throw new Error(readOnly ? '暂时连接不上，请检查服务后再试。' : '连接中断，操作结果尚未确认。请先查看最新状态，填写的内容还在。');
+      }
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new ApiError(typeof body?.detail === 'string' ? body.detail : '请求未完成，请稍后重试。', response.status);
+      }
+      return response.status === 204 ? undefined as T : await response.json() as T;
+    })()]);
+  } finally {
+    clearTimeout(timer);
+    options.signal?.removeEventListener('abort', abortCaller);
   }
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(typeof body?.detail === 'string' ? body.detail : '请检查填写内容，然后重试。');
-  }
-  return response.status === 204 ? undefined as T : await response.json() as T;
 }
 
 export function dayLabel(value: string): string {

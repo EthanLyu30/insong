@@ -44,7 +44,7 @@ export function AudioPlayer({song,anchor=null,end=null,onMark,autoPlay=false,com
     if(limit!=null && player.currentTime>=limit/1000){player.pause();player.currentTime=limit/1000;}
     setCurrent(Math.round(player.currentTime*1000));
   }
-  if(!song.audio_url)return full?<div className="full-player unavailable-player"><div className="full-progress"><input type="range" aria-label="播放进度" min={0} max={1} value={0} disabled/><div><span>--:--</span><span>--:--</span></div></div><div className="full-controls"><button type="button" disabled aria-label="后退15秒"><Rewind size={26} weight="fill"/></button><button type="button" className="full-play" disabled aria-label={`播放${song.title}`}><Play size={30} weight="fill"/></button><button type="button" disabled aria-label="快进15秒"><FastForward size={26} weight="fill"/></button></div><p className="missing-audio">暂未接入音源 · 可以先读音乐卡片</p></div>:<div className="resource-note audio-unavailable"><Play size={15}/> 暂未接入这首歌的音源</div>;
+  if(!song.audio_url)return full?<div className="full-player unavailable-player"><div className="full-progress"><input type="range" aria-label="播放进度" min={0} max={1} value={0} disabled/><div><span>--:--</span><span>--:--</span></div></div><div className="full-controls"><button type="button" disabled aria-label="后退15秒"><Rewind size={26} weight="fill"/></button><button type="button" className="full-play" disabled aria-label={`播放${song.title}`}><Play size={30} weight="fill"/></button><button type="button" disabled aria-label="快进15秒"><FastForward size={26} weight="fill"/></button></div><p className="missing-audio">暂未接入这首歌的音源</p></div>:<div className="resource-note audio-unavailable"><Play size={15}/> 暂未接入这首歌的音源</div>;
   return <div className={`memory-player${playing?' is-playing':''}${compact?' compact-player':''}${full?' full-player':''}`}>
     {!full&&<div className="player-caption"><span className="sound-bars" aria-hidden="true"><i/><i/><i/><i/></span><span>{clipped?`喜欢的片段 · ${formatPosition(start)} — ${formatPosition(limit)}`:'整首播放'}</span><span>{formatPosition(current)}</span></div>}
     <audio ref={audio} controls={!full} preload="metadata" src={apiBaseUrl+song.audio_url} aria-label={`试听《${song.title}》`}
@@ -60,6 +60,5 @@ export function AudioPlayer({song,anchor=null,end=null,onMark,autoPlay=false,com
       {onMark&&<button type="button" className="soft-button" disabled={!ready} onClick={()=>onMark(Math.min(Math.floor(audio.current?.currentTime??0)*1000,(song.duration_ms??1000)-1000))}>留住当前 {formatPosition(current)}</button>}
     </div>}
     {error&&<p className="form-error" role="status">{error}</p>}
-    {!compact&&<p className="resource-note">{song.is_demo?'本项目原创器乐样例 · 可真实播放与定位':song.recording_label}</p>}
   </div>;
 }

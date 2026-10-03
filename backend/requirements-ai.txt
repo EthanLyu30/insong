@@ -1,0 +1,6 @@
+# Optional: only needed for local semantic search. Basic browsing uses requirements.txt.
+-r requirements.txt
+onnxruntime>=1.20,<2
+tokenizers>=0.21,<1
+numpy>=1.26,<3
+huggingface-hub>=0.34,<2

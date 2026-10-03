@@ -1,0 +1,26 @@
+.site-shell .bottom-nav{grid-template-columns:1fr 1fr 64px 1fr 1fr}
+.nav-item.nav-create{gap:3px;font-size:10px}
+.nav-create-icon{width:42px;height:36px;border-radius:12px;display:grid;place-items:center;background:#b97c5d;color:#fffaf1;box-shadow:0 3px 8px #92634520}
+.nav-create.active .nav-create-icon{background:#a76443}
+.creation-search{display:flex;align-items:center;gap:10px;border:1px solid #e6dacc;border-radius:16px;padding:0 14px;background:#fffdf8;color:#927961;margin-bottom:20px}
+.creation-search input{width:100%;min-height:48px;border:0;background:transparent;outline:none;padding:10px 0;font-size:14px;color:#584938}
+.creation-search:focus-within{border-color:#b97c5d;box-shadow:0 0 0 2px #b97c5d15}
+.memory-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+.memory-toolbar .back-link{margin:0;min-height:44px;display:flex;align-items:center}
+.memory-toolbar-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 28px;padding:0;border:0}
+.memory-toolbar-actions>:is(a,button){display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 12px;border:0;border-radius:12px;text-decoration:none;font:inherit;font-size:13px;cursor:pointer}
+.memory-edit-link{background:#eadbca;color:#725139}
+.memory-delete-link{background:transparent;color:#9e7562}
+.memory-delete-link:hover{background:#f1e8dd}
+.memory-filter{width:116px;max-width:45%;min-width:0}
+.memory-filter .choice-trigger{font-size:12px;width:100%;background:#fbf7f0}
+.collection-song-context{display:flex;align-items:center;gap:8px;max-width:100%;min-height:44px;margin:0 0 14px;padding:8px 12px;border:1px solid #e6dacc;border-radius:10px;background:#f4ebe0;color:#725139;font:inherit;font-size:12px;cursor:pointer}
+.collection-song-context span{min-width:0;overflow-wrap:anywhere}
+.collection-song-context svg{flex-shrink:0}
+.memory-delete-backdrop{position:fixed;inset:0;z-index:120;background:#34271e66;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px}
+.memory-delete-dialog{width:min(100%,360px);border-radius:22px;padding:26px 22px;background:#fffaf2;box-shadow:0 22px 75px #34271e35;outline:none}
+.memory-delete-dialog h2{font-size:20px;font-weight:600;margin:0 0 14px;color:#44372b}
+.memory-delete-dialog>p{font-size:13px;line-height:1.8;color:#8a725f;margin:0 0 22px}
+.memory-delete-dialog>div{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.memory-delete-dialog button{min-height:46px}
+@media(max-width:370px){.site-shell .bottom-nav{grid-template-columns:1fr 1fr 56px 1fr 1fr}.nav-item{font-size:10px}}

@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {JSDOM} from 'jsdom';
 import {createServer} from 'vite';
 
-test('intro advances outside fixed cards; flip starts a bounded player and closes it', async () => {
+test('intro preserves fixed cards; public cards open detail without an inline flip or autoplay', async () => {
   const dom = new JSDOM('<div id="root"></div>', {url:'http://localhost:5173'});
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;
   globalThis.IS_REACT_ACT_ENVIRONMENT=true;
@@ -13,13 +13,16 @@ test('intro advances outside fixed cards; flip starts a bounded player and close
   let plays=0,pauses=0;
   window.HTMLMediaElement.prototype.play=function(){plays++;this.dispatchEvent(new window.Event('play'));return Promise.resolve();};
   window.HTMLMediaElement.prototype.pause=function(){pauses++;this.dispatchEvent(new window.Event('pause'));};
-  const React=await import('react');const {createRoot}=await import('react-dom/client');const {MemoryRouter}=await import('react-router');
+  const React=await import('react');const {createRoot}=await import('react-dom/client');const {MemoryRouter,Routes,Route,useNavigate,useLocation}=await import('react-router');
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {MemoryCollage}=await server.ssrLoadModule('/src/MemoryCollage.tsx');
-  const {StoryEntry}=await server.ssrLoadModule('/src/PublicPages.tsx');
+  const {StoryEntry,StoryPage}=await server.ssrLoadModule('/src/PublicPages.tsx');
+  const {NavigationProvider,BackLink}=await server.ssrLoadModule('/src/Navigation.tsx');
   const song={id:1,title:'测试配乐',artist:'测试歌手',audio_url:'/audio/test.wav',audio_available:true,duration_ms:48000,recording_label:'原创样例'};
   const story={id:1,song_id:1,song,excerpt:'散场之后，路灯还亮着。',author_name:'匿名听友',offset_ms:10000,end_ms:14000,photo_url:'/api/photos/custom'};
-  const root=createRoot(document.getElementById('root'));let entered=0;
+  const root=createRoot(document.getElementById('root'));let entered=0,current;
+  function Probe(){current=useLocation();return null;}
+  const previousFetch=globalThis.fetch;globalThis.fetch=async url=>url==='/api/stories/1'?Response.json(story):Response.json([]);
   try {
     await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(MemoryCollage,{songs:[song],intro:true,onEnter:()=>entered++}))));
     const transforms=[...document.querySelectorAll('.collage-card')].map(x=>x.style.transform);
@@ -28,23 +31,21 @@ test('intro advances outside fixed cards; flip starts a bounded player and close
     const advance=document.querySelector('[aria-label="进入我的音乐故事"]');assert.ok(advance,'background transition is keyboard accessible');
     await React.act(async()=>advance.click());assert.equal(entered,1);
     assert.deepEqual([...document.querySelectorAll('.collage-card')].map(x=>x.style.transform),transforms);
-    await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(StoryEntry,{story}))));
+    await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'card-route',initialEntries:['/discover?q=散场']},React.createElement(NavigationProvider,null,React.createElement(Probe),React.createElement(Routes,null,React.createElement(Route,{path:'/discover',element:React.createElement(StoryEntry,{story})}),React.createElement(Route,{path:'/stories/:storyId',element:React.createElement(StoryPage)}))))));
     assert.equal(document.querySelector('.story-cover img').getAttribute('src'),'/api/photos/custom','uploaded photo replaces the card cover');
-    assert.equal(document.querySelector('audio'),null,'front does not play');
-    await React.act(async()=>document.querySelector('[aria-label="翻开测试配乐的故事并播放"]').click());
-    const audio=document.querySelector('audio');assert.ok(audio);assert.ok(plays>0,'flip attempts playback');
+    assert.equal(document.querySelector('audio'),null,'feed cards do not instantiate players');
+    const open=document.querySelector('.story-card-main');assert.ok(open,'cover and title form one detail link');
+    await React.act(async()=>open.click());assert.equal(current.pathname,'/stories/1');
+    assert.equal(document.querySelector('.flip-back'),null);assert.equal(plays,0,'reading never starts audio unexpectedly');
+    const audio=document.querySelector('audio');assert.ok(audio);
     await React.act(async()=>audio.dispatchEvent(new window.Event('loadedmetadata')));
     assert.equal(audio.currentTime,10);
     await React.act(async()=>{audio.currentTime=15;audio.dispatchEvent(new window.Event('timeupdate'));});
-    assert.equal(audio.currentTime,14);assert.ok(pauses>0,'playback stops at interval end');
-    await React.act(async()=>document.querySelector('[aria-label="收起测试配乐的故事"]').click());
+    assert.equal(audio.currentTime,14);assert.ok(pauses>0,'playback keeps its selected interval');
+    await React.act(async()=>document.querySelector('.public-detail .back-link').click());
+    assert.equal(current.pathname,'/discover');assert.equal(current.search,'?q=散场');
     assert.equal(document.querySelector('audio'),null);
-    // Without an explicit end, the automatic playback covers the whole song.
-    await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(StoryEntry,{story:{...story,end_ms:null}}))));
-    await React.act(async()=>document.querySelector('[aria-label="翻开测试配乐的故事并播放"]').click());
-    const full=document.querySelector('audio');await React.act(async()=>full.dispatchEvent(new window.Event('loadedmetadata')));
-    assert.equal(full.currentTime,0);
-  } finally {await React.act(async()=>root.unmount());await server.close();dom.window.close();}
+  } finally {await React.act(async()=>root.unmount());await server.close();globalThis.fetch=previousFetch;dom.window.close();}
 });
 
 test('closing a photo upload clears the reflection busy state and permits a mood-only save', async () => {

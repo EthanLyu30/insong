@@ -1,6 +1,5 @@
 /* PDF 9.29 feedback: photographs lead; stories stay complete and readable. */
 .story-cover img[src="/photos/gem-shenzhen-20260926-stage.webp"],
-.story-back-photo[src="/photos/gem-shenzhen-20260926-stage.webp"],
 .song-artwork img[src="/photos/gem-shenzhen-20260926-stage.webp"],
 .record-heading img[src="/photos/gem-shenzhen-20260926-stage.webp"],
 .song-selection img[src="/photos/gem-shenzhen-20260926-stage.webp"] { object-position: right center; }
@@ -53,7 +52,6 @@
 .recent-concerts img { width: 100%; aspect-ratio: 2; object-fit: cover; border-radius: 7px; }
 .recent-photo { position: relative; }
 .recent-photo img { display: block; }
-.recent-photo > span { position: absolute; bottom: 4px; right: 4px; background: #fff9efeb; color: #4e5443; padding: 2px 4px; font-size: 9px; border-radius: 3px; }
 .recent-date { aspect-ratio: 2; border-radius: 7px; background: #f0e7da; color: #8c684b; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .recent-date > span { font-size: clamp(16px,4.8vw,25px); font-weight: 500; letter-spacing: -.03em; }
 .recent-date > i { font-size: 10px; font-style: normal; writing-mode: vertical-rl; }
@@ -64,50 +62,19 @@
 .discover-page .public-story-list { margin-top: 16px; }
 .public-story-list > .list-heading { margin-bottom: 12px; }
 .public-story-list > .list-heading h2 { font: 600 15px/1.5 'Microsoft YaHei',sans-serif; color: #5b493a; }
-.flip-card .flip-rotor { width: 100%; }
-.is-flipped .flip-front { position: absolute; inset: 0; }
-.is-flipped .flip-back { position: relative; inset: auto; }
-.flip-card { margin-bottom: 0; min-width: 0; }
-.flip-face { border-color: #ece3d7; border-radius: 15px; box-shadow: 0 5px 16px #71503408; }
-.flip-front { min-height: 0; }
 .story-cover { aspect-ratio: 4/5; }
 .story-cover::after { content: ''; position: absolute; inset: auto 0 -1px; height: 30px; background: linear-gradient(transparent,#fffdf7); pointer-events: none; }
-.photo-credit { color: #796550; font-size: 11px; line-height: 1.7; margin: 10px 0 15px; }
-.photo-credit summary { cursor: pointer; min-height: 34px; display: flex; align-items: center; gap: 7px; list-style: none; }
-.photo-credit summary::before { content: '+'; color: #a77b59; font-size: 15px; }
-.photo-credit[open] summary::before { content: '−'; }
-.photo-credit p { margin: 5px 0 9px; }
-.photo-credit > div { display: grid; gap: 3px; padding: 8px 0; border-top: 1px solid #e8dfd3; }
-.photo-credit a { color: #795838; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
-.photo-credit small { font-size: 10px; }
-.photo-sources { margin-top: 24px; }
 .story-front-copy { padding: 5px 12px 0; }
-.story-front-copy h3,.story-back-copy h3 { font-size: 21px; font-weight: 700; line-height: 1.35; margin-bottom: 5px; color: #44392e; }
+.story-front-copy h3 { font: 700 20px/1.35 'Microsoft YaHei',sans-serif; margin: 0 0 5px; color: #44392e; }
 .story-artist { font-size: 13px; font-weight: 650; color: #725a45; }
 .story-card-title { font-size: 13px; line-height: 1.65; margin: 9px 0 0; color: #6e5945; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .photo-count { position: absolute; right: 9px; bottom: 9px; padding: 4px 7px; font-size: 10px; background: #3d352b80; color: white; border-radius: 6px; }
 .cover-stamp { font-size: 9px; font-weight: 400; }
 .story-tags { display: flex; flex-wrap: wrap; gap: 5px 9px; margin: 16px 0 12px; }
 .story-tags a { color: #a37554; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
-.flip-front > .story-tags { margin: 8px 13px 3px; gap: 3px 7px; }
-.flip-front > .story-tags a { font-size: 11px; }
-.card-bottom { padding: 2px 10px 8px; justify-content: space-between; }
-.card-bottom .card-read { display: inline-flex; align-items: center; gap: 3px; min-height: 44px; font-size: 12px; text-decoration: none; }
-.card-play { width: 40px; height: 40px; padding: 0; background: #f4e7d6; }
-.card-play.without-audio { opacity: .45; background: transparent; }
-.flip-back { background: #fff9ee; }
-.story-back-photo { display: block; flex: none; height: auto; min-height: 0; aspect-ratio: 3/4; object-fit: cover; mask-image: linear-gradient(#000 78%,transparent); }
-.story-back-copy { padding: 0 12px; flex: none; margin-top: -5px; }
-.story-back-copy h3 { font-size: 21px; }
-.story-back-copy > small { font-size: 13px; font-weight: 600; color: #78604c; }
-.story-back-scroll { margin-top: 12px; overflow: visible; flex: none; padding: 0; }
-.story-back-scroll h4 { font-size: 13px; line-height: 1.7; margin: 0 0 10px; color: #66513d; }
-.story-back-scroll p { font: 400 20px/1.75 'Wanwei Handwriting','Microsoft YaHei',sans-serif; color: #51402f; overflow-wrap: anywhere; }
-.story-back-copy > .card-read { display: flex; align-items: center; min-height: 44px; font-size: 12px; margin-top: 8px; }
-.card-close { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 40px; min-width: 64px; font-size: 12px; }
-.flip-back .resource-note { padding: 12px; margin: 0; font-size: 11px; }
+.story-card-body > .story-tags { margin: 8px 13px 0; gap: 3px 7px; }
+.story-card-body > .story-tags a { font-size: 11px; }
 .audio-unavailable { display: flex; align-items: center; gap: 5px; line-height: 1.7; }
-.flip-back .audio-unavailable { border-top: 1px solid #eadfcd; margin-top: 2px; }
 .public-detail { padding-top: 10px; }
 .public-detail > .back-link { margin-bottom: 0; }
 .public-moment { margin-top: 18px; }
@@ -190,8 +157,23 @@
 .full-controls button:disabled { opacity: .4; }
 .full-player .player-actions { margin: 8px 0; justify-content: center; }
 .full-player .resource-note { text-align: center; }
-.song-community-actions { display: flex; align-items: center; justify-content: space-between; border-block: 1px solid #e8d9c3; gap: 10px; padding: 12px 4px; margin-top: 14px; }
-.song-community-actions > :is(a,button) { border: 0; background: none; padding: 0; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 7px; color: #977047; font-size: 12px; }
+.song-reading-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-bottom: 10px; border-bottom: 1px solid #e6dbcd; }
+.song-reading-tabs { display: flex; gap: 16px; min-width: 0; }
+.song-reading-tabs > button { position: relative; border: 0; background: none; padding: 12px 0; min-height: 44px; color: #9a8977; font: 400 14px/1.4 'Microsoft YaHei',sans-serif; white-space: nowrap; }
+.song-reading-tabs > button[aria-selected="true"] { color: #65472f; font-weight: 600; }
+.song-reading-tabs > button[aria-selected="true"]::after { content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px; border-radius: 2px; background: #a77050; }
+.song-write-entry { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 8px 12px; border-radius: 11px; background: #ab7257; color: #fffaf5; font-size: 13px; white-space: nowrap; }
+.song-write-entry:hover { background: #965e44; }
+.song-reading-panel { padding-top: 18px; }
+.song-reading-panel .song-memory-section { margin: 0; padding: 0; border: 0; }
+.song-reading-panel .empty-paper { margin-top: 4px; }
+.song-reading-panel .story-masonry { display: flex; flex-direction: column; gap: 12px; }
+.song-reading-panel .story-card-main { display: grid; grid-template-columns: minmax(0,30%) minmax(0,1fr); gap: 12px; padding: 12px; }
+.song-reading-panel .story-cover { aspect-ratio: 3/4; border-radius: 8px; align-self: start; }
+.song-reading-panel .story-cover::after { display: none; }
+.song-reading-panel .story-front-copy { min-width: 0; padding: 4px 0 0; }
+.song-reading-panel .story-front-copy h3 { font-size: 17px; }
+.song-reading-panel .story-card-body > .story-tags { margin-top: 0; }
 .unavailable-player .missing-audio { padding: 0; margin: 12px 0 4px; background: none; text-align: center; font-size: 12px; color: #816c55; }
 .missing-audio strong { color: #8b6a45; font-size: 13px; }
 .missing-audio p { font-size: 12px; line-height: 1.8; margin: 8px 0 0; }
@@ -220,7 +202,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flip-rotor,.story-cover img { transition: none; }
 }
 
 .snapshot-image{position:relative}

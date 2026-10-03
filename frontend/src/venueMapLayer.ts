@@ -10,8 +10,7 @@ export type VenueLayer=SceneController&{location:(event?:AtlasEvent)=>void;scene
 const smooth=(value:number)=>{const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t);};
 const DISTANCE=3.2,FOV=35;
 
-// Preserve the selected portrait views. A depth relief adds restrained perspective;
-// a single photograph cannot truthfully represent a 360-degree surveyed venue.
+// Preserve the detailed sunset and night textures with bounded depth motion.
 // One map canvas survives the journey, including interrupted camera flights.
 export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'|'error')=>void=()=>{}):VenueLayer{
   const world=new THREE.Scene(),camera=new THREE.PerspectiveCamera(FOV,1,.1,100);
@@ -64,7 +63,10 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   }
   function resize(){
     const width=map.getContainer().clientWidth,height=map.getContainer().clientHeight;
-    const key=`${width}:${height}:${dimensions.flat().join(':')}:${mode}`;if(key===sized)return;sized=key;
+    const key=`${width}:${height}:${canvas.width}:${canvas.height}:${dimensions.flat().join(':')}:${mode}`;if(key===sized)return;sized=key;
+    // MapLibre resizes the shared drawing buffer independently of Three. Keep
+    // Three's cached viewport in sync, including mobile rotation/DPR changes.
+    renderer?.setSize(canvas.width,canvas.height,false);
     const dpr=canvas.width/Math.max(1,width);
     camera.aspect=width/height;camera.updateProjectionMatrix();
     const visibleHeight=2*DISTANCE*Math.tan(THREE.MathUtils.degToRad(FOV/2));
@@ -81,6 +83,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
     id:'concert-architecture',type:'custom',renderingMode:'3d',
     onAdd(_map,gl){
       renderer=new THREE.WebGLRenderer({canvas,context:gl as WebGL2RenderingContext,antialias:true});renderer.autoClear=false;
+      renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
       renderer.resetState();
     },
     render(){
@@ -100,13 +103,15 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
       materials[0].opacity=visible*fades[0];materials[1].opacity=night*visible*fades[1];
       if(visible<=0)return;
       resize();
-      const settled=reduced.matches?{view:{...target},moving:false}:settlePhotoView(view,target,(now-lastFrame)/1000);
+      const seconds=(now-lastFrame)/1000;
+      const settled=reduced.matches?{view:{...target},moving:false}:settlePhotoView(view,target,seconds);
       view=settled.view;lastFrame=now;
       const cover=photoCoverage(camera.aspect,view.yaw,view.pitch);surfaces.forEach(surface=>surface.scale.set(cover,cover,1));
       const push=1+(mode==='sky'&&!reduced.matches ? .055*Math.sin(Math.PI*elapsed) : 0);
       const radius=DISTANCE/(view.zoom*push),yaw=THREE.MathUtils.degToRad(view.yaw),pitch=THREE.MathUtils.degToRad(view.pitch);
       camera.position.set(Math.sin(yaw)*Math.cos(pitch)*radius,Math.sin(pitch)*radius,Math.cos(yaw)*Math.cos(pitch)*radius);camera.lookAt(0,0,0);
-      renderer.resetState();renderer.render(world,camera);renderer.resetState();
+      renderer.resetState();
+      renderer.render(world,camera);renderer.resetState();
       canvas.dataset.model='portrait-depth';
       canvas.dataset.photoView=JSON.stringify({...view,maxZoom,source:dimensions[mode==='sky'?1:0],detail:detailReady[mode==='sky'?1:0]});
       if(!document.hidden&&(settled.moving||!!departureInterrupted||elapsed<1||fades.some(fade=>fade>0&&fade<1)))map.triggerRepaint();
