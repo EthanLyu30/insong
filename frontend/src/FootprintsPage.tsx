@@ -175,7 +175,7 @@ export function FootprintsPage() {
       {!linkedEvent.songs.length&&<p className="atlas-no-songs">曲目尚未收录。</p>}
       <CollectConcert key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} next={next}/>
       <div className="atlas-night-personal"><ScheduleFacts event={linkedEvent} catalog={catalog}/></div>
-      <div className="atlas-night-actions"><Link to={`/?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><details><summary>同场记录</summary><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>同场故事</button></div></details></div>
+      <div className="atlas-night-actions"><Link to={`/create?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><details><summary>同场记录</summary><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>同场故事</button></div></details></div>
       </div>
     </section>}
     {stories&&linkedEvent&&<section className="atlas-story-drawer" role="region" aria-label="这场的公开故事"><header><h2>同一晚，我们都在歌里</h2><button ref={storyClose} type="button" onClick={()=>setStories(false)} aria-label="收起同场故事">×</button></header><PublicStoryList path={`/api/stories?event_id=${encodeURIComponent(linkedEvent.id)}`} heading="愿意分享的回声"/></section>}

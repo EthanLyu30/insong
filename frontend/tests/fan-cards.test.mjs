@@ -343,6 +343,67 @@ test('guest creation requests login for this exact creation entry',async()=>{
   },{guest:true});
 });
 
+test('night creation shows its exact city, venue and date immediately and saves the selected night with user-chosen music',async()=>{
+  const concert={id:'concert-second-night',title:'邓紫棋 · 深圳站',city:'深圳',venue:'深圳大运中心体育场',date:'2026-09-12'};
+  let sent,songCatalogs=0;
+  await harness('/create?event=concert-second-night',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json({events:[{...concert,id:'concert-first-night',date:'2026-09-11'},concert]});
+    if(url==='/api/songs'){songCatalogs++;return Response.json([song]);}
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json({...card,event_id:concert.id});}
+    throw new Error(url);
+  },async({act,fill,location})=>{
+    assert.ok(document.querySelector('form.memory-form'),'the entry opens the writing form, not a separate song list');
+    const context=document.querySelector('.composer-event-context');assert.ok(context);
+    assert.equal(context.closest('details'),null,'the selected night is visible before expanding optional fields');
+    for(const text of ['深圳','深圳大运中心体育场','2026-09-12'])assert.ok(context.textContent.includes(text));
+    assert.ok(!context.textContent.includes('2026-09-11'));
+    assert.equal(songCatalogs,0,'no arbitrary music recommendations are requested');
+    assert.equal(document.querySelector('.composer-song-trigger').getAttribute('aria-label'),'添加配乐');
+    assert.equal(new URL(document.querySelector('.memory-composer .back-link').href).searchParams.get('scene'),'sky','direct links return safely to their own night');
+    await fill('memory-story','这一晚在深圳，和朋友一起合唱。');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await fill('create-song-query','散场以后');
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/memories/88');
+  });
+  assert.equal(sent.event_id,concert.id);assert.equal(sent.song_id,1);assert.equal(sent.story,'这一晚在深圳，和朋友一起合唱。');
+});
+
+test('removing an unavailable concert association keeps the writing and permits an ordinary memory save',async()=>{
+  let sent;
+  await harness('/create?event=removed-night',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json({events:[]});
+    if(url==='/api/songs')return Response.json([song]);
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json(card);}
+    throw new Error(url);
+  },async({act,fill})=>{
+    assert.ok(document.querySelector('.composer-event-context').textContent.includes('找不到这场演出'));
+    await fill('memory-title','留下的喜欢');await fill('memory-story','已经写下的记忆。');
+    await act(async()=>document.querySelector('[aria-label="取消关联这场演出"]').click());
+    assert.equal(document.querySelector('.composer-event-context'),null);
+    assert.equal(document.querySelector('#memory-title').value,'留下的喜欢');
+    assert.equal(document.querySelector('#memory-story').value,'已经写下的记忆。');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());await fill('create-song-query','散场以后');
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+  });
+  assert.equal(sent.event_id,null);assert.equal(sent.title,'留下的喜欢');
+});
+
+test('failed concert metadata can retry without clearing the memory draft',async()=>{
+  let loads=0;
+  await harness('/create?event=concert',async url=>{
+    if(url==='/api/footprints/catalog')return ++loads===1?Response.json({detail:'场次服务暂时不可用'},{status:503}):Response.json({events:[{id:'concert',title:'这一晚',city:'广州',venue:'广州体育馆',date:'2026-09-20'}]});
+    throw new Error(url);
+  },async({act,fill})=>{
+    await fill('memory-story','加载场次时也可以先写下故事。');
+    await act(async()=>document.querySelector('[aria-label="重新加载场次信息"]').click());
+    assert.ok(document.querySelector('.composer-event-context').textContent.includes('2026-09-20'));
+    assert.equal(document.querySelector('#memory-story').value,'加载场次时也可以先写下故事。');
+  });
+});
+
 test('memory detail groups explicit edit and delete immediately after the card without a redundant menu',async()=>{
   let deletions=0;
   await harness('/memories/88',async(url,options)=>{if(url==='/api/memories/88?revision=1'&&options.method==='DELETE'){deletions++;return new Response(null,{status:204});}throw new Error(url);},async({act})=>{

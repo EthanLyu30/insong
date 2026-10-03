@@ -154,7 +154,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [song,setSong]=useState<Song|null>(initialSong);
   const navigate = useNavigate();
   const location=useLocation();
-  const fallback=existing?`/memories/${existing.id}`:initialSong?`/songs/${initialSong.id}${location.search}`:'/memories';
+  const fallback=existing?`/memories/${existing.id}`:initialSong?`/songs/${initialSong.id}${location.search}`:initialEvent?`/footprints?event=${encodeURIComponent(initialEvent)}&scene=sky`:'/memories';
   const {previous,back}=useBackNavigation(fallback);
   const musicOptions=useRef<HTMLDetailsElement>(null),extraOptions=useRef<HTMLDetailsElement>(null);
   const live = useLivePage();
@@ -201,6 +201,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     <SampleNotice compact/>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
+      {eventId&&<div className="composer-event-context"><EventNote key={eventId} id={eventId} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>setEventId(null)}><X size={16} aria-hidden="true"/></button></div>}
       <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="给这一刻起个名字（选填）"/></label>
       <label className="composer-story" htmlFor="memory-story"><span className="sr-only">听到这里，你想起了什么？</span><textarea id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="听到这里，你想起了什么？&#10;一句心事，或一个难忘的瞬间。"/></label><span className="character-count">{story.length} / 500</span>
       <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading} compact/>
@@ -209,11 +210,10 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/><LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/>
       <div className="music-range"><div className="range-title"><strong>想留下哪一段？</strong><button className="text-button" type="button" onClick={()=>{setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}>用整首歌</button></div><div className="range-inputs"><label>起点<input aria-label="音乐里的位置" value={timeText} onChange={e=>{setTimeText(e.target.value);setLyricId(null);}} placeholder="00:00" disabled={!song.audio_available}/></label><span aria-hidden="true">—</span><label>终点<input aria-label="播放区间终点" value={endText} onChange={e=>setEndText(e.target.value)} placeholder={formatPosition(song.duration_ms)} disabled={!song.audio_available}/></label></div><small>填写起止时间，查看记忆时播放这一段。</small></div>
       </div></details>}
-      <details ref={extraOptions} className="composer-options composer-extra"><summary><span><strong>补充细节</strong><small>{[lifeYear,lifeTime,tagText?'已添加标签':'',eventId?'已关联现场':''].filter(Boolean).join(' · ')||'时间、标签 · 选填'}</small></span><span className="composer-disclosure">展开</span></summary><div className="composer-options-body">
+      <details ref={extraOptions} className="composer-options composer-extra"><summary><span><strong>补充细节</strong><small>{[lifeYear,lifeTime,tagText?'已添加标签':''].filter(Boolean).join(' · ')||'时间、标签 · 选填'}</small></span><span className="composer-disclosure">展开</span></summary><div className="composer-options-body">
       <div className="composer-date"><label>年份 <small>用于时间轴</small><input aria-label="人生里的年份" type="number" min="1900" max={new Date().getFullYear()} step="1" value={lifeYear} onChange={e=>setLifeYear(e.target.value)} placeholder="比如 2022"/></label>
       <label>那是什么时候？ <small>选填，记不清也没关系</small><input value={lifeTime} onChange={e => setLifeTime(e.target.value)} maxLength={80} placeholder="毕业那年、去年夏天，或者今天"/></label>
       </div><label htmlFor="memory-tags">标签 <small>用逗号分开，最多8个</small><input id="memory-tags" value={tagText} onChange={event=>setTagText(event.target.value)} maxLength={220} placeholder="#演唱会，#散场，#跨城追星"/></label>
-      {eventId&&<div><EventNote id={eventId}/><button className="text-button" type="button" disabled={busy} onClick={()=>setEventId(null)}>不关联这场现场</button></div>}
       </div></details>
       {existing?.publication?.published&&<p className="sample-notice">修改原文或坐标后，会先撤回旧的公开片段。保存后可重新预览并分享。</p>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}

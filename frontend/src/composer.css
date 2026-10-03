@@ -7,6 +7,15 @@
 .memory-composer .sample-notice.is-compact { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 8px; background: none; border: 0; border-bottom: 1px solid #e7dfd2; margin: 0 0 12px; padding: 7px 0; font-size: 10px; }
 .composer-paper { border: 0; background: transparent; padding: 0; }
 .composer-paper .form-fields { gap: 0; }
+.composer-event-context { position:relative;margin:0 0 10px; }
+.composer-event-context .event-note { margin:0;padding:12px 48px 12px 14px;border:1px solid #e8dccb;background:#f2eadf;border-radius:12px; }
+.composer-event-context .event-note>span { display:none; }
+.composer-event-context .event-note strong { font-size:13px;line-height:1.6;color:#644e3b;overflow-wrap:anywhere; }
+.composer-event-context .event-note small { font-size:11px;color:#91745c; }
+.composer-event-context .event-note div>span { font-size:12px;line-height:1.7;color:#806b57; }
+.composer-event-remove { position:absolute;top:4px;right:4px;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:#8d745e;cursor:pointer; }
+.composer-event-remove:hover,.composer-event-remove:focus-visible { background:#e8d9c6; }
+.composer-event-remove:disabled { opacity:.5;cursor:default; }
 .memory-composer .composer-title input { border: 0; border-bottom: 1px solid #e7ded2; border-radius: 0; padding: 12px 0; font-size: 17px; font-weight: 500; background: transparent; }
 .memory-composer .composer-story { margin-top: 8px; }
 .memory-composer .composer-story textarea { border: 0; background: transparent; border-radius: 0; padding: 10px 0; line-height: 1.9; font-size: 15px; min-height: 158px; }

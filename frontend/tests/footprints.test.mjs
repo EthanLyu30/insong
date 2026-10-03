@@ -166,6 +166,9 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await React.act(async()=>{const input=document.querySelector('input[aria-label="搜索这座场馆的现场"]');const setter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;setter.call(input,'09.12');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
     await click('2026.09.12');
     assert.ok(document.querySelector('[data-scene="sky"]'));assert.match(document.querySelector('.cinematic-night-title').textContent,/2026.09.12/,'choosing a night must not silently open the first night');
+    const recordEntry=new URL(document.querySelector('.atlas-night-actions > a').href);
+    assert.equal(recordEntry.pathname,'/create','recording a night opens the composer directly');
+    assert.equal(recordEntry.searchParams.get('event'),'gem-second-night','consecutive shows retain the exact selected night');
     assert.equal(document.querySelectorAll('.atlas-night-dates button,.atlas-run-dates button').length,0,'no horizontal date chips in the venue or night');
     assert.ok(!document.body.textContent.includes('核验'));
     assert.ok(!document.querySelector('.song-list-toggle'),'the top-right song count is not a disclosure');
