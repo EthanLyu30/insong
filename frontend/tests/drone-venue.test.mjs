@@ -6,6 +6,8 @@ test('drone camera travels around the full building, with safe altitude and dist
   const orbit=await import('../src/droneOrbit.ts').catch(()=>({}));
   assert.equal(typeof orbit.dragDrone,'function','a volume orbit controller is missing');
   const home=orbit.HOME_DRONE;
+  const focus=orbit.droneFocus(home),oppositeFocus=orbit.droneFocus({...home,azimuth:home.azimuth+180});
+  assert.ok(Math.abs(focus[0]+oppositeFocus[0])<.0001&&Math.abs(focus[2]+oppositeFocus[2])<.0001,'the portrait composition follows the camera around the venue');
   const turned=orbit.dragDrone(home,1800,0);
   assert.ok(Math.abs(turned.azimuth-home.azimuth)>=360,'drag must exceed a full revolution');
   const opposite=orbit.dronePosition({...home,azimuth:home.azimuth+180});
@@ -15,6 +17,42 @@ test('drone camera travels around the full building, with safe altitude and dist
   assert.ok(orbit.dragDrone(home,0,-10000).elevation<=78);
   assert.ok(orbit.zoomDrone(home,100000).distance>=220);
   assert.ok(orbit.zoomDrone(home,.00001).distance<=620);
+});
+
+test('crystal faces point outward and panorama resources are released when leaving a venue',async()=>{
+  const {createDroneVenue}=await import('../src/droneVenue.ts');
+  const venue=createDroneVenue({id:'shenzhen-stadium',covered:false});
+  const roof=venue.building.getObjectByName('roof-panels').geometry;
+  const normals=roof.attributes.normal;
+  let upward=0;for(let i=0;i<normals.count;i++)if(normals.getY(i)>0)upward++;
+  assert.ok(upward>normals.count*.95,'downward roof normals break sun shading and source-photo projection');
+  const source=new THREE.Texture();let freed=0;source.addEventListener('dispose',()=>freed++);
+  venue.setEnvironment(source);venue.setCamera(new THREE.PerspectiveCamera());venue.setOpacity(.5);
+  assert.equal(venue.scene.environment,source);
+  venue.dispose();venue.dispose();assert.equal(freed,1,'owned panorama texture is released exactly once');
+  const late=new THREE.Texture();let lateFreed=0;late.addEventListener('dispose',()=>lateFreed++);
+  venue.setEnvironment(late);assert.equal(lateFreed,1,'late image callbacks cannot leak textures after leaving');
+});
+
+test('late arrival artwork preserves an already installed panorama and enables the surface finish',async()=>{
+  const {createDroneVenue}=await import('../src/droneVenue.ts');
+  const venue=createDroneVenue({id:'shenzhen-stadium',covered:false});
+  const material=venue.building.getObjectByName('roof-panels').material;
+  const before={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};
+  const cacheBefore=material.customProgramCacheKey();material.onBeforeCompile(before,{});
+  assert.ok(!before.uniforms.arrivalArtwork,'loading artwork retains the working physical fallback');
+  const panorama=new THREE.Texture();venue.setEnvironment(panorama);
+  const previous=globalThis.document;
+  try{
+    globalThis.document={createElement:()=>({getContext:()=>({drawImage(){}})})};
+    const artwork=new THREE.Texture({width:853,height:1844});venue.setBackdrop(artwork);
+    assert.equal(venue.scene.environment,panorama,'late portrait cannot replace the panoramic environment');
+    assert.equal(venue.root.getObjectByName('arrival-horizon').visible,false,'late crop must stay hidden behind the installed panorama');
+    assert.notEqual(material.customProgramCacheKey(),cacheBefore,'artwork arrival recompiles the fallback shader');
+    const after={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};material.onBeforeCompile(after,{});
+    assert.equal(after.uniforms.arrivalArtwork.value,artwork);
+    venue.dispose();artwork.dispose();
+  }finally{globalThis.document=previous;}
 });
 
 test('exterior is a disposable volume with an open bowl; indoor and lotus roofs are distinct',async()=>{
@@ -33,11 +71,11 @@ test('exterior is a disposable volume with an open bowl; indoor and lotus roofs 
     const bounds=new THREE.Box3().setFromObject(scene.building);
     const size=bounds.getSize(new THREE.Vector3());
     assert.ok(size.x>100 && size.y>15 && size.z>100,'building needs roofs, facades and depth on all sides');
-    let meshes=0,vertices=0,disposed=0,instances=0,releasedInstances=0;
+    let meshes=0,disposed=0,instances=0,population=0,releasedInstances=0;
     const geometries=new Set();
-    scene.root.traverse(node=>{if(node.isMesh){meshes++;vertices+=node.geometry.attributes.position.count;geometries.add(node.geometry);}if(node.isInstancedMesh){instances++;node.addEventListener('dispose',()=>releasedInstances++);}});
+    scene.root.traverse(node=>{if(node.isMesh){meshes++;geometries.add(node.geometry);}if(node.isInstancedMesh){instances++;population+=node.count;node.addEventListener('dispose',()=>releasedInstances++);}});
     assert.ok(meshes<70,'mobile draw calls must be bounded');
-    assert.ok(vertices>10000,'the scene must contain actual detailed architecture');
+    assert.ok(population>3000,'landscaping and structural detail use instancing instead of thousands of draw calls');
     geometries.forEach(g=>g.addEventListener('dispose',()=>disposed++));
     scene.dispose();assert.equal(disposed,geometries.size,'switching venues must release geometry');
     assert.equal(releasedInstances,instances,'switching venues must also release the instance transform and color buffers');

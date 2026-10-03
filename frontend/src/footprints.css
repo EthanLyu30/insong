@@ -122,8 +122,6 @@
 .atlas-night-panel>header{margin-bottom:5px}
 .atlas-night-panel h2{font:600 20px/1.5 'Songti SC','SimSun',serif}
 .atlas-night-panel header>button{font-size:13px;color:#8d7c6b;min-height:30px}
-.song-list-toggle>svg{transition:rotate .2s}
-.song-list-toggle[aria-expanded=false]>svg{rotate:180deg}
 .concert-song-list{padding:0;margin:0;list-style:none;overflow:auto;max-height:108px;scrollbar-width:thin;scrollbar-color:#b09b81 transparent}
 .concert-song-list li{list-style:none}
 .concert-song-list button{display:flex;align-items:center;gap:14px;width:100%;min-height:36px;padding:7px 11px;color:inherit;border:0;border-top:1px solid #b8a99130;background:none;text-align:left}
@@ -359,22 +357,27 @@
 .atlas-schedule-row time>span{display:block}
 .atlas-schedule-row time>small{display:block;font-size:10px;line-height:1.6;font-weight:400;color:#7b6c58;margin-top:4px}
 .atlas-schedule-item.is-run .atlas-schedule-row time{font-size:21px;line-height:1.1;min-width:88px}
-.atlas-sheet-tools{display:flex;align-items:center;gap:8px}
-.atlas-sheet-tools>button{display:flex;align-items:center;gap:5px;min-height:40px;padding:3px 0 3px 8px;border:0;background:none;color:#877562;font-size:12px}
 .atlas-panel header .atlas-venue-search-toggle{width:40px;height:40px;display:grid;place-items:center;border:1px solid #d4c8b8;border-radius:50%;padding:0;color:#66523c;background:#fffaf1;flex:none}
 .atlas-venue-search{display:flex;align-items:center;gap:9px;background:#fffaf3;border:1px solid #ddd2c1;border-radius:12px;padding:0 12px;margin:6px 0 12px;color:#88745c}
 .atlas-venue-search input{width:100%;min-width:0;min-height:42px;font:inherit;font-size:13px;color:#4c3d2c;border:0;outline:0;background:none}
-.atlas-run-dates,.atlas-night-dates{display:flex;gap:7px;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:5px 0 9px}
-.atlas-run-dates button,.atlas-night-dates button{flex:none;min-height:42px;padding:7px 12px;border:1px solid #dbccb8;border-radius:11px;background:#fffbf2;color:#6c5138;font-size:12px;font-variant-numeric:tabular-nums}
-.atlas-run-dates small,.atlas-night-dates small{font-size:9px;display:block;color:#8b7862;margin-top:3px}
-.atlas-run-dates button:disabled{opacity:.55;text-decoration:line-through}
-.atlas-run-dates button[aria-pressed=true]{background:#ede0ce;border-color:#bf9d78;color:#754b2e}
-.atlas-night-dates{margin:-3px 0 7px;border-bottom:1px solid #ded3c4}
-.atlas-night-dates button[aria-pressed=true]{background:#98623b;color:#fff8ec;border-color:#98623b}
-.atlas-night-dates button[aria-pressed=true] small{color:#fff0d8}
 .atlas-run-warning{font-size:11px;color:#925736}
 .atlas-show-sheet{padding-bottom:15px}
-.atlas-show-sheet .atlas-schedule-list{max-height:29dvh}
 .cinematic-orbit-hint{z-index:5;top:auto;bottom:calc(var(--atlas-sheet-height,230px) + 98px);min-height:38px;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff5e2;pointer-events:auto;touch-action:manipulation}
 .cinematic-enter{top:32%;height:auto;bottom:calc(var(--atlas-sheet-height,230px) + 77px)}
 .cinematic-enter>span{display:none}
+.atlas-page .cinematic-enter,.atlas-page .cinematic-orbit-hint{touch-action:none}
+.atlas-show-sheet .atlas-schedule-list{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;max-height:19dvh;touch-action:pan-y}
+.atlas-show-sheet .atlas-schedule-item{border-bottom:1px solid #dbcdb754}
+.atlas-show-sheet .atlas-schedule-item:last-child{border-bottom:0}
+.atlas-schedule-item.is-run .atlas-schedule-row time{min-width:120px;font-size:18px;white-space:nowrap}
+.atlas-show-sheet .atlas-schedule-row{gap:12px;min-height:72px}
+.atlas-night-panel{padding-top:0;overflow-x:hidden;transition:background .25s,box-shadow .25s}
+.atlas-night-panel::before{display:none}
+.atlas-night-handle{display:flex;align-items:center;justify-content:center;width:52px;min-height:44px;padding:0;margin:0 auto;border:0;background:none;color:#8e7455;cursor:pointer;touch-action:manipulation}
+.atlas-night-handle svg{transition:transform .25s}
+.atlas-night-handle[aria-expanded=true] svg{transform:rotate(180deg)}
+.atlas-night-content[hidden]{display:none}
+.atlas-night-content>header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.atlas-night-panel.is-collapsed{padding:0;overflow:visible;background:none;border:0;backdrop-filter:none;box-shadow:none;pointer-events:none;min-height:44px}
+.atlas-night-panel.is-collapsed .atlas-night-handle{pointer-events:auto;color:#fff2d4;filter:drop-shadow(0 2px 5px #201e2ce0)}
+@media(max-width:370px){.atlas-schedule-item.is-run .atlas-schedule-row time{min-width:109px;font-size:16px}.atlas-show-sheet .atlas-schedule-row{gap:9px}}

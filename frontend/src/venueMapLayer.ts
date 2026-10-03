@@ -6,7 +6,7 @@ import type {SceneController} from './sceneInteraction';
 import {updateDepthSurface} from './sceneDepthSurface';
 import {venueScene} from './venueScenes';
 import {createDroneVenue} from './droneVenue';
-import {HOME_DRONE,dragDrone,zoomDrone,dronePosition,settleDrone,type DroneView} from './droneOrbit';
+import {HOME_DRONE,dragDrone,zoomDrone,dronePosition,droneFocus,settleDrone,type DroneView} from './droneOrbit';
 
 export type VenueLayer=SceneController&{location:(event?:AtlasEvent)=>void;scene:(mode:string)=>void;dispose:()=>void};
 const smooth=(value:number)=>{const t=Math.max(0,Math.min(1,value));return t*t*(3-2*t);};
@@ -29,7 +29,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const canvas=map.getCanvas();
   const droneCamera=new THREE.PerspectiveCamera(56,1,1,5000);
-  let drone:ReturnType<typeof createDroneVenue>|undefined,droneActive=false,droneStarted=0;
+  let drone:ReturnType<typeof createDroneVenue>|undefined,droneActive=false,droneStarted=0,environmentRequested=false;
   let droneView:DroneView={...HOME_DRONE},droneTarget:DroneView={...HOME_DRONE};
 
   function configureTexture(texture:THREE.Texture){
@@ -52,7 +52,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
     const profile=venueScene(event),id=profile?.id??'';if(profileId===id&&!profileFailed)return;
     profileId=id;const version=++loadVersion;
     drone?.dispose();drone=profile?createDroneVenue(profile):undefined;
-    droneActive=false;droneStarted=0;droneView={...HOME_DRONE};droneTarget={...HOME_DRONE};delete canvas.dataset.droneView;
+    droneActive=false;droneStarted=0;environmentRequested=false;droneView={...HOME_DRONE};droneTarget={...HOME_DRONE};delete canvas.dataset.droneView;
     profileFailed=false;
     readyAt=[0,0];detailReady=[false,false];sized='';target={...HOME_PHOTO_VIEW};view={...target};
     materials.forEach((material,index)=>{material.map?.dispose();material.map=null;material.needsUpdate=true;surfaces[index].visible=false;});
@@ -122,8 +122,8 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
       renderer.resetState();
       if(drone&&droneMix>0&&night<.999){
         droneCamera.aspect=camera.aspect;droneCamera.updateProjectionMatrix();
-        droneCamera.position.set(...dronePosition(droneView));droneCamera.lookAt(0,34,0);
-        drone.setOpacity(visible);renderer.render(drone.scene,droneCamera);renderer.clearDepth();
+        droneCamera.position.set(...dronePosition(droneView));droneCamera.lookAt(...droneFocus(droneView));
+        drone.setCamera(droneCamera);drone.setOpacity(visible);renderer.render(drone.scene,droneCamera);renderer.clearDepth();
         canvas.dataset.droneView=JSON.stringify(droneView);
       }
       renderer.render(world,camera);renderer.resetState();
@@ -145,7 +145,20 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   const visibility=()=>{if(!document.hidden&&!disposed){lastFrame=performance.now();map.triggerRepaint();}};document.addEventListener('visibilitychange',visibility);
   map.addLayer(layer);
   function move(next:PhotoView){resize();const bounded=clampPhotoView(next,pixelZoom);maxZoom=Math.max(1,pixelZoom/photoCoverage(camera.aspect,bounded.yaw,bounded.pitch));target=clampPhotoView(bounded,maxZoom);lastFrame=performance.now();map.triggerRepaint();}
-  function flyDrone(next:DroneView){if(!drone)return;if(!droneActive){droneActive=true;droneStarted=performance.now();}droneTarget=next;lastFrame=performance.now();map.triggerRepaint();}
+  function flyDrone(next:DroneView){
+    if(!drone)return;
+    // This environment belongs to the Shenzhen crystal artwork. Other cities
+    // keep their own horizon; never download a panorama on the initial map.
+    if(!environmentRequested&&profileId==='shenzhen-stadium'){
+      environmentRequested=true;const version=loadVersion,owner=drone;
+      new THREE.TextureLoader().load('/scenes/drone-sunset-environment-v2.webp',texture=>{
+        if(disposed||version!==loadVersion){texture.dispose();return;}
+        configureTexture(texture);owner.setEnvironment(texture);map.triggerRepaint();
+      },undefined,()=>{if(!disposed&&version===loadVersion)environmentRequested=false;});
+    }
+    if(!droneActive){droneActive=true;droneStarted=performance.now();}
+    droneTarget=next;lastFrame=performance.now();map.triggerRepaint();
+  }
   return {
     location(event){setLocation(event);map.triggerRepaint();},
     scene(value){

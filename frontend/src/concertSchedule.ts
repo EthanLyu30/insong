@@ -14,8 +14,19 @@ export function scheduleMonths(events:Dated[],period:SchedulePeriod,today:string
 type RunEvent=Dated&{artist_id:string;city:string;venue:string;title:string};
 export type ConcertRun<T extends RunEvent=RunEvent>={id:string;events:T[]};
 
-// Multi-weekend residencies share a row. A break longer than a week starts a
-// new visit. Each night retains its original ID for songs and personal records.
+// Complete dates are exact calendar matches, so 9/1 cannot open a 9/11 show.
+// Partial dates and singer/title queries remain useful text searches.
+export function matchesConcertSearch(event:Pick<RunEvent,'date'|'title'>,query:string,artist?:{name:string;aliases?:string[]}):boolean{
+  const normalized=query.normalize('NFKC').trim().toLocaleLowerCase().replace(/\s/g,'');
+  const date=normalized.match(/^(?:(\d{4})[-/.年])?(\d{1,2})[-/.月](\d{1,2})日?$/);
+  const [year,month,day]=event.date.split('-').map(Number);
+  if(date)return (!date[1]||Number(date[1])===year)&&Number(date[2])===month&&Number(date[3])===day;
+  const text=`${event.date} ${event.date.replaceAll('-','.')} ${month}.${day} ${month}/${day} ${month}月${day}日 ${event.title} ${artist?.name??''} ${artist?.aliases?.join(' ')??''}`;
+  return text.normalize('NFKC').toLocaleLowerCase().replace(/\s/g,'').includes(normalized);
+}
+
+// Only adjacent calendar dates at the same venue form a run. A day without a
+// show starts a new run; individual IDs remain intact for personal records.
 export function groupConcertRuns<T extends RunEvent>(events:T[]):ConcertRun<T>[] {
   const buckets=new Map<string,T[]>(),runs:ConcertRun<T>[]=[];
   for(const event of events){
@@ -28,7 +39,7 @@ export function groupConcertRuns<T extends RunEvent>(events:T[]):ConcertRun<T>[]
     let run:ConcertRun<T>|undefined;
     for(const event of sorted){
       const previous=run?.events.at(-1);
-      if(!previous||Date.parse(event.date)-Date.parse(previous.date)>7*86400000){run={id:event.id,events:[]};runs.push(run);}
+      if(!previous||Date.parse(event.date)-Date.parse(previous.date)>86400000){run={id:event.id,events:[]};runs.push(run);}
       run!.events.push(event);
     }
   }

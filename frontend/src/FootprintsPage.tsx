@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import {ArrowLeft,ArrowRight,BookmarkSimple,CaretDown,CaretRight,MapPinArea,MagnifyingGlass,X,MapPin} from '@phosphor-icons/react';
+import {ArrowLeft,ArrowRight,BookmarkSimple,CaretDown,CaretRight,MapPinArea,MagnifyingGlass,X,MapPin,Triangle} from '@phosphor-icons/react';
 import { apiBaseUrl } from './api';
 import { apiRequest } from './memoryClient';
 import { useSession } from './SessionContext';
@@ -13,7 +13,7 @@ import {PhotoCredit} from './PhotoCredit';
 import type {SceneController} from './sceneInteraction';
 import { CollectConcert, SongList } from './ConcertPlaylist';
 import {ConcertPlayer,useConcertPlayer} from './ConcertPlayer';
-import {selectSchedule,scheduleMonths,eventChangeNote,eventCheckedOn,groupConcertRuns,type ConcertRun,type SchedulePeriod} from './concertSchedule';
+import {selectSchedule,scheduleMonths,eventChangeNote,groupConcertRuns,matchesConcertSearch,type ConcertRun,type SchedulePeriod} from './concertSchedule';
 import { chinaToday, dateLabel, eventPhase, phaseLabel, filterArtists, groupVenues, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong, type AtlasVenue } from './footprintAtlas';
 import './footprints.css';
 import {BackLink,useBackNavigation} from './Navigation';
@@ -39,8 +39,8 @@ function Attendance({event,today,next}:{event:AtlasEvent;today:string;next:strin
 }
 
 function ScheduleFacts({event,catalog}:{event:AtlasEvent;catalog:AtlasCatalog}){
-  const checked=eventCheckedOn(event),note=eventChangeNote(event,catalog.change_history);
-  return <div className="atlas-event-facts">{checked&&<span>核验 {dateLabel(checked)}</span>}{note&&<span className={event.event_status==='cancelled'?'is-cancelled':'is-change'}>{note}</span>}</div>;
+  const note=eventChangeNote(event,catalog.change_history);
+  return note?<div className="atlas-event-facts"><span className={event.event_status==='cancelled'?'is-cancelled':'is-change'}>{note}</span></div>:null;
 }
 
 export function FootprintsPage() {
@@ -76,31 +76,25 @@ export function FootprintsPage() {
     const measure=()=>page.style.setProperty('--concert-sheet-height',`${panel.getBoundingClientRect().height}px`);
     measure();if(typeof ResizeObserver==='undefined')return;
     const observer=new ResizeObserver(measure);observer.observe(panel);return()=>observer.disconnect();
-  },[scene,linkedEvent?.id]);
+  },[scene,linkedEvent?.id,listOpen]);
   useLayoutEffect(()=>{
     const panel=mapPanel.current,page=panel?.closest<HTMLElement>('.atlas-page');if(scene==='sky'||!panel||!page)return;
     const measure=()=>page.style.setProperty('--atlas-sheet-height',`${panel.getBoundingClientRect().height}px`);
     measure();if(typeof ResizeObserver==='undefined')return;
     const observer=new ResizeObserver(measure);observer.observe(panel);return()=>observer.disconnect();
   },[scene,city?.id,searchOpen,venueSearch,expanded]);
-  useLayoutEffect(()=>{
-    const panel=(scene==='sky'?nightPanel:mapPanel).current;
-    const active=panel?.querySelector<HTMLButtonElement>('.atlas-night-dates button[aria-pressed="true"],.atlas-run-dates button[aria-pressed="true"]');
-    const strip=active?.parentElement;if(!active||!strip)return;
-    strip.scrollTo?.({left:strip.scrollLeft+active.getBoundingClientRect().left-strip.getBoundingClientRect().left-(strip.clientWidth-active.getBoundingClientRect().width)/2,behavior:'auto'});
-  },[scene,linkedEvent?.id,expanded,venueSearch]);
   function playSong(song:AtlasSong){setSelectedSong(song);player.select(song);}
   const recentHeading=recent[0]?`${period==='past'?'最近一站':'下一站'} · ${recent[0].city}`:'最近的现场';
   function filters(extra:Record<string,string>={}){return Object.fromEntries(Object.entries({period,...(month?{month}:{}),...extra}).filter(([,value])=>value));}
   function filterLocation(){return {...(artist?{artist:artist.id}:{}),...(city?{city:city.id}:{})};}
   function changePeriod(value:SchedulePeriod){setParams(filters({...filterLocation(),period:value,month:''}),{replace:true});setExpanded(false);}
   function changeMonth(value:string){setParams(filters({...filterLocation(),month:value}),{replace:true});setExpanded(true);}
-  useEffect(()=>{setSelectedSong(linkedEvent?.songs[0]??null);setStories(false);},[linkedEvent?.id]);
+  useEffect(()=>{setSelectedSong(linkedEvent?.songs[0]??null);setStories(false);setListOpen(true);},[linkedEvent?.id]);
   function chooseArtist(id:string){setParams(filters({...(id?{artist:id}:{}),month:''}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);}
   function chooseCity(value:AtlasCity){setParams(filters({...(artist?{artist:artist.id}:{}),city:value.id}));setSearchOpen(false);setQuery('');}
   function openVenue(value:AtlasVenue){const selected=value.events.find(event=>event.id===linkedEvent?.id)??value.events[0];setParams(filters({...(artist?{artist:artist.id}:{}),city:city!.id,venue:value.id,...(selected?{event:selected.id}:{}),scene:'venue'}));}
   function mapVenue(event:AtlasEvent){const c=cities.find(item=>item.name===event.city);if(c)setParams(filters({...(artist?{artist:artist.id}:{}),city:c.id,venue:`${event.city}:${event.venue}`,event:event.id,scene:'venue'}));}
-  function openEvent(value:AtlasEvent){const matchingCity=cities.find(item=>item.name===value.city);setParams(filters({...(artist?{artist:artist.id}:{}),...(matchingCity?{city:matchingCity.id}:{}),venue:`${value.city}:${value.venue}`,event:value.id,scene:'sky'}));setExpanded(false);setSearchOpen(false);}
+  function openEvent(value:AtlasEvent){const matchingCity=cities.find(item=>item.name===value.city);setParams(filters({...(artist?{artist:value.artist_id}:{}),...(matchingCity?{city:matchingCity.id}:{}),venue:`${value.city}:${value.venue}`,event:value.id,scene:'sky'}));setExpanded(false);setSearchOpen(false);}
   function back(){
     setStories(false);
     setExpanded(false);
@@ -115,18 +109,23 @@ export function FootprintsPage() {
   const venueEvents=[...(venue?.events??[])].sort((a,b)=>period==='past'?b.date.localeCompare(a.date):a.date.localeCompare(b.date));
   const venueRuns=groupConcertRuns(venueEvents).sort((a,b)=>period==='past'?b.events.at(-1)!.date.localeCompare(a.events.at(-1)!.date):a.events[0].date.localeCompare(b.events[0].date));
   const stageEvent=linkedEvent??venueEvents[0];
-  const activeRun=venueRuns.find(run=>run.events.some(event=>event.id===stageEvent?.id));
-  const nightRun=linkedEvent?groupConcertRuns(visibleEvents).find(run=>run.events.some(event=>event.id===linkedEvent.id)):undefined;
-  const searchedRuns=venueQuery.trim()?groupConcertRuns(venueEvents.filter(event=>`${event.date} ${dateLabel(event.date)} ${event.title} ${catalog.artists.find(item=>item.id===event.artist_id)?.name}`.toLocaleLowerCase().includes(venueQuery.trim().toLocaleLowerCase()))):venueRuns;
-  function runEvent(run:ConcertRun<AtlasEvent>){return run.events.find(event=>event.id===linkedEvent?.id)??(period==='past'?[...run.events].reverse().find(event=>event.event_status!=='cancelled'):run.events.find(event=>event.event_status!=='cancelled'))??run.events[0];}
+  const venueSearchEvents=selectSchedule(catalog.events.filter(event=>event.city===city?.name&&event.venue===venue?.name),period,month,today);
+  if(linkedEvent&&linkedEvent.city===city?.name&&linkedEvent.venue===venue?.name&&!venueSearchEvents.some(event=>event.id===linkedEvent.id))venueSearchEvents.push(linkedEvent);
+  function matchesVenueEvent(event:AtlasEvent){
+    return matchesConcertSearch(event,venueQuery,loadedCatalog.artists.find(item=>item.id===event.artist_id));
+  }
+  const searchedRuns=groupConcertRuns(venueSearchEvents).filter(run=>run.events.some(matchesVenueEvent)).sort((a,b)=>period==='past'?b.events.at(-1)!.date.localeCompare(a.events.at(-1)!.date):a.events[0].date.localeCompare(b.events[0].date));
+  function runEvent(run:ConcertRun<AtlasEvent>,searching=false){
+    const candidates=searching&&venueQuery.trim()?run.events.filter(matchesVenueEvent):run.events;
+    return candidates.find(event=>event.id===linkedEvent?.id)??(period==='past'?[...candidates].reverse().find(event=>event.event_status!=='cancelled'):candidates.find(event=>event.event_status!=='cancelled'))??candidates[0]??run.events[0];
+  }
   function runCard(run:ConcertRun<AtlasEvent>,inside=false){
-    const event=runEvent(run),first=run.events[0],last=run.events.at(-1)!,multiple=run.events.length>1,cancelled=run.events.every(item=>item.event_status==='cancelled');
+    const event=runEvent(run,inside&&venueSearch),first=run.events[0],last=run.events.at(-1)!,multiple=run.events.length>1,cancelled=run.events.every(item=>item.event_status==='cancelled');
     return <article className={`atlas-schedule-item${multiple?' is-run':''}`} key={run.id}>
       <button className="atlas-schedule-row" type="button" disabled={inside&&cancelled} aria-label={`${dateLabel(event.date)} ${loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name} ${event.title}`} onClick={()=>inside?openEvent(event):approach(event)}>
-        <time data-old-year={!first.date.startsWith(today.slice(0,4))}><span>{first.date.slice(5).replace('-','.')}{multiple&&<> —<br/>{last.date.slice(5).replace('-','.')}</>}</span>{(inside||multiple||!first.date.startsWith(today.slice(0,4)))&&<small>{first.date.slice(0,4)}{multiple?` · ${run.events.length} 晚`:event.time?` · ${event.time}`:''}</small>}</time>
-        <span><strong>{!inside&&expanded?event.city+' · ':''}{loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}</strong><small>{inside?event.title:event.venue}</small></span><em className={cancelled?'cancelled':eventPhase(event,today)}>{cancelled?'已取消':phaseLabel(event,today)}</em>
+        <time data-old-year={!first.date.startsWith(today.slice(0,4))}><span>{first.date.slice(5).replace('-','.')}{multiple&&<>—{last.date.slice(5).replace('-','.')}</>}</span>{(inside||multiple||!first.date.startsWith(today.slice(0,4)))&&<small>{first.date.slice(0,4)}{multiple?` · ${run.events.length} 晚`:event.time?` · ${event.time}`:''}</small>}</time>
+        <span><strong>{!inside&&expanded?event.city+' · ':''}{loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}</strong><small>{inside?event.title:event.venue}</small></span>{(!inside||cancelled||event.date>=today)&&<em className={cancelled?'cancelled':eventPhase(event,today)}>{cancelled?'已取消':phaseLabel(event,today)}</em>}
       </button>
-      {inside&&multiple&&<div className="atlas-run-dates" aria-label="选择具体一晚">{run.events.map(night=><button type="button" key={night.id} disabled={night.event_status==='cancelled'} aria-pressed={night.id===stageEvent?.id} aria-label={`${dateLabel(night.date)} ${night.event_status==='cancelled'?'已取消':'进入这一晚'}`} onClick={()=>openEvent(night)}>{night.date.slice(5).replace('-','.')}<small>{night.date>=today||night.event_status==='cancelled'?phaseLabel(night,today):''}</small></button>)}</div>}
       <div className="atlas-schedule-details"><ScheduleFacts event={event} catalog={loadedCatalog}/>{multiple&&run.events.some(night=>night.event_status==='cancelled')&&!cancelled&&<small className="atlas-run-warning">部分日期已取消</small>}</div>
     </article>;
   }
@@ -162,21 +161,23 @@ export function FootprintsPage() {
       {expanded&&<p className="atlas-catalog-coverage">{recentRuns.length} 组现场 · {recent.length} 晚</p>}
     </section>:null}
     {scene==='venue'&&venue&&stageEvent&&<section ref={mapPanel} className="atlas-panel atlas-show-sheet">
-      <header><h2>这里的现场</h2><div className="atlas-sheet-tools">{venueRuns.length>1&&<button type="button" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}>{expanded?'收起':'全部场次'} <CaretDown size={16}/></button>}<button type="button" className="atlas-venue-search-toggle" aria-label={venueSearch?'收起场次搜索':'搜索场次'} aria-expanded={venueSearch} onClick={()=>{setVenueSearch(!venueSearch);setVenueQuery('');}}>{venueSearch?<X size={19}/>:<MagnifyingGlass size={20}/>}</button></div></header>
-      {venueSearch&&<div className="atlas-venue-search"><MagnifyingGlass size={17}/><input autoFocus aria-label="搜索这座场馆的现场" placeholder={artist?'巡演或日期':'歌手、巡演或日期'} value={venueQuery} onChange={event=>setVenueQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape'){setVenueSearch(false);setVenueQuery('');}}}/></div>}
-      <div className="atlas-schedule-list">{(venueSearch?searchedRuns:expanded?venueRuns:activeRun?[activeRun]:venueRuns.slice(0,1)).map(run=>runCard(run,true))}</div>
+      <header><h2>这里的现场</h2><button type="button" className="atlas-venue-search-toggle" aria-label={venueSearch?'收起场次搜索':'搜索场次'} aria-expanded={venueSearch} onClick={()=>{setVenueSearch(!venueSearch);setVenueQuery('');}}>{venueSearch?<X size={19}/>:<MagnifyingGlass size={20}/>}</button></header>
+      {venueSearch&&<div className="atlas-venue-search"><MagnifyingGlass size={17}/><input autoFocus aria-label="搜索这座场馆的现场" placeholder="歌手或日期" value={venueQuery} onChange={event=>setVenueQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape'){setVenueSearch(false);setVenueQuery('');}}}/></div>}
+      <div className="atlas-schedule-list">{(venueSearch?searchedRuns:venueRuns).map(run=>runCard(run,true))}</div>
       {venueSearch&&!searchedRuns.length&&<p className="atlas-schedule-empty">没有找到这场现场。</p>}
     </section>}
-    {scene==='sky'&&linkedEvent&&<section ref={nightPanel} className="atlas-panel atlas-night-panel">
-      {nightRun&&nightRun.events.length>1&&<div className="atlas-night-dates" aria-label="这站的不同夜晚">{nightRun.events.map(night=><button type="button" key={night.id} aria-pressed={night.id===linkedEvent.id} onClick={()=>openEvent(night)}>{night.date.slice(5).replace('-','.')}<small>{night.event_status==='cancelled'?'取消':night.date>=today?phaseLabel(night,today):''}</small></button>)}</div>}
-      <header className="atlas-night-event"><h2>{linkedEvent.setlist_kind==='confirmed'?'这一晚的歌单':linkedEvent.setlist_kind==='partial'?'已收录的曲目':'这一晚 · 相关作品'}</h2><button type="button" className="song-list-toggle" aria-expanded={listOpen} onClick={()=>setListOpen(!listOpen)}>{linkedEvent.songs.length} 首 <CaretDown size={18}/></button></header>
+    {scene==='sky'&&linkedEvent&&<section ref={nightPanel} className={`atlas-panel atlas-night-panel${!listOpen?' is-collapsed':''}`}>
+      <button type="button" className="atlas-night-handle" aria-label={listOpen?'收起歌单':'展开歌单'} aria-expanded={listOpen} aria-controls="concert-night-content" onClick={()=>setListOpen(!listOpen)}><Triangle size={17} weight="fill"/></button>
+      <div id="concert-night-content" className="atlas-night-content" hidden={!listOpen}>
+      <header className="atlas-night-event"><h2>{linkedEvent.setlist_kind==='confirmed'?'这一晚的歌单':linkedEvent.setlist_kind==='partial'?'已收录的曲目':'这一晚 · 相关作品'}</h2></header>
       {linkedEvent.setlist_kind==='artist_collection'&&<p className="atlas-setlist-note">现场歌单尚未确认</p>}
       <ConcertPlayer player={player}/>
-      {listOpen&&<SongList songs={linkedEvent.songs} selected={selectedSong?.title} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={index=>playSong(linkedEvent.songs[index])}/>}
+      <SongList songs={linkedEvent.songs} selected={selectedSong?.title} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={index=>playSong(linkedEvent.songs[index])}/>
       {!linkedEvent.songs.length&&<p className="atlas-no-songs">曲目尚未收录。</p>}
       <CollectConcert key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} next={next}/>
       <div className="atlas-night-personal"><ScheduleFacts event={linkedEvent} catalog={catalog}/></div>
       <div className="atlas-night-actions"><Link to={`/?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><details><summary>同场记录</summary><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>同场故事</button></div></details></div>
+      </div>
     </section>}
     {stories&&linkedEvent&&<section className="atlas-story-drawer" role="region" aria-label="这场的公开故事"><header><h2>同一晚，我们都在歌里</h2><button ref={storyClose} type="button" onClick={()=>setStories(false)} aria-label="收起同场故事">×</button></header><PublicStoryList path={`/api/stories?event_id=${encodeURIComponent(linkedEvent.id)}`} heading="愿意分享的回声"/></section>}
   </section>;
