@@ -2,27 +2,16 @@
 .nav-item.nav-create{gap:3px;font-size:10px}
 .nav-create-icon{width:42px;height:36px;border-radius:12px;display:grid;place-items:center;background:#b97c5d;color:#fffaf1;box-shadow:0 3px 8px #92634520}
 .nav-create.active .nav-create-icon{background:#a76443}
-.creation-page{padding-top:5px}
-.creation-page>header{margin:14px 0 26px}
-.creation-page h1{margin:10px 0;font-weight:400}
 .creation-search{display:flex;align-items:center;gap:10px;border:1px solid #e6dacc;border-radius:16px;padding:0 14px;background:#fffdf8;color:#927961;margin-bottom:20px}
 .creation-search input{width:100%;min-height:48px;border:0;background:transparent;outline:none;padding:10px 0;font-size:14px;color:#584938}
 .creation-search:focus-within{border-color:#b97c5d;box-shadow:0 0 0 2px #b97c5d15}
-.creation-song-list{display:grid;gap:9px}
-.creation-song-list>a{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid #ece3d7;border-radius:15px;background:#fffdf8;color:#79604b;text-decoration:none}
-.creation-song-list img{width:62px;height:62px;object-fit:cover;border-radius:10px}
-.creation-song-list>a>span{flex:1;min-width:0;display:grid;gap:7px}
-.creation-song-list strong{font-size:15px;font-weight:600;color:#4d4033;overflow-wrap:anywhere}
-.creation-song-list small{font-size:12px;color:#947f6b}
-.creation-empty{padding:24px 0;color:#947f6b;font-size:13px}
 .memory-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
 .memory-toolbar .back-link{margin:0;min-height:44px;display:flex;align-items:center}
-.memory-toolbar-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid #e6dbcd}
+.memory-toolbar-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 28px;padding:0;border:0}
 .memory-toolbar-actions>:is(a,button){display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 12px;border:0;border-radius:12px;text-decoration:none;font:inherit;font-size:13px;cursor:pointer}
 .memory-edit-link{background:#eadbca;color:#725139}
 .memory-delete-link{background:transparent;color:#9e7562}
 .memory-delete-link:hover{background:#f1e8dd}
-.creation-recent h2{font-size:13px;color:#89715c;margin:26px 0 12px}
 .song-filter{max-width:45%;min-width:0}
 .song-filter .choice-trigger{font-size:11px;width:100%;background:#fbf7f0}
 .memory-delete-backdrop{position:fixed;inset:0;z-index:120;background:#34271e66;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px}

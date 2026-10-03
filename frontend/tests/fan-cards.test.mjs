@@ -169,35 +169,54 @@ test('reading a searched story and returning restores the search; player keeps t
   });
 });
 
-test('central creation has its own route and returns to the filtered reading collection',async()=>{
+test('central creation opens the composer, selects music in place and returns to the filtered reading collection',async()=>{
   await harness('/memories?song=1&view=cards',async url=>{if(url==='/api/songs')return Response.json([song,{...song,id:2,title:'另一首歌',artist:'另一位歌手'}]);throw new Error(url);},async({act,fill,location})=>{
     assert.equal(document.querySelector('.collection-page .round-action'),null,'reading has no competing add button');
     const create=document.querySelector('.bottom-nav a[aria-label="创建记忆"]');assert.ok(create);
     assert.equal([...document.querySelectorAll('.bottom-nav a')].indexOf(create),2,'creation is the center navigation item');
     await act(async()=>create.click());assert.equal(location().pathname,'/create');
+    assert.ok(document.querySelector('form.memory-form'),'creation opens the writing page directly');
+    await fill('memory-title','我的那个夏天');await fill('memory-story','已经写下的经历不能被选歌清空。');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
     await fill('create-song-query','Demo Artist');
-    assert.equal(document.querySelectorAll('.creation-song-list a').length,1);
-    await act(async()=>document.querySelector('.creation-song-list a').click());assert.equal(location().pathname,'/songs/1/write');
-    await act(async()=>document.querySelector('.memory-composer .back-link').click());assert.equal(location().pathname,'/create');
-    assert.equal(document.querySelector('#create-song-query').value,'Demo Artist','return restores the song search');
-    await act(async()=>document.querySelector('.creation-page .back-link').click());
+    assert.equal(document.querySelectorAll('.composer-song-results button').length,1);
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());assert.equal(location().pathname,'/create');
+    assert.equal(document.querySelector('#memory-title').value,'我的那个夏天');
+    assert.equal(document.querySelector('#memory-story').value,'已经写下的经历不能被选歌清空。');
+    assert.equal(document.querySelector('.composer-song-trigger strong').textContent,song.title);
+    await act(async()=>document.querySelector('.memory-composer .back-link').click());
     assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
   });
 });
 
-test('creation starts from personal listening choices rather than an unsolicited catalog',async()=>{
-  let catalogs=0;
-  await harness('/create',async url=>{if(url==='/api/songs'){catalogs++;return Response.json([song,{...song,id:2,title:'陌生的配乐',artist:'别人的歌手'}]);}throw new Error(url);},async({fill})=>{
-    assert.equal(catalogs,0,'an empty search does not request the full catalog');
-    assert.ok(!document.querySelector('.creation-page').textContent.includes('陌生的配乐'),'the full catalog is not a recommendation');
-    const recent=[...document.querySelectorAll('.creation-recent a')];
-    assert.equal(recent.length,1);assert.equal(recent[0].getAttribute('href'),'/songs/1/write');
+test('writing first requires a chosen song before saving and changing music preserves the story and context',async()=>{
+  let catalogs=0,sent;
+  await harness('/create?theme=summer',async(url,options)=>{
+    if(url==='/api/songs'){catalogs++;return Response.json([song,{...song,id:2,title:'另一首歌',artist:'别人的歌手'}]);}
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);
+  },async({act,fill,location})=>{
+    assert.equal(catalogs,0);assert.ok(document.querySelector('form.memory-form'));
+    await fill('memory-story','先写经历，再决定用哪首歌。');
+    assert.equal(document.querySelector('.composer-save button').disabled,true,'there is no arbitrarily preselected song');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await fill('create-song-query','Demo Artist');assert.equal(catalogs,1);
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    await fill('memory-tags','夏天');
+    const start=document.querySelector('[aria-label="音乐里的位置"]');
+    await act(async()=>{Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(start,'00:12');start.dispatchEvent(new window.Event('input',{bubbles:true}));});
+    await act(async()=>document.querySelector('[aria-label="更换配乐"]').click());
     await fill('create-song-query','别人的歌手');
-    assert.equal(catalogs,1,'the catalog loads when the user searches');
-    assert.equal(document.querySelectorAll('.creation-song-list a').length,1);
-    assert.ok(document.querySelector('.creation-song-list a').textContent.includes('陌生的配乐'));
-    assert.ok(!document.querySelector('.creation-recent'),'recent history does not compete with search results');
+    const enter=new window.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});
+    await act(async()=>document.querySelector('#create-song-query').dispatchEvent(enter));
+    assert.equal(enter.defaultPrevented,true,'searching with Enter must not implicitly save the draft with its old song');
+    assert.equal(sent,undefined);
+    await act(async()=>document.querySelector('[aria-label="选用另一首歌"]').click());
+    assert.equal(document.querySelector('[aria-label="音乐里的位置"]').value,'','a different recording must not inherit the preceding lyric position');
+    assert.equal(document.querySelector('#memory-story').value,'先写经历，再决定用哪首歌。');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/memories/88');
   });
+  assert.equal(sent.song_id,2);assert.equal(sent.offset_ms,null);assert.equal(sent.lyric_id,null);assert.equal(sent.theme_id,'summer');assert.deepEqual(sent.tags,['夏天']);
 });
 
 test('choice list measures wrapped content and closes when its anchor leaves the mobile viewport',async()=>{
@@ -209,6 +228,7 @@ test('choice list measures wrapped content and closes when its anchor leaves the
     Object.defineProperty(window,'innerWidth',{configurable:true,value:360});
     await act(async()=>trigger.click());
     const list=document.querySelector('[role="listbox"]');assert.ok(list);
+    assert.equal(Number.parseFloat(list.style.width),110,'the option panel matches the trigger width');
     assert.ok(Number.parseFloat(list.style.top)<=360,'wrapped options are measured before opening above the control');
     assert.ok(Number.parseFloat(list.style.left)+Number.parseFloat(list.style.width)<=348);
     Object.defineProperty(window,'innerHeight',{configurable:true,value:390});
@@ -242,15 +262,15 @@ test('memory song filter opens an in-page choice list, preserves the view and su
   });
 });
 
-test('sample memories are not treated as the user’s musical preferences',async()=>{
-  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async()=>{
-    assert.ok(!document.querySelector('.creation-recent'));
-    assert.ok(!document.querySelector('.creation-song-list'));
-    assert.ok(document.querySelector('#create-song-query'));
-  },{memories:[{...card,is_demo_sample:true}]});
+test('guest creation requests login for this exact creation entry',async()=>{
+  await harness('/create?event=concert',async url=>{throw new Error(url);},async()=>{
+    assert.equal(document.querySelector('form.memory-form'),null);
+    const login=document.querySelector('a[href^="/account?next="]');assert.ok(login);
+    assert.equal(new URL(login.href).searchParams.get('next'),'/create?event=concert');
+  },{guest:true});
 });
 
-test('memory detail groups explicit edit and delete after the content without a redundant menu',async()=>{
+test('memory detail groups explicit edit and delete immediately after the card without a redundant menu',async()=>{
   let deletions=0;
   await harness('/memories/88',async(url,options)=>{if(url==='/api/memories/88?revision=1'&&options.method==='DELETE'){deletions++;return new Response(null,{status:204});}throw new Error(url);},async({act})=>{
     const edit=document.querySelector('.memory-detail a[href="/memories/88/edit"]');assert.equal(edit?.textContent.trim(),'编辑');
@@ -260,6 +280,7 @@ test('memory detail groups explicit edit and delete after the content without a 
     assert.ok(!document.querySelector('.memory-toolbar a[href$="/edit"]'),'the reading header stays focused on navigation');
     const remove=document.querySelector('[aria-label="删除这段记忆"]');assert.ok(remove);
     assert.equal(edit.parentElement,remove.parentElement,'both actions belong to the same visible operation row');
+    assert.equal(document.querySelector('.memory-detail > article').nextElementSibling,edit.parentElement,'management belongs to the card, before music and reflections');
     await act(async()=>remove.click());
     const dialog=document.querySelector('[role="alertdialog"]');assert.ok(dialog);assert.equal(deletions,0,'opening the dialog never deletes');
     await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape'})));

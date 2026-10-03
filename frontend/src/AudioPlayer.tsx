@@ -60,6 +60,5 @@ export function AudioPlayer({song,anchor=null,end=null,onMark,autoPlay=false,com
       {onMark&&<button type="button" className="soft-button" disabled={!ready} onClick={()=>onMark(Math.min(Math.floor(audio.current?.currentTime??0)*1000,(song.duration_ms??1000)-1000))}>留住当前 {formatPosition(current)}</button>}
     </div>}
     {error&&<p className="form-error" role="status">{error}</p>}
-    {!compact&&<p className="resource-note">{song.is_demo?'本项目原创器乐样例 · 可真实播放与定位':song.recording_label}</p>}
   </div>;
 }

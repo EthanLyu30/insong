@@ -43,7 +43,7 @@ export function parsePosition(value: string, duration: number, allowEnd = false)
 }
 
 export function safeNext(path: string | null): string {
-  return path && /^\/(songs\/\d+(\/write)?|memories(\/\d+(\/edit)?)?|discover|footprints|playlists)(\?[^\\]*)?$/.test(path) ? path : '/memories';
+  return path && /^\/(songs\/\d+(\/write)?|memories(\/\d+(\/edit)?)?|create|discover|footprints|playlists)(\?[^\\]*)?$/.test(path) ? path : '/memories';
 }
 
 

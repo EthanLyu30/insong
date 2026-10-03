@@ -52,7 +52,6 @@
 .recent-concerts img { width: 100%; aspect-ratio: 2; object-fit: cover; border-radius: 7px; }
 .recent-photo { position: relative; }
 .recent-photo img { display: block; }
-.recent-photo > span { position: absolute; bottom: 4px; right: 4px; background: #fff9efeb; color: #4e5443; padding: 2px 4px; font-size: 9px; border-radius: 3px; }
 .recent-date { aspect-ratio: 2; border-radius: 7px; background: #f0e7da; color: #8c684b; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .recent-date > span { font-size: clamp(16px,4.8vw,25px); font-weight: 500; letter-spacing: -.03em; }
 .recent-date > i { font-size: 10px; font-style: normal; writing-mode: vertical-rl; }
@@ -65,15 +64,6 @@
 .public-story-list > .list-heading h2 { font: 600 15px/1.5 'Microsoft YaHei',sans-serif; color: #5b493a; }
 .story-cover { aspect-ratio: 4/5; }
 .story-cover::after { content: ''; position: absolute; inset: auto 0 -1px; height: 30px; background: linear-gradient(transparent,#fffdf7); pointer-events: none; }
-.photo-credit { color: #796550; font-size: 11px; line-height: 1.7; margin: 10px 0 15px; }
-.photo-credit summary { cursor: pointer; min-height: 34px; display: flex; align-items: center; gap: 7px; list-style: none; }
-.photo-credit summary::before { content: '+'; color: #a77b59; font-size: 15px; }
-.photo-credit[open] summary::before { content: '−'; }
-.photo-credit p { margin: 5px 0 9px; }
-.photo-credit > div { display: grid; gap: 3px; padding: 8px 0; border-top: 1px solid #e8dfd3; }
-.photo-credit a { color: #795838; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
-.photo-credit small { font-size: 10px; }
-.photo-sources { margin-top: 24px; }
 .story-front-copy { padding: 5px 12px 0; }
 .story-front-copy h3 { font: 700 20px/1.35 'Microsoft YaHei',sans-serif; margin: 0 0 5px; color: #44392e; }
 .story-artist { font-size: 13px; font-weight: 650; color: #725a45; }

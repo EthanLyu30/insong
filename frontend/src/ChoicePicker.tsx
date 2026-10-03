@@ -1,6 +1,6 @@
 import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
-import {CaretDown,Check} from '@phosphor-icons/react';
+import {CaretDown} from '@phosphor-icons/react';
 import './choicePicker.css';
 
 type Choice={value:string;label:string};
@@ -11,7 +11,7 @@ export function ChoicePicker({label,value,options,onChange,disabled=false,id}:Pr
   const generatedId=useId(),listId=`${id??generatedId}-choices`;
   const trigger=useRef<HTMLButtonElement>(null),panel=useRef<HTMLDivElement>(null);
   const [open,setOpen]=useState(false),[active,setActive]=useState(0);
-  const [position,setPosition]=useState({left:12,top:12,width:240,maxHeight:280});
+  const [position,setPosition]=useState({left:12,top:12,width:0,maxHeight:280});
   const selectedIndex=options.findIndex(option=>option.value===value);
   const selected=options[selectedIndex]?.label??'已选条件';
   function close(restore=false){setOpen(false);if(restore)trigger.current?.focus();}
@@ -28,14 +28,14 @@ export function ChoicePicker({label,value,options,onChange,disabled=false,id}:Pr
       const leftEdge=viewport?.offsetLeft??0,topEdge=viewport?.offsetTop??0;
       const width=viewport?.width??window.innerWidth,height=viewport?.height??window.innerHeight;
       if(rect.bottom<=topEdge+12||rect.top>=topEdge+height-12||rect.right<=leftEdge+12||rect.left>=leftEdge+width-12){close();return;}
-      const listWidth=Math.min(Math.max(rect.width,240),width-24);
+      const listWidth=Math.min(rect.width,width-24);
       const below=Math.max(0,topEdge+height-rect.bottom-20),above=Math.max(0,rect.top-topEdge-20);
       const desired=Math.min(panel.current?.scrollHeight?panel.current.scrollHeight+2:options.length*46+16,300,height-24);
       const opensAbove=below<desired&&above>below;
       const maxHeight=Math.min(opensAbove?above:below,300,height-24);
       const rawTop=opensAbove?rect.top-8-Math.min(desired,maxHeight):rect.bottom+8;
       const top=Math.max(topEdge+12,Math.min(rawTop,topEdge+height-12-Math.min(desired,maxHeight)));
-      const next={left:Math.max(leftEdge+12,Math.min(rect.right-listWidth,leftEdge+width-listWidth-12)),top,width:listWidth,maxHeight};
+      const next={left:Math.max(leftEdge+12,Math.min(rect.left,leftEdge+width-listWidth-12)),top,width:listWidth,maxHeight};
       setPosition(previous=>Object.entries(next).every(([key,value])=>previous[key as keyof typeof previous]===value)?previous:next);
     }
     function outside(event:PointerEvent){if(event.target instanceof window.Node&&!trigger.current?.contains(event.target)&&!panel.current?.contains(event.target))close();}
@@ -60,6 +60,6 @@ export function ChoicePicker({label,value,options,onChange,disabled=false,id}:Pr
       else if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
         event.preventDefault();setActive(event.key==='Home'?0:event.key==='End'?options.length-1:(active+(event.key==='ArrowDown'?1:-1)+options.length)%options.length);
       }
-    }}>{options.map((option,index)=><button key={option.value} type="button" role="option" data-value={option.value} aria-selected={option.value===value} tabIndex={index===active?0:-1} className="choice-option" onClick={()=>choose(option)}><span>{option.label}</span>{option.value===value&&<Check size={16} aria-hidden="true"/>}</button>)}</div>,document.body)}
+    }}>{options.map((option,index)=><button key={option.value} type="button" role="option" data-value={option.value} aria-selected={option.value===value} tabIndex={index===active?0:-1} className="choice-option" onClick={()=>choose(option)}><span>{option.label}</span></button>)}</div>,document.body)}
   </>;
 }

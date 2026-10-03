@@ -10,7 +10,6 @@ import {useData} from './useData';
 import {EventNote} from './EventNote';
 import {chinaToday, dateLabel, phaseLabel, type AtlasCatalog} from './footprintAtlas';
 import {venuePhotograph} from './photoSources';
-import {PhotoCredit,PhotoSources} from './PhotoCredit';
 import {BackLink} from './Navigation';
 
 export function TagLinks({tags=[]}:{tags?:string[]}) {
@@ -35,7 +34,7 @@ function RecentConcerts() {
     const artist=catalog.artists.find(item=>item.id===event.artist_id)?.name??event.title;
     const photo=venuePhotograph(event.venue,event.artist_id);
     return <Link key={event.id} to={`/footprints?event=${encodeURIComponent(event.id)}&scene=map`}>
-      {photo?<div className="recent-photo"><img src={photo.url} alt={`${photo.description} · ${photo.captured} 实拍参考`} loading="lazy"/><span>{photo.captured?.slice(5)} 实拍参考</span></div>:<div className="recent-date" aria-hidden="true"><span>{event.date.slice(5).replace('-','.')}</span><i>{event.date.slice(0,4)}</i></div>}<strong>{artist} · {event.city}</strong><small>{dateLabel(event.date)} · {phaseLabel(event,today)}</small>
+      {photo?<div className="recent-photo"><img src={photo.url} alt={photo.description} loading="lazy"/></div>:<div className="recent-date" aria-hidden="true"><span>{event.date.slice(5).replace('-','.')}</span><i>{event.date.slice(0,4)}</i></div>}<strong>{artist} · {event.city}</strong><small>{dateLabel(event.date)} · {phaseLabel(event,today)}</small>
     </Link>;
   })}</div></section>:null;
 }
@@ -115,7 +114,6 @@ export function DiscoverPage({home=false}:{home?:boolean}) {
     {busy&&<p className="inline-status" role="status">正在公开卡片里寻找…</p>}{error&&<p className="form-error" role="alert">{error}<button className="text-button" onClick={()=>setRetry(value=>value+1)}>重试</button></p>}
     {submitted?result&&<section aria-live="polite"><div className="list-heading"><h2>关于“{submitted}”</h2><button className="text-button" onClick={clearSearch}>回看故事</button></div><p className="resource-note">{result.notice||(result.mode==='semantic'?'这些经历可能与你有关，下面是作者的公开原文。':`${result.items.length} 张相关卡片`)}</p>{result.items.length?<div className="story-masonry">{result.items.map(item=><StoryEntry key={item.story.id} story={item.story} matchLabel={result.mode==='semantic'?item.match_label:undefined}/>)}</div>:<div className="empty-paper"><h3>还没有找到相关卡片。</h3><p>试试歌手、歌名或标签，也可以切换经历匹配。</p></div>}</section>:<PublicStoryList path={`/api/stories?${filters}`} recommended={recommended} heading={tag?`关于 #${tag}`:lyric?'同一句词，不同的我们':song?'这首歌里的我们':'这些歌，唱进了生活'}/>}
     {recommended&&<RecentConcerts/>}
-    <PhotoSources/>
   </section>;
 }
 
@@ -131,5 +129,5 @@ export function StoryPage() {
 export function ThemePage() {
   const {themeId}=useParams();const {value,error}=useData<Theme[]>('/api/themes');
   const theme=value?.find(item=>item.id===themeId);
-  return <section className="journal-page theme-page"><BackLink fallback="/discover"/>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><h1>{theme.title}</h1>{theme.image_url&&<><img className="theme-hero" src={theme.image_url} alt=""/><PhotoCredit url={theme.image_url}/></>}<p className="theme-question">{theme.prompt}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
+  return <section className="journal-page theme-page"><BackLink fallback="/discover"/>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><h1>{theme.title}</h1>{theme.image_url&&<img className="theme-hero" src={theme.image_url} alt=""/>}<p className="theme-question">{theme.prompt}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
 }

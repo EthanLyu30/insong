@@ -10,7 +10,6 @@ import {ChoicePicker} from './ChoicePicker';
 import { AtlasMap } from './AtlasMap';
 import { CinematicStage } from './CinematicStage';
 import {venuePhotograph} from './photoSources';
-import {PhotoCredit} from './PhotoCredit';
 import type {SceneController} from './sceneInteraction';
 import { CollectConcert, SongList } from './ConcertPlaylist';
 import {ConcertPlayer,useConcertPlayer} from './ConcertPlayer';
@@ -153,7 +152,6 @@ export function FootprintsPage() {
       {venues.length?venues.map(item=><button className="atlas-venue-row" type="button" key={item.id} aria-label={`进入${item.name}`} onClick={()=>openVenue(item)}>
         {venuePhotograph(item.name,artist?.id)?<img className="atlas-venue-photo" src={venuePhotograph(item.name,artist?.id)!.url} alt={`${venuePhotograph(item.name,artist?.id)!.description} · 2026.09.26 实拍参考`}/>:<MapPin className="atlas-venue-icon" size={25} weight="light" aria-hidden="true"/>}<span><strong>{item.name}</strong><small>{groupConcertRuns(item.events).length} 组现场 · {item.events.length} 晚{item.events.every(event=>event.event_status==='cancelled')?' · 已取消':''}</small></span><CaretRight size={20} aria-hidden="true"/>
       </button>):<div className="atlas-empty-city"><p>{artist?`当前筛选下，${artist.name}在这里暂无已核实场次。`:'当前筛选下，这里暂无已核实场次。'}</p><a href="https://zwfw.mct.gov.cn/wycx/qgswyyxychd/" target="_blank" rel="noopener noreferrer">前往官方演出查询 ↗</a>{artist&&<button type="button" onClick={()=>setParams({city:city.id},{replace:true})}>看看这座城的其他现场</button>}</div>}
-      <PhotoCredit url={venues.map(item=>venuePhotograph(item.name,artist?.id)).find(Boolean)?.url}/>
     </section>:scene==='map'&&!searchOpen?<section ref={mapPanel} className={`atlas-panel atlas-itinerary ${expanded?'is-expanded':''}`} aria-label="近期行程">
       <header><h2>{recentHeading}</h2><button type="button" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}>{expanded?'收起':'更多'} <CaretDown size={16}/></button></header>
       {scheduleFilters()}

@@ -17,6 +17,21 @@
 .memory-composer .photo-picker { margin: 0; }
 .memory-composer input.sr-only { width: 1px; height: 1px; padding: 0; border: 0; }
 .memory-composer .photo-add { min-height: 44px; margin-top: 8px; border: 1px dashed #ccb89e; background: #f5f0e6; border-radius: 8px; color: #80674f; font-size: 12px; }
+.composer-song-picker { border-top: 1px solid #e3d8c8; }
+.composer-song-trigger { display:flex;align-items:center;gap:10px;width:100%;min-height:62px;padding:10px 0;border:0;background:transparent;color:#6d5947;text-align:left;font:inherit;font-size:13px;cursor:pointer; }
+.composer-song-trigger>span { flex:1;min-width:0; }
+.composer-song-trigger>img,.composer-song-results img { width:42px;height:42px;object-fit:cover;border-radius:8px;flex:none; }
+.composer-song-trigger strong,.composer-song-results strong { display:block;font-size:13px;font-weight:500; }
+.composer-song-trigger small,.composer-song-results small { display:block;color:#927b64;font-size:11px;line-height:1.7; }
+.composer-song-trigger>svg { flex:none; }
+.composer-song-search { padding-bottom:14px; }
+.memory-composer .creation-search { margin:0;padding:0 12px;border:1px solid #e2d4c3;border-radius:12px;min-height:46px; }
+.memory-composer .creation-search input { border:0;box-shadow:none;background:transparent;padding:12px 0;min-width:0;font-size:13px; }
+.composer-song-results { max-height:224px;overflow-y:auto;overscroll-behavior:contain;margin-top:8px; }
+.composer-song-results>button { display:flex;align-items:center;gap:12px;width:100%;padding:10px 8px;border:0;border-bottom:1px solid #eee4d6;background:transparent;text-align:left;color:#604d3c;font:inherit;cursor:pointer; }
+.composer-song-results>button>span { flex:1;min-width:0; }
+.composer-song-results>button:hover,.composer-song-results>button:focus-visible { background:#f0e6d8; }
+.composer-search-status { padding:8px 0;color:#927b64;font-size:12px; }
 .composer-options { border-top: 1px solid #e3d8c8; }
 .composer-options > summary { display: flex; align-items: center; gap: 10px; min-height: 68px; cursor: pointer; list-style: none; color: #655448; }
 .composer-options > summary::-webkit-details-marker { display: none; }

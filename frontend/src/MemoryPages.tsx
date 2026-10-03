@@ -14,10 +14,10 @@ import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
 import { Plus } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
-import { PhotoCredit } from './PhotoCredit';
 import {BackLink,useBackNavigation} from './Navigation';
 import {MemoryActions} from './MemoryActions';
 import {ChoicePicker} from './ChoicePicker';
+import {SongPicker} from './SongPicker';
 import './composer.css';
 
 export function LoginGate() {
@@ -35,7 +35,7 @@ function LoadingError({ error, retry }: { error: string; retry?: () => void }) {
 }
 
 function SongHeading({ song }: { song: Song }) {
-  return <div className="record-heading"><img src={songCover(song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{song.title}</h2><small>{song.artist} · {song.recording_label}</small></div></div>;
+  return <div className="record-heading"><img src={songCover(song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{song.title}</h2><small>{song.artist}</small></div></div>;
 }
 
 export function SongPage() {
@@ -64,11 +64,10 @@ export function SongPage() {
     <BackLink/>
     {params.get('event')&&<EventNote id={params.get('event')!}/>}
     <div className="song-artwork"><img src={songCover(song)} alt={`《${song.title}》配图`}/></div>
-    <div className="song-journal-title"><h1>{song.title}</h1><p>{song.artist}</p><span className="journal-eyebrow">{song.recording_label}</span></div>
+    <div className="song-journal-title"><h1>{song.title}</h1><p>{song.artist}</p></div>
     <AudioPlayer song={song} full anchor={safePosition} end={safeEnd} onMark={ms=>mark(ms)}/>
     {safePosition !== null && <p className="anchor-notice" role="status">已选中 {formatPosition(safePosition)}，这段音乐会和文字一起保存。</p>}
     <LyricPicker song={song} selected={lyricId} onSelect={(id,ms)=>mark(ms,id)}/>
-    <PhotoCredit url={songCover(song)}/>
     <div className="song-reading-header">
       <div className="song-reading-tabs" role="tablist" aria-label="歌曲里的故事" onKeyDown={event=>{
         if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
@@ -135,10 +134,12 @@ function CreateContent() {
   return <MemoryForm key={song.id} song={song} initialEvent={params.get('event')} initialLyric={params.get('lyric')} initialTheme={params.get('theme')} initialEnd={params.get('end')} initialPosition={at !== null && Number.isFinite(at) && at >= 0 && at < (song.duration_ms ?? 0) ? at : null}/>;
 }
 
-function MemoryForm({ song, existing, initialPosition = null, initialLyric = null, initialTheme = null, initialEvent = null, initialEnd = null }: { song: Song; existing?: Memory; initialPosition?: number | null; initialLyric?:string|null;initialTheme?:string|null;initialEvent?:string|null;initialEnd?:string|null }) {
+export function MemoryForm({ song:initialSong=null, existing, initialPosition = null, initialLyric = null, initialTheme = null, initialEvent = null, initialEnd = null }: { song?: Song|null; existing?: Memory; initialPosition?: number | null; initialLyric?:string|null;initialTheme?:string|null;initialEvent?:string|null;initialEnd?:string|null }) {
+  const [song,setSong]=useState<Song|null>(initialSong);
   const navigate = useNavigate();
   const location=useLocation();
-  const {previous,back}=useBackNavigation(existing?`/memories/${existing.id}`:`/songs/${song.id}${location.search}`);
+  const fallback=existing?`/memories/${existing.id}`:initialSong?`/songs/${initialSong.id}${location.search}`:'/memories';
+  const {previous,back}=useBackNavigation(fallback);
   const musicOptions=useRef<HTMLDetailsElement>(null),extraOptions=useRef<HTMLDetailsElement>(null);
   const live = useLivePage();
   const [story, setStory] = useState(existing?.story ?? '');
@@ -146,7 +147,7 @@ function MemoryForm({ song, existing, initialPosition = null, initialLyric = nul
   const [tagText,setTagText]=useState(existing?.tags.join('，')??'');
   const [lifeTime, setLifeTime] = useState(existing?.life_time ?? '');
   const [lifeYear,setLifeYear] = useState(existing?.life_year?.toString() ?? '');
-  const initialLine = song.lyrics?.find(line=>line.id===(existing?existing.lyric_id:initialLyric));
+  const initialLine = initialSong?.lyrics?.find(line=>line.id===(existing?existing.lyric_id:initialLyric));
   const [lyricId,setLyricId] = useState<string|null>(initialLine?.id ?? null);
   const themeId = existing ? existing.theme_id ?? null : initialTheme;
   const [position, setPosition] = useState<number | null>(initialLine?.start_ms ?? (existing ? existing.offset_ms : initialPosition));
@@ -158,9 +159,13 @@ function MemoryForm({ song, existing, initialPosition = null, initialLyric = nul
   const [eventId,setEventId]=useState(existing?existing.event_id??null:initialEvent);
   const [error, setError] = useState('');const [busy, setBusy] = useState(false);
   const lock = useRef(false);const requestKey = useRef(crypto.randomUUID());
+  function chooseSong(value:Song){
+    if(song?.id!==value.id){setSong(value);setPosition(null);setTimeText('');setEndText('');setLyricId(null);}
+  }
   async function save(event: FormEvent) {
     event.preventDefault();if (lock.current||uploading) return;
     setError('');
+    if(!song){setError('请选择这一刻的配乐。');return;}
     let offset: number | null, end:number|null;
     try {offset = parsePosition(timeText, song.duration_ms ?? 0);end=parsePosition(endText,song.duration_ms??0,true);if(end!==null&&(offset===null||end<=offset))throw new Error('播放区间需要起点，结束时间要晚于起点。');} catch (reason) {if(musicOptions.current)musicOptions.current.open=true;setError((reason as Error).message);return;}
     if (!story.trim()) {setError('写一句想留住的线索吧。');return;}
@@ -176,17 +181,18 @@ function MemoryForm({ song, existing, initialPosition = null, initialLyric = nul
     finally {lock.current = false;setBusy(false);}
   }
   return <section className="journal-page memory-composer">
-    <header className="composer-heading"><BackLink fallback={existing?`/memories/${existing.id}`:`/songs/${song.id}${location.search}`}/><h1>{existing?'编辑记忆':'留下一刻'}</h1><span>仅自己可见</span></header>
+    <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'留下一刻'}</h1><span>仅自己可见</span></header>
     <SampleNotice compact/>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
       <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="给这一刻起个名字（选填）"/></label>
       <label className="composer-story" htmlFor="memory-story"><span className="sr-only">听到这里，你想起了什么？</span><textarea id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="听到这里，你想起了什么？&#10;一句心事，或一个难忘的瞬间。"/></label><span className="character-count">{story.length} / 500</span>
       <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading} compact/>
-      <details ref={musicOptions} className="composer-options composer-music"><summary><img src={songCover(song)} alt=""/><span><strong>{song.title}</strong><small>{song.artist} · {timeText?`${lyricId?'所选词句 · ':''}${timeText}${endText?`—${endText}`:' 起'}`:'整首歌'}</small></span><span className="composer-disclosure">调整配乐</span></summary><div className="composer-options-body">
+      {!existing&&<SongPicker song={song} onChoose={chooseSong} disabled={busy||uploading}/>}
+      {song&&<details ref={musicOptions} className="composer-options composer-music"><summary>{existing&&<img src={songCover(song)} alt=""/>}<span><strong>{existing?song.title:'词句与片段'}</strong><small>{timeText?`${lyricId?'所选词句 · ':''}${timeText}${endText?`—${endText}`:' 起'}`:'整首歌'}</small></span><span className="composer-disclosure">调整</span></summary><div className="composer-options-body">
       <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/><LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/>
       <div className="music-range"><div className="range-title"><strong>想留下哪一段？</strong><button className="text-button" type="button" onClick={()=>{setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}>用整首歌</button></div><div className="range-inputs"><label>起点<input aria-label="音乐里的位置" value={timeText} onChange={e=>{setTimeText(e.target.value);setLyricId(null);}} placeholder="00:00" disabled={!song.audio_available}/></label><span aria-hidden="true">—</span><label>终点<input aria-label="播放区间终点" value={endText} onChange={e=>setEndText(e.target.value)} placeholder={formatPosition(song.duration_ms)} disabled={!song.audio_available}/></label></div><small>填写起止时间，查看记忆时播放这一段。</small></div>
-      </div></details>
+      </div></details>}
       <details ref={extraOptions} className="composer-options composer-extra"><summary><span><strong>补充细节</strong><small>{[lifeYear,lifeTime,tagText?'已添加标签':'',eventId?'已关联现场':''].filter(Boolean).join(' · ')||'时间、标签 · 选填'}</small></span><span className="composer-disclosure">展开</span></summary><div className="composer-options-body">
       <div className="composer-date"><label>年份 <small>用于时间轴</small><input aria-label="人生里的年份" type="number" min="1900" max={new Date().getFullYear()} step="1" value={lifeYear} onChange={e=>setLifeYear(e.target.value)} placeholder="比如 2022"/></label>
       <label>那是什么时候？ <small>选填，记不清也没关系</small><input value={lifeTime} onChange={e => setLifeTime(e.target.value)} maxLength={80} placeholder="毕业那年、去年夏天，或者今天"/></label>
@@ -195,7 +201,7 @@ function MemoryForm({ song, existing, initialPosition = null, initialLyric = nul
       </div></details>
       {existing?.publication?.published&&<p className="sample-notice">修改原文或坐标后，会先撤回旧的公开片段。保存后可重新预览并分享。</p>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <div className="composer-save"><p className="privacy-line">先留给自己，分享由你决定。</p><button className="primary-button" disabled={busy || uploading || !story.trim()}>{busy ? '正在收好…' : uploading?'正在收好照片…':existing ? '保存修改' : '保存这一刻'}</button></div>
+      <div className="composer-save"><p className="privacy-line">先留给自己，分享由你决定。</p><button className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '正在收好…' : uploading?'正在收好照片…':existing ? '保存修改' : '保存这一刻'}</button></div>
       </fieldset>
     </form>
   </section>;
@@ -220,10 +226,10 @@ function DetailContent({ edit }: { edit: boolean }) {
       <span className="paper-date">{[card.life_year,card.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(card.created_at)}`}</span><p className="original-story">{card.story}</p><PhotoGallery photos={cardPhotos(card)} fallback={songCover(card.song)}/><TagLinks tags={card.tags}/>{card.offset_ms!==null&&<span className="paper-caption">我最喜欢的片段 · {formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</span>}
       <PublicationPanel key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
     </article>
+    <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
     {card.event_id&&<EventNote id={card.event_id}/>}
     {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句</small></blockquote>}
     <SongHeading song={card.song}/><AudioPlayer song={card.song} anchor={card.offset_ms} end={card.end_ms}/>
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
-    <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
   </section>;
 }
