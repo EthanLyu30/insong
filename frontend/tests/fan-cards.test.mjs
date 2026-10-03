@@ -23,7 +23,7 @@ async function harness(path,respond,work,fixtures={}){
     if(url==='/api/me')return Response.json({user:{id:3,display_name:'我',is_demo:false}});
     if(url==='/api/themes')return Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
-    if(url==='/api/memories/88'&&!options.method)return Response.json(card);
+    if(url==='/api/memories/88'&&!options.method)return Response.json(fixtures.memory?fixtures.memory():card);
     if(url==='/api/memories'&&!options.method)return Response.json([card]);
     if(url.startsWith('/api/stories?'))return Response.json([]);
     return respond(url,options);
@@ -164,8 +164,56 @@ test('reading a searched story and returning restores the search; player keeps t
     await act(async()=>document.querySelector('.public-detail .back-link').click());
     assert.equal(document.querySelector('#public-query').value,'散场');
     assert.equal(searches.at(-1).mode,'semantic');
-    assert.ok(document.querySelector('.flip-card').textContent.includes(card.title));
+    assert.ok(document.querySelector('.story-card').textContent.includes(card.title));
   });
+});
+
+test('central creation has its own route and returns to the filtered reading collection',async()=>{
+  await harness('/memories?song=1&view=cards',async url=>{if(url==='/api/songs')return Response.json([song,{...song,id:2,title:'另一首歌',artist:'另一位歌手'}]);throw new Error(url);},async({act,fill,location})=>{
+    assert.equal(document.querySelector('.collection-page .round-action'),null,'reading has no competing add button');
+    const create=document.querySelector('.bottom-nav a[aria-label="创建记忆"]');assert.ok(create);
+    assert.equal([...document.querySelectorAll('.bottom-nav a')].indexOf(create),2,'creation is the center navigation item');
+    await act(async()=>create.click());assert.equal(location().pathname,'/create');
+    await fill('create-song-query','Demo Artist');
+    assert.equal(document.querySelectorAll('.creation-song-list a').length,1);
+    await act(async()=>document.querySelector('.creation-song-list a').click());assert.equal(location().pathname,'/songs/1/write');
+    await act(async()=>document.querySelector('.memory-composer .back-link').click());assert.equal(location().pathname,'/create');
+    assert.equal(document.querySelector('#create-song-query').value,'Demo Artist','return restores the song search');
+    await act(async()=>document.querySelector('.creation-page .back-link').click());
+    assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
+  });
+});
+
+test('memory detail has clear edit and an isolated, cancellable delete confirmation',async()=>{
+  let deletions=0;
+  await harness('/memories/88',async(url,options)=>{if(url==='/api/memories/88?revision=1'&&options.method==='DELETE'){deletions++;return new Response(null,{status:204});}throw new Error(url);},async({act})=>{
+    const edit=document.querySelector('.memory-toolbar a[href="/memories/88/edit"]');assert.equal(edit?.textContent.trim(),'编辑');
+    assert.ok(!document.querySelector('.memory-detail').textContent.includes('这首歌里的其他时刻'));
+    assert.ok(!document.querySelector('.memory-detail .delete-trigger'));
+    const more=document.querySelector('[aria-label="更多记忆操作"]');assert.ok(more);
+    await act(async()=>more.click());await act(async()=>document.querySelector('[aria-label="删除这段记忆"]').click());
+    const dialog=document.querySelector('[role="alertdialog"]');assert.ok(dialog);assert.equal(deletions,0,'opening the dialog never deletes');
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape'})));
+    assert.equal(document.querySelector('[role="alertdialog"]'),null);assert.equal(deletions,0);
+    assert.equal(document.activeElement,more,'closing returns focus to the menu');
+  });
+});
+
+test('delete conflict reloads the latest version and requires a fresh confirmation',async()=>{
+  const requests=[];let loads=0;
+  await harness('/memories/88',async(url,options)=>{
+    if(options.method==='DELETE'){requests.push(url);return requests.length===1?Response.json({detail:'记忆已更新，请重新打开。'},{status:409}):new Response(null,{status:204});}throw new Error(url);
+  },async({act,location})=>{
+    const open=async()=>act(async()=>document.querySelector('[aria-label="删除这段记忆"]').click());
+    await open();await act(async()=>document.querySelector('.memory-delete-dialog .danger-button').click());
+    assert.ok(document.querySelector('[role="alert"]').textContent.includes('记忆已更新'));
+    const reload=document.querySelector('.memory-delete-dialog .reload-memory');assert.ok(reload,'a conflict must allow fetching the current revision');
+    await act(async()=>reload.click());
+    assert.equal(document.querySelector('[role="alertdialog"]'),null,'new content is shown before reconfirming');
+    assert.equal(requests.length,1,'refresh never deletes automatically');assert.ok(loads>=2);
+    await open();await act(async()=>document.querySelector('.memory-delete-dialog .danger-button').click());
+    assert.deepEqual(requests,['/api/memories/88?revision=1','/api/memories/88?revision=2']);assert.equal(location().pathname,'/memories');
+  },{memory:()=>({...card,revision:++loads===1?1:2})});
 });
 
 test('six-photo story uses a three-column gallery and supports keyboard exit to the opener',async()=>{

@@ -1,0 +1,34 @@
+.site-shell .bottom-nav{grid-template-columns:1fr 1fr 64px 1fr 1fr}
+.nav-item.nav-create{gap:3px;font-size:10px}
+.nav-create-icon{width:42px;height:36px;border-radius:12px;display:grid;place-items:center;background:#b97c5d;color:#fffaf1;box-shadow:0 3px 8px #92634520}
+.nav-create.active .nav-create-icon{background:#a76443}
+.creation-page{padding-top:5px}
+.creation-page>header{margin:14px 0 26px}
+.creation-page h1{margin:10px 0;font-weight:400}
+.creation-search{display:flex;align-items:center;gap:10px;border:1px solid #e6dacc;border-radius:16px;padding:0 14px;background:#fffdf8;color:#927961;margin-bottom:20px}
+.creation-search input{width:100%;min-height:48px;border:0;background:transparent;outline:none;padding:10px 0;font-size:14px;color:#584938}
+.creation-search:focus-within{border-color:#b97c5d;box-shadow:0 0 0 2px #b97c5d15}
+.creation-song-list{display:grid;gap:9px}
+.creation-song-list>a{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid #ece3d7;border-radius:15px;background:#fffdf8;color:#79604b;text-decoration:none}
+.creation-song-list img{width:62px;height:62px;object-fit:cover;border-radius:10px}
+.creation-song-list>a>span{flex:1;min-width:0;display:grid;gap:7px}
+.creation-song-list strong{font-size:15px;font-weight:600;color:#4d4033;overflow-wrap:anywhere}
+.creation-song-list small{font-size:12px;color:#947f6b}
+.creation-empty{padding:24px 0;color:#947f6b;font-size:13px}
+.memory-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+.memory-toolbar .back-link{margin:0;min-height:44px;display:flex;align-items:center}
+.memory-toolbar-actions{display:flex;align-items:center;gap:8px}
+.memory-edit-link{display:flex;align-items:center;min-height:44px;padding:0 12px;text-decoration:none;color:#a36b48;font-size:14px}
+.memory-more{position:relative}
+.memory-more>summary{list-style:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;color:#6d5b4b;cursor:pointer}
+.memory-more>summary::-webkit-details-marker{display:none}
+.memory-more[open]>summary{background:#eee5d9}
+.memory-action-menu{position:absolute;z-index:40;right:0;top:49px;background:#fffdf8;border:1px solid #e6d8c8;border-radius:13px;box-shadow:0 8px 24px #5b453522;padding:5px;min-width:144px}
+.memory-action-menu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:10px;border:0;background:none;color:#a75e49;font-size:13px;border-radius:9px}
+.memory-delete-backdrop{position:fixed;inset:0;z-index:120;background:#34271e66;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px}
+.memory-delete-dialog{width:min(100%,360px);border-radius:22px;padding:26px 22px;background:#fffaf2;box-shadow:0 22px 75px #34271e35;outline:none}
+.memory-delete-dialog h2{font-size:20px;font-weight:600;margin:0 0 14px;color:#44372b}
+.memory-delete-dialog>p{font-size:13px;line-height:1.8;color:#8a725f;margin:0 0 22px}
+.memory-delete-dialog>div{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.memory-delete-dialog button{min-height:46px}
+@media(max-width:370px){.site-shell .bottom-nav{grid-template-columns:1fr 1fr 56px 1fr 1fr}.nav-item{font-size:10px}}

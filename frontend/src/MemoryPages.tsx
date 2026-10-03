@@ -16,6 +16,7 @@ import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
 import { PhotoCredit } from './PhotoCredit';
 import {BackLink,useBackNavigation} from './Navigation';
+import {MemoryActions} from './MemoryActions';
 import './composer.css';
 
 export function LoginGate() {
@@ -95,10 +96,10 @@ function CollectionContent() {
   const songs=memories?[...new Map(memories.map(card=>[card.song_id,card.song])).values()]:[];
   const visible=memories?.filter(card=>!songId||card.song_id===Number(songId))??[];
   return <section className="journal-page collection-page">
-    <div className="journal-title-row"><div><span className="journal-eyebrow">追过的现场，留住的喜欢</span><h1>我的音乐记忆</h1></div><Link className="round-action" to="/?choose=1" aria-label="选择歌曲留下一刻"><Plus size={24}/></Link></div>
+    <div className="journal-title-row"><div><span className="journal-eyebrow">追过的现场，留住的喜欢</span><h1>我的音乐记忆</h1></div></div>
     <SampleNotice compact/>
     <div className="collection-tools"><Link className="memory-playlist-link" to="/playlists">我的现场歌单 ↗</Link><label className="song-filter"><span className="sr-only">按歌曲筛选</span><select value={songId} onChange={event=>setSongId(event.target.value)}><option value="">所有歌曲</option>{songs.map(song=><option key={song.id} value={song.id}>{song.title}</option>)}</select></label></div>
-    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper"><h3>你的第一页，留给哪首歌？</h3><p>喜欢的现场，值得被好好记住。</p><Link className="soft-button" to="/?choose=1">选一首歌</Link></div>}</section>}
+    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section><div className="list-heading"><h2>我的人生时刻</h2><span>{visible.length} 张卡片</span></div><div className="segmented-control timeline-toggle"><button aria-pressed={view==='timeline'} onClick={()=>setView('timeline')}>人生时间轴</button><button aria-pressed={view==='cards'} onClick={()=>setView('cards')}>所有卡片</button></div>{visible.length?view==='timeline'?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card}/>)}</div></section>)}</div>:visible.map(card=><MemoryEntry key={card.id} memory={card}/>):<div className="empty-paper"><h3>你的第一页，留给哪首歌？</h3><p>喜欢的现场，值得被好好记住。</p><Link className="soft-button" to="/create">记录第一刻</Link></div>}</section>}
   </section>;
 }
 export function CreateMemoryPage() {
@@ -191,23 +192,14 @@ export function MemoryDetailPage({ edit = false }: { edit?: boolean }) {
 }
 
 function DetailContent({ edit }: { edit: boolean }) {
-  const { memoryId } = useParams();const navigate = useNavigate();const location = useLocation();
-  const live = useLivePage();
+  const { memoryId } = useParams();const location = useLocation();
   const { user } = useSession();const [version, setVersion] = useState(0);
   const { value: card, error } = useData<Memory>(`/api/memories/${memoryId}`, version);
-  const [busy, setBusy] = useState(false);const lock = useRef(false);
-  const [actionError, setActionError] = useState('');const [confirmDelete, setConfirmDelete] = useState(false);
   if (!card) return <LoadingError error={error} retry={() => setVersion(x => x + 1)}/>;
   if (card.owner_id !== user?.id) return <LoadingError error="这不是当前账号的私人记忆。"/>;
   if (edit) return <MemoryForm key={card.id + ':' + card.revision} song={card.song} existing={card}/>;
-  async function remove() {
-    if (!card || lock.current) return;lock.current=true;setBusy(true);setActionError('');
-    try {await apiRequest(apiBaseUrl, `/api/memories/${card.id}?revision=${card.revision}`, {method:'DELETE'});if (live.current) navigate('/memories',{replace:true});}
-    catch (reason) {setActionError(reason instanceof Error ? reason.message : '删除没有成功。');setConfirmDelete(false);}
-    finally {lock.current=false;setBusy(false);}
-  }
   return <section className="journal-page memory-detail">
-    <BackLink fallback="/memories"/>
+    <header className="memory-toolbar"><BackLink fallback="/memories"/><MemoryActions key={card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/></header>
     {location.state?.saved && <p className="saved-notice" role="status">这一刻，已经好好收下了。</p>}
     <span className="journal-eyebrow">{card.is_demo_sample ? '样例记忆' : '我的音乐记忆'}</span><h1>{card.title||card.life_time || '那个有音乐的时刻'}</h1>
     <article className={`keepsake-paper${card.photo_url?' has-photo':''}`}>
@@ -217,9 +209,6 @@ function DetailContent({ edit }: { edit: boolean }) {
     {card.event_id&&<EventNote id={card.event_id}/>}
     {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句</small></blockquote>}
     <SongHeading song={card.song}/><AudioPlayer song={card.song} anchor={card.offset_ms} end={card.end_ms}/>
-    <div className="inline-actions detail-actions"><Link className="text-button" to={`/memories/${card.id}/edit`}>整理这段记忆</Link><Link className="text-button" to={`/songs/${card.song_id}`}>这首歌里的其他时刻 →</Link></div>
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
-    {actionError && <div className="form-error" role="alert">{actionError}<button className="text-button" onClick={() => setVersion(x=>x+1)}>重新加载</button></div>}
-    {confirmDelete ? <div className="delete-confirm" role="alert"><p>要删除这一刻吗？原文和补充都会移除，之后无法恢复。</p><div className="inline-actions"><button className="soft-button" disabled={busy} onClick={() => setConfirmDelete(false)}>还是留着</button><button className="danger-button" disabled={busy} onClick={() => void remove()}>确认删除</button></div></div> : <button className="text-button delete-trigger" onClick={() => setConfirmDelete(true)}>删除这段记忆</button>}
   </section>;
 }

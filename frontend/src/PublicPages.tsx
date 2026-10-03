@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {Link, useParams, useSearchParams} from 'react-router';
-import {ArrowUpRight, ArrowCounterClockwise, Play, MusicNote} from '@phosphor-icons/react';
+import {ArrowUpRight, MusicNote} from '@phosphor-icons/react';
 import {apiBaseUrl} from './api';
 import {AudioPlayer} from './AudioPlayer';
 import {apiRequest, formatPosition, type PublicStory, type PublicSearchResult, type Theme} from './memoryClient';
@@ -41,11 +41,10 @@ function RecentConcerts() {
 }
 
 export function StoryEntry({story,matchLabel}:{story:PublicStory;matchLabel?:string}) {
-  const [flipped,setFlipped]=useState(false);
-  const rotor=useRef<HTMLDivElement>(null);
+  const body=useRef<HTMLDivElement>(null);
   const [rows,setRows]=useState<number>();
   useEffect(()=>{
-    const element=rotor.current;if(!element)return;
+    const element=body.current;if(!element)return;
     // Eight-pixel rows with a twelve-pixel gap keep the DOM in reading order.
     const measure=()=>setRows(Math.ceil((element.getBoundingClientRect().height+12)/20));
     if(typeof ResizeObserver==='undefined'){
@@ -54,23 +53,15 @@ export function StoryEntry({story,matchLabel}:{story:PublicStory;matchLabel?:str
     }
     const observer=new ResizeObserver(measure);observer.observe(element);measure();
     return()=>observer.disconnect();
-  },[flipped]);
-  return <article className={`flip-card${flipped?' is-flipped':''}`} style={rows?{gridRowEnd:`span ${rows}`}:undefined}>
-    <div className="flip-rotor" ref={rotor}>
-      <div className="flip-face flip-front" inert={flipped} aria-hidden={flipped}>
-        <button className="card-flip-trigger" aria-label={`翻开${story.song.title}的故事${story.song.audio_url?'并播放':''}`} onClick={()=>setFlipped(true)}>
+  },[]);
+  return <article className="story-card" style={rows?{gridRowEnd:`span ${rows}`}:undefined}>
+    <div className="story-card-body" ref={body}>
+        <Link className="story-card-main card-read" to={`/stories/${story.id}`} aria-label={`阅读${story.song.title}的完整故事`}>
           <div className="story-cover"><img src={cardCover(story)} alt={`《${story.song.title}》${story.photo_url?'记忆照片':'配图'}`} loading="lazy"/><span className="cover-stamp">{story.is_demo_sample?'虚构样例':'音乐卡片'}</span>{cardPhotos(story).length>1&&<span className="photo-count">{cardPhotos(story).length} 张</span>}</div>
           <div className="story-front-copy"><h3>{story.song.title}</h3><span className="story-artist">{story.song.artist}</span><p className="story-card-title">{story.title||story.excerpt}</p>{matchLabel&&<span className="match-label">{matchLabel}</span>}</div>
-        </button>
+        </Link>
         <TagLinks tags={story.tags}/>
-        <div className="card-bottom"><Link to={`/stories/${story.id}`} className="card-read" aria-label={`阅读${story.song.title}的完整故事`}>读故事 <ArrowUpRight size={13}/></Link><button className={`card-play${story.song.audio_url?'':' without-audio'}`} disabled={!story.song.audio_url} title={story.song.audio_url?'播放这一刻':'暂未接入音源，点击照片可读故事'} aria-label={story.song.audio_url?`播放${story.song.title}并翻到背面`:`播放${story.song.title}（暂无音源）`} onClick={()=>setFlipped(true)}><Play size={16} weight="fill"/></button></div>
-      </div>
-      <div className="flip-face flip-back" inert={!flipped} aria-hidden={!flipped}>
-        <button className="card-close" aria-label={`收起${story.song.title}的故事`} onClick={()=>setFlipped(false)}><ArrowCounterClockwise size={12}/> 正面</button>
-        <img className="story-back-photo" src={cardCover(story)} alt={story.photo_url?'听友分享的照片':'这段故事的歌曲配图'}/>
-        <div className="story-back-copy"><h3>{story.song.title}</h3><small>{story.song.artist}</small><div className="story-back-scroll" aria-label="公开故事原文">{story.title&&<h4>{story.title}</h4>}<p>{story.excerpt}</p>{story.lyric&&<blockquote>“{story.lyric.text}”</blockquote>}</div><Link className="card-read" to={`/stories/${story.id}`}>展开读这一页 ↗</Link></div>
-        {flipped&&<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms} autoPlay compact/>}
-      </div>
+        <div className="story-card-author"><span aria-hidden="true">{story.author_name.slice(0,1)}</span>{story.author_name}</div>
     </div>
   </article>;
 }
@@ -133,7 +124,7 @@ export function StoryPage() {
   if(!story)return <section className="journal-page"><BackLink fallback="/discover"/>{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
   const playback=new URLSearchParams();if(story.offset_ms!==null)playback.set('at',String(story.offset_ms));if(story.end_ms!=null)playback.set('end',String(story.end_ms));
-  return <section className="journal-page public-detail"><BackLink fallback="/discover"/><article className="keepsake-paper public-moment"><div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>{(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}{story.title&&<h1 className="moment-title">{story.title}</h1>}<p className="original-story">{story.excerpt}</p><PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/><TagLinks tags={story.tags}/>{story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}</article><div className="record-heading"><img src={songCover(story.song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{story.song.title}</h2><small>{story.song.artist}</small><Link className="text-button" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`}>走进这首歌 →</Link></div></div>{story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>{story.event_id&&<EventNote id={story.event_id}/>}<Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link><PublicStoryList path={`/api/stories?song_id=${story.song_id}${story.lyric_id?`&lyric_id=${encodeURIComponent(story.lyric_id)}`:''}`} excludeId={story.id} heading="同一首歌，别人的现场"/></section>;
+  return <section className="journal-page public-detail"><BackLink fallback="/discover"/><article className="keepsake-paper public-moment"><div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>{(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}{story.title&&<h1 className="moment-title">{story.title}</h1>}<p className="original-story">{story.excerpt}</p><PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/><TagLinks tags={story.tags}/>{story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}</article><div className="record-heading"><img src={songCover(story.song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{story.song.title}</h2><small>{story.song.artist}</small><Link className="text-button" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`}>走进这首歌 →</Link></div></div>{story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>{story.event_id&&<EventNote id={story.event_id}/>}<Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link></section>;
 }
 
 export function ThemePage() {

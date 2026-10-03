@@ -7,9 +7,10 @@ import {BackLink,NavigationProvider} from './Navigation';
 import { AccountControl, SessionProvider, useSession } from './SessionContext';
 import { AccountPage } from './AccountPage';
 import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from './MemoryPages';
+import {CreationPage} from './CreationPage';
 import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
 import './footprints.css';
-import {House,MagnifyingGlass,BookmarkSimple,MapTrifold} from '@phosphor-icons/react';
+import {House,MagnifyingGlass,BookmarkSimple,MapTrifold,Plus} from '@phosphor-icons/react';
 function AtlasGlyph({name}:{name:'home'|'search'|'bookmark'|'map'}){const Icon={home:House,search:MagnifyingGlass,bookmark:BookmarkSimple,map:MapTrifold}[name];return <Icon size={25} weight="light" aria-hidden="true"/>;}
 const FootprintsPage = lazy(() => import('./FootprintsPage').then(module => ({default:module.FootprintsPage})));
 const PlaylistsPage = lazy(() => import('./ConcertPlaylist').then(module => ({default:module.PlaylistsPage})));
@@ -67,14 +68,15 @@ function Shell() {
           <Route path="/stories/:storyId" element={<StoryPage/>}/>
           <Route path="/themes/:themeId" element={<ThemePage/>}/>
           <Route path="/memories" element={<MemoryCollection/>}/>
+          <Route path="/create" element={<CreationPage/>}/>
           <Route path="/memories/:memoryId" element={<MemoryDetailPage/>}/>
           <Route path="/memories/:memoryId/edit" element={<MemoryDetailPage edit/>}/>
           <Route path="*" element={<section className="journal-page empty-journal"><h1>这一页，还没有写下。</h1><BackLink className="soft-button"/></section>}/>
         </Routes>}
     </main>
     {<nav className="bottom-nav" aria-label="主导航">{([
-      ['/', 'home', '听见'], ['/discover', 'search', '共鸣'], ['/memories', 'bookmark', '我的记忆'], ['/footprints', 'map', '足迹'],
-    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>{atlas?<AtlasGlyph name={icon}/>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
+      ['/', 'home', '听见'], ['/discover', 'search', '共鸣'], ['/create', 'create', '记录'], ['/memories', 'bookmark', '我的记忆'], ['/footprints', 'map', '足迹'],
+    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} aria-label={icon==='create'?'创建记忆':undefined} className={({isActive}) => `nav-item${icon==='create'?' nav-create':''}${isActive||(icon==='create'&&location.pathname.endsWith('/write')) ? ' active' : ''}`}>{icon==='create'?<span className="nav-create-icon"><Plus size={25} weight="regular" aria-hidden="true"/></span>:atlas?<AtlasGlyph name={icon}/>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
   </div>;
 }
 

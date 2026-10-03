@@ -2,7 +2,8 @@ export type DroneView={azimuth:number;elevation:number;distance:number};
 export const HOME_DRONE:DroneView={azimuth:38,elevation:29,distance:590};
 const clamp=(value:number,min:number,max:number)=>Math.max(min,Math.min(max,value));
 export function dragDrone(view:DroneView,dx:number,dy:number):DroneView{
-  return {...view,azimuth:view.azimuth-dx*.28,elevation:clamp(view.elevation-dy*.12,16,78)};
+  // A drone circles the building above a level horizon; it never pitches over it.
+  return {...view,azimuth:view.azimuth-dx*.28,elevation:clamp(view.elevation-dy*.045,22,40)};
 }
 export function zoomDrone(view:DroneView,ratio:number):DroneView{
   return {...view,distance:clamp(view.distance/Math.max(ratio,.001),220,620)};

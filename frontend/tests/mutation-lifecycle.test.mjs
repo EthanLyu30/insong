@@ -61,7 +61,8 @@ test('late save/delete responses cannot replace drafts after route or identity c
       const button = [...document.querySelectorAll('button')].find(el => el.textContent === label);
       assert.ok(button);button.dispatchEvent(new window.MouseEvent('click',{bubbles:true}));
     });
-    await click('删除这段记忆');await click('确认删除');
+    await React.act(async () => {document.querySelector('.memory-more').open=true;});
+    await click('删除记忆');await click('确认删除');
     assert.equal(typeof finishDelete,'function');
     await React.act(async () => {navigate('/songs/2/write');});
     await input('删除另一张卡时写下的新草稿');

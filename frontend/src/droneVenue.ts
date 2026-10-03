@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import {HOME_DRONE,dronePosition,droneFocus} from './droneOrbit.ts';
 
 type Profile={id:string;covered:boolean};
 type Shape={rx:number;rz:number;roof:'crystal'|'petals'|'shell'|'arena'|'rect';height:number;lobes:number;rotation:number};
@@ -31,7 +30,7 @@ export function createDroneVenue(profile:Profile){
   const metal=standard({color:'#d5d8d7',metalness:.8,roughness:.23,side:THREE.DoubleSide});
   const concrete=standard({color:'#716858',roughness:.94});
   const bronze=standard({color:'#77766b',metalness:.76,roughness:.28});
-  const glass=standard({color:'#ced5d7',metalness:.55,roughness:.27,vertexColors:true,side:THREE.DoubleSide});
+  const glass=standard({color:'#e6e5dc',metalness:.22,roughness:.24,vertexColors:true,side:THREE.DoubleSide});
   const stageMaterial=standard({color:'#141921',roughness:.58});
   const warm=basic({color:'#ffd193',toneMapped:false});
   const segments=shape.roof==='crystal'?24:192,bands=shape.roof==='crystal'?3:6,positions:number[]=[],colors:number[]=[],wire:number[]=[];
@@ -39,22 +38,30 @@ export function createDroneVenue(profile:Profile){
   function roofPoint(i:number,j:number):THREE.Vector3{
     const a=i/segments*Math.PI*2+shape.rotation,t=j/bands;
     const inner=profile.covered?.02:.66,rad=inner+(1-inner)*t;
-    const wave=shape.roof==='crystal'?Math.abs(Math.cos(a*shape.lobes/2)):shape.roof==='petals'?Math.pow((1+Math.cos(a*shape.lobes))/2,3):Math.cos(a*2)*.24;
+    // Sample the folds before rotating the footprint. Sampling a rotated 12-fold
+    // wave at 24 points aliases every peak into almost the same roof height.
+    const wave=shape.roof==='crystal'?Math.abs(Math.cos((a-shape.rotation)*shape.lobes/2)):shape.roof==='petals'?Math.pow((1+Math.cos(a*shape.lobes))/2,3):Math.cos(a*2)*.24;
     const y=profile.covered?shape.height+14*(1-t*t)+wave*8:shape.height-5+Math.sin(t*Math.PI)*11+wave*(shape.roof==='crystal'?18:8)*t;
     const signPower=(v:number)=>Math.sign(v)*Math.abs(v)**.2;
     return new THREE.Vector3((shape.roof==='rect'?signPower(Math.sin(a)):Math.sin(a))*shape.rx*rad,shape.roof==='rect'?shape.height:y,(shape.roof==='rect'?signPower(Math.cos(a)):Math.cos(a))*shape.rz*rad);
   }
   function triangle(a:THREE.Vector3,b:THREE.Vector3,c:THREE.Vector3,tint:number){
-    color.set('#c1d0d5').multiplyScalar(tint);
+    color.set('#d5e0e2').multiplyScalar(tint);
     for(const p of [a,b,c]){positions.push(p.x,p.y,p.z);colors.push(color.r,color.g,color.b);}
     for(const [p,q] of [[a,b],[b,c],[c,a]])wire.push(p.x,p.y,p.z,q.x,q.y,q.z);
   }
   for(let i=0;i<segments;i++)for(let j=0;j<bands;j++){
     const a=roofPoint(i,j),b=roofPoint(i+1,j),c=roofPoint(i,j+1),d=roofPoint(i+1,j+1);
-    triangle(a,c,b,.65+rand()*.75);triangle(b,c,d,.65+rand()*.75);
+    if(shape.roof==='crystal'){
+      // Raised diamond centers produce real facets and separate sunlit/shaded
+      // planes. A photograph's truss lines cannot supply this changing light.
+      const center=a.clone().add(b).add(c).add(d).multiplyScalar(.25);center.y+=3.8;
+      triangle(a,c,center,.95);triangle(c,d,center,.91);
+      triangle(d,b,center,.98);triangle(b,a,center,.94);
+    }else{triangle(a,c,b,.91+rand()*.15);triangle(b,c,d,.87+rand()*.18);}
   }
   const roof=new THREE.BufferGeometry();roof.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));roof.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));roof.computeVertexNormals();
-  const roofMaterial=standard({color:'#e0e2df',metalness:.68,roughness:.24,vertexColors:true,side:THREE.DoubleSide});
+  const roofMaterial=standard({color:'#fff5de',metalness:.18,roughness:.22,emissive:'#b59b6d',emissiveIntensity:.12,vertexColors:true,side:THREE.DoubleSide});
   geometries.add(roof);
   const canopy=shape.roof==='rect'?add(new THREE.BoxGeometry(shape.rx*2.05,2,shape.rz*2.05),metal,building):add(roof,roofMaterial,building);if(shape.roof==='rect')canopy.position.y=shape.height;canopy.name='roof-panels';canopy.castShadow=true;
   if(profile.covered&&shape.roof!=='rect'){const cap=add(new THREE.CircleGeometry(Math.max(shape.rx,shape.rz)*.035,64),metal,building);cap.rotation.x=-Math.PI/2;cap.position.y=shape.height+19;cap.castShadow=true;}
@@ -68,7 +75,7 @@ export function createDroneVenue(profile:Profile){
   for(let i=0;i<wallSegments;i++)for(let j=0;j<3;j++){
     const a=wallPoint(i,j/3),b=wallPoint(i+1,j/3),c=wallPoint(i,(j+1)/3),d=wallPoint(i+1,(j+1)/3);
     for(const vertices of [[a,b,c],[b,d,c]]){
-      color.set('#9fb7c1').multiplyScalar(.82+rand()*.21);
+      color.set('#c8d7dc').multiplyScalar(.86+rand()*.17);
       for(const p of vertices){facade.push(p.x,p.y,p.z);facadeColors.push(color.r,color.g,color.b);}
       for(let k=0;k<3;k++){const p=vertices[k],q=vertices[(k+1)%3];facadeWire.push(p.x,p.y,p.z,q.x,q.y,q.z);}
     }
@@ -146,7 +153,7 @@ export function createDroneVenue(profile:Profile){
   ellipseRing(shape.rx*1.45,shape.rz*1.56,.995,-.4,pathMaterial);
   const paths=instances(new THREE.BoxGeometry(1,1,1),pathMaterial,16);
   for(let i=0;i<16;i++){const a=i/16*Math.PI*2;place(paths,i,Math.sin(a)*shape.rx*1.32,-.35,Math.cos(a)*shape.rz*1.4,2,.1,65,a);}
-  const treeCount=900,trunks=instances(new THREE.CylinderGeometry(.45,.8,11,5),standard({color:'#635442',roughness:1}),treeCount);
+  const treeCount=1800,trunks=instances(new THREE.CylinderGeometry(.45,.8,11,5),standard({color:'#635442',roughness:1}),treeCount);
   const crown=new THREE.IcosahedronGeometry(5,1),crownPositions=crown.attributes.position;
   for(let i=0;i<crownPositions.count;i++){
     const x=crownPositions.getX(i),y=crownPositions.getY(i),z=crownPositions.getZ(i);
@@ -154,18 +161,31 @@ export function createDroneVenue(profile:Profile){
     crownPositions.setXYZ(i,x*wrinkle,y*wrinkle,z*wrinkle);
   }
   crown.computeVertexNormals();
-  const leaves=instances(crown,standard({color:'#4b5e37',roughness:1}),treeCount*3);leaves.castShadow=true;trunks.castShadow=true;
+  const leaves=instances(crown,standard({color:'#b5bd93',roughness:1}),treeCount*3);leaves.castShadow=true;trunks.castShadow=true;
+  const planting:{x:number;z:number;size:number;tile:number}[]=[];
   for(let i=0;i<treeCount;i++){
-    const a=rand()*Math.PI*2,r=1.55+rand()*.95,x=Math.sin(a)*shape.rx*r,z=Math.cos(a)*shape.rz*r,size=.6+rand()*.75;
+    const a=rand()*Math.PI*2,r=1.55+rand()*2.25,x=Math.sin(a)*shape.rx*r,z=Math.cos(a)*shape.rz*r,size=.7+rand()*.95;
     place(trunks,i,x,5*size,z,size,size,size);
-    for(let side=0;side<3;side++){const offset=(side-1)*3*size;place(leaves,i*3+side,x+Math.sin(a)*offset,(10+side%2*3)*size,z+Math.cos(a)*offset,size,(.8+rand()*.4)*size,size,a);leaves.setColorAt(i*3+side,color.setHSL(.22+rand()*.06,.12,.5+rand()*.16));}
+    planting.push({x,z,size,tile:i%3===2?3:i%2});
+    for(let side=0;side<3;side++){const offset=(side-1)*3*size;place(leaves,i*3+side,x+Math.sin(a)*offset,(10+side%2*3)*size,z+Math.cos(a)*offset,size,(.8+rand()*.4)*size,size,a);leaves.setColorAt(i*3+side,color.setHSL(.21+rand()*.08,.35+rand()*.15,.4+rand()*.23));}
   }
+  // Curved palm fronds and tall narrow trunks give the plaza its arrival-image
+  // scale. All 96 palms share two draw calls instead of independent objects.
+  const fronds:number[]=[];
+  for(let blade=0;blade<9;blade++)for(let part=0;part<8;part++){
+    const angle=blade/9*Math.PI*2;
+    const point=(t:number,side:number)=>{const width=Math.sin(t*Math.PI)*.55*side,r=t*8;return [Math.sin(angle)*r+Math.cos(angle)*width,Math.sin(t*Math.PI)*2.6-t*3,Math.cos(angle)*r-Math.sin(angle)*width];};
+    const t=part/8,u=(part+1)/8;fronds.push(...point(t,-1),...point(u,-1),...point(t,1),...point(u,-1),...point(u,1),...point(t,1));
+  }
+  const palmGeometry=new THREE.BufferGeometry();palmGeometry.setAttribute('position',new THREE.Float32BufferAttribute(fronds,3));palmGeometry.computeVertexNormals();
+  const palmLeaves=instances(palmGeometry,standard({color:'#6f8743',roughness:.82,side:THREE.DoubleSide}),96),palmTrunks=instances(new THREE.CylinderGeometry(.35,.65,15,7),standard({color:'#9b8160',roughness:.96}),96);palmLeaves.castShadow=palmTrunks.castShadow=true;
+  for(let i=0;i<96;i++){const a=i/96*Math.PI*2,r=1.21+(i%3)*.13,size=.8+rand()*.35,x=Math.sin(a)*shape.rx*r,z=Math.cos(a)*shape.rz*r;place(palmTrunks,i,x,7.5*size,z,size,size,size,a);place(palmLeaves,i,x,15*size,z,size,size,size,a);planting.push({x,z,size,tile:2});}
   const poles=instances(new THREE.CylinderGeometry(.22,.28,9,5),bronze,64),lamps=instances(new THREE.SphereGeometry(.65,6,4),warm,64);
   for(let i=0;i<64;i++){const a=i/64*Math.PI*2,x=Math.sin(a)*shape.rx*1.38,z=Math.cos(a)*shape.rz*1.5;place(poles,i,x,4.5,z);place(lamps,i,x,9,z);}
   const scene=new THREE.Scene();scene.add(root);
   scene.fog=new THREE.FogExp2('#dab990',.0004);
-  scene.add(new THREE.HemisphereLight('#d4e1ef','#393223',1.1));
-  const sun=new THREE.DirectionalLight('#ffd099',2.2);sun.position.set(-350,120,240);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-380,right:380,top:380,bottom:-380,near:1,far:1200});sun.shadow.camera.updateProjectionMatrix();sun.shadow.bias=-.0002;sun.shadow.normalBias=.45;scene.add(sun);
+  scene.add(new THREE.HemisphereLight('#e3eaf0','#6f5a3c',2.1));
+  const sun=new THREE.DirectionalLight('#ffe2af',4.2);sun.position.set(-350,210,240);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-380,right:380,top:380,bottom:-380,near:1,far:1200});sun.shadow.camera.updateProjectionMatrix();sun.shadow.bias=-.0002;sun.shadow.normalBias=.45;scene.add(sun);
   const fill=new THREE.DirectionalLight('#8eaeca',.6);fill.position.set(150,140,320);scene.add(fill);
   const skyMaterial=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{opacity:{value:1}},transparent:true,vertexShader:'varying vec3 vWorld; void main(){vWorld=(modelMatrix*vec4(position,1.0)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:`
     varying vec3 vWorld; uniform float opacity;
@@ -184,47 +204,26 @@ export function createDroneVenue(profile:Profile){
   // the stadium itself stays mesh geometry, visible from front, back and above.
   let backdrop:THREE.Mesh|undefined,backdropTexture:THREE.Texture|undefined,reflection:THREE.Texture|undefined,panorama:THREE.Mesh|undefined;
   const horizonPitch={value:26*Math.PI/180};
-  const artwork={value:null as THREE.Texture|null},detail={value:null as THREE.Texture|null};
-  const reference=new THREE.PerspectiveCamera(56,853/1844,1,5000);
-  reference.position.set(...dronePosition(HOME_DRONE));reference.lookAt(...droneFocus(HOME_DRONE));reference.updateMatrixWorld(true);
-  const projection=new THREE.Matrix4().multiplyMatrices(reference.projectionMatrix,reference.matrixWorldInverse);
-  // Photo projection keeps the front finish faithful to the arrival image. The
-  // unpictured sides reuse a crystal crop on actual, orbitable roof geometry.
-  // This is illustrative architecture, not a photogrammetry scan.
+  const detail={value:null as THREE.Texture|null};
+  // Only subtle surface grain comes from the artwork. Projecting its building
+  // over another geometry doubles the structural lines during an orbit.
   for(const material of [roofMaterial,glass]){
-    material.toneMapped=false;
     material.onBeforeCompile=shader=>{
-      if(!artwork.value)return; // Keep usable physical materials until artwork arrives.
-      Object.assign(shader.uniforms,{arrivalArtwork:artwork,crystalDetail:detail,arrivalProjection:{value:projection},arrivalEye:{value:reference.position}});
+      if(!detail.value)return;
+      Object.assign(shader.uniforms,{crystalDetail:detail});
       shader.vertexShader=shader.vertexShader.replace('#include <common>',`#include <common>
-        varying vec3 vArtworkWorld; varying vec3 vArtworkNormal;`)
+        varying vec3 vArtworkWorld;`)
         .replace('#include <begin_vertex>',`#include <begin_vertex>
-        vArtworkWorld=(modelMatrix*vec4(position,1.0)).xyz;
-        vArtworkNormal=normalize(mat3(modelMatrix)*normal);`);
+        vArtworkWorld=(modelMatrix*vec4(position,1.0)).xyz;`);
       shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
-        uniform sampler2D arrivalArtwork; uniform sampler2D crystalDetail;
-        uniform mat4 arrivalProjection; uniform vec3 arrivalEye;
-        varying vec3 vArtworkWorld; varying vec3 vArtworkNormal;`)
+        uniform sampler2D crystalDetail; varying vec3 vArtworkWorld;`)
         .replace('#include <color_fragment>',`#include <color_fragment>
-        vec4 projected=arrivalProjection*vec4(vArtworkWorld,1.0);
-        vec2 photoUV=projected.xy/projected.w*.5+.5;
-        float facing=dot(normalize(vArtworkNormal),normalize(arrivalEye-vArtworkWorld));
-        float inside=step(.002,photoUV.x)*step(.002,photoUV.y)*step(photoUV.x,.998)*step(photoUV.y,.998);
-        float usePhoto=smoothstep(.12,.55,facing)*inside;
         vec2 finishUV=fract(vec2(atan(vArtworkWorld.x,vArtworkWorld.z)*2.6,vArtworkWorld.y*.032));
         vec3 finish=texture2D(crystalDetail,finishUV).rgb;
-        vec3 arrival=texture2D(arrivalArtwork,clamp(photoUV,.002,.998)).rgb;
-        // Never paint the photographed dark opening onto a solid roof panel.
-        float solid= smoothstep(.06,.22,dot(arrival,vec3(.2126,.7152,.0722)));
-        // Reuse the photograph's subtle surface grain, not its mismatched truss
-        // lines. Broad, individually lit facets retain a readable crystal roof.
         float grain=dot(finish,vec3(.2126,.7152,.0722));
-        vec3 photographicFinish=mix(diffuseColor.rgb,arrival,usePhoto*solid*.12);
-        diffuseColor.rgb=photographicFinish*(.92+grain*.16);`)
-        .replace('#include <opaque_fragment>',`outgoingLight=mix(outgoingLight,photographicFinish,.18);
-        #include <opaque_fragment>`);
+        diffuseColor.rgb*=.97+grain*.06;`);
     };
-    material.customProgramCacheKey=()=>`arrival-crystal-${profile.id}-${artwork.value?'ready':'fallback'}`;
+    material.customProgramCacheKey=()=>`arrival-crystal-${profile.id}-${detail.value?'ready':'fallback'}`;
   }
   function cropTexture(texture:THREE.Texture,x:number,y:number,w:number,h:number){
     const image=texture.image as HTMLImageElement,crop=document.createElement('canvas');
@@ -234,14 +233,35 @@ export function createDroneVenue(profile:Profile){
   }
   // 32 seating rings + architecture/plaza/instancing stay below 70 draw calls.
   let disposed=false;
-  return {scene,root,building,setBackdrop(texture:THREE.Texture){
+  let foliage:THREE.InstancedMesh|undefined;
+  return {scene,root,building,setFoliage(texture:THREE.Texture){
+    if(disposed||foliage){texture.dispose();return;}
+    textures.add(texture);texture.colorSpace=THREE.SRGBColorSpace;
+    const geometry=new THREE.PlaneGeometry(15,19);geometry.translate(0,9.5,0);
+    const regions=[[0,.255],[.255,.25],[.505,.18],[.685,.315]],uvs:number[]=[];
+    planting.forEach(plant=>uvs.push(...regions[plant.tile]));
+    geometry.setAttribute('foliageRegion',new THREE.InstancedBufferAttribute(new Float32Array(uvs),2));
+    const material=basic({color:'#fff9ea',map:texture,alphaTest:.3,side:THREE.DoubleSide,toneMapped:false});
+    material.onBeforeCompile=shader=>{
+      shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute vec2 foliageRegion;')
+        .replace('#include <uv_vertex>','#include <uv_vertex>\nvMapUv.x=foliageRegion.x+vMapUv.x*foliageRegion.y;')
+        .replace('#include <project_vertex>',`vec3 center=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;
+          vec3 toward=cameraPosition-center;vec3 right=normalize(vec3(toward.z,0.,-toward.x));
+          vec3 plantWorld=center+right*position.x*length(instanceMatrix[0].xyz)+vec3(0.,position.y*length(instanceMatrix[1].xyz),0.);
+          vec4 mvPosition=viewMatrix*vec4(plantWorld,1.);gl_Position=projectionMatrix*mvPosition;`);
+    };
+    foliage=instances(geometry,material,planting.length);foliage.name='photographic-foliage';foliage.receiveShadow=false;
+    planting.forEach((plant,index)=>place(foliage!,index,plant.x,0,plant.z,plant.size,plant.size,plant.size));
+    // Upright cutouts face heading only: they never roll with camera pitch.
+    leaves.visible=trunks.visible=palmLeaves.visible=palmTrunks.visible=false;
+  },setBackdrop(texture:THREE.Texture){
     backdropTexture?.dispose();reflection?.dispose();detail.value?.dispose();groundMaterial.map?.dispose();
-    artwork.value=texture;
     detail.value=cropTexture(texture,.45,.57,.35,.075);detail.value.wrapS=detail.value.wrapT=THREE.MirroredRepeatWrapping;
-    groundMaterial.map=cropTexture(texture,0,.75,1,.25);groundMaterial.map.wrapS=groundMaterial.map.wrapT=THREE.MirroredRepeatWrapping;groundMaterial.map.repeat.set(5,5);groundMaterial.color.set('#b4baa5');groundMaterial.needsUpdate=true;
+    // Only the forest patch tiles beneath planting; stadiums, roads and nearby
+    // buildings from a perspective photograph must never repeat in the ground.
+    groundMaterial.map=cropTexture(texture,.025,.78,.27,.12);groundMaterial.map.wrapS=groundMaterial.map.wrapT=THREE.MirroredRepeatWrapping;groundMaterial.map.repeat.set(14,14);groundMaterial.color.set('#b5bc94');groundMaterial.needsUpdate=true;
     roofMaterial.needsUpdate=glass.needsUpdate=true;
     const image=texture.image as HTMLImageElement,crop=document.createElement('canvas');crop.width=image.width;crop.height=Math.round(image.height*.42);
-    reference.aspect=image.width/image.height;reference.updateProjectionMatrix();projection.multiplyMatrices(reference.projectionMatrix,reference.matrixWorldInverse);
     crop.getContext('2d')?.drawImage(image,0,0,image.width,crop.height,0,0,crop.width,crop.height);
     backdropTexture=new THREE.CanvasTexture(crop);backdropTexture.colorSpace=THREE.SRGBColorSpace;backdropTexture.repeat.set(8,1);backdropTexture.wrapS=THREE.MirroredRepeatWrapping;backdropTexture.needsUpdate=true;
     if(!panorama){reflection=texture.clone();reflection.mapping=THREE.EquirectangularReflectionMapping;reflection.needsUpdate=true;scene.environment=reflection;scene.environmentIntensity=.35;}

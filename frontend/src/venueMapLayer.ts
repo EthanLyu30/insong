@@ -29,7 +29,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const canvas=map.getCanvas();
   const droneCamera=new THREE.PerspectiveCamera(56,1,1,5000);
-  let drone:ReturnType<typeof createDroneVenue>|undefined,droneActive=false,droneStarted=0,environmentRequested=false;
+  let drone:ReturnType<typeof createDroneVenue>|undefined,droneActive=false,droneStarted=0,environmentRequested=false,foliageRequested=false;
   let droneView:DroneView={...HOME_DRONE},droneTarget:DroneView={...HOME_DRONE};
 
   function configureTexture(texture:THREE.Texture){
@@ -52,7 +52,7 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
     const profile=venueScene(event),id=profile?.id??'';if(profileId===id&&!profileFailed)return;
     profileId=id;const version=++loadVersion;
     drone?.dispose();drone=profile?createDroneVenue(profile):undefined;
-    droneActive=false;droneStarted=0;environmentRequested=false;droneView={...HOME_DRONE};droneTarget={...HOME_DRONE};delete canvas.dataset.droneView;
+    droneActive=false;droneStarted=0;environmentRequested=false;foliageRequested=false;droneView={...HOME_DRONE};droneTarget={...HOME_DRONE};delete canvas.dataset.droneView;
     profileFailed=false;
     readyAt=[0,0];detailReady=[false,false];sized='';target={...HOME_PHOTO_VIEW};view={...target};
     materials.forEach((material,index)=>{material.map?.dispose();material.map=null;material.needsUpdate=true;surfaces[index].visible=false;});
@@ -72,7 +72,10 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   }
   function resize(){
     const width=map.getContainer().clientWidth,height=map.getContainer().clientHeight;
-    const key=`${width}:${height}:${dimensions.flat().join(':')}:${mode}`;if(key===sized)return;sized=key;
+    const key=`${width}:${height}:${canvas.width}:${canvas.height}:${dimensions.flat().join(':')}:${mode}`;if(key===sized)return;sized=key;
+    // MapLibre resizes the shared drawing buffer independently of Three. Keep
+    // Three's cached viewport in sync, including mobile rotation/DPR changes.
+    renderer?.setSize(canvas.width,canvas.height,false);
     const dpr=canvas.width/Math.max(1,width);
     camera.aspect=width/height;camera.updateProjectionMatrix();
     const visibleHeight=2*DISTANCE*Math.tan(THREE.MathUtils.degToRad(FOV/2));
@@ -121,6 +124,9 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
       camera.position.set(Math.sin(yaw)*Math.cos(pitch)*radius,Math.sin(pitch)*radius,Math.cos(yaw)*Math.cos(pitch)*radius);camera.lookAt(0,0,0);
       renderer.resetState();
       if(drone&&droneMix>0&&night<.999){
+        // The orbit is a screen-space scene, not geometry inside MapLibre's
+        // geographic depth buffer. Clear that buffer before its sky and facade.
+        renderer.clearDepth();
         droneCamera.aspect=camera.aspect;droneCamera.updateProjectionMatrix();
         droneCamera.position.set(...dronePosition(droneView));droneCamera.lookAt(...droneFocus(droneView));
         drone.setCamera(droneCamera);drone.setOpacity(visible);renderer.render(drone.scene,droneCamera);renderer.clearDepth();
@@ -147,6 +153,13 @@ export function createVenueLayer(map:GLMap,onImageState:(state:'loading'|'ready'
   function move(next:PhotoView){resize();const bounded=clampPhotoView(next,pixelZoom);maxZoom=Math.max(1,pixelZoom/photoCoverage(camera.aspect,bounded.yaw,bounded.pitch));target=clampPhotoView(bounded,maxZoom);lastFrame=performance.now();map.triggerRepaint();}
   function flyDrone(next:DroneView){
     if(!drone)return;
+    if(!foliageRequested){
+      foliageRequested=true;const version=loadVersion,owner=drone;
+      new THREE.TextureLoader().load('/scenes/materials/drone-foliage-v1.webp',texture=>{
+        if(disposed||version!==loadVersion){texture.dispose();return;}
+        configureTexture(texture);owner.setFoliage(texture);map.triggerRepaint();
+      });
+    }
     // This environment belongs to the Shenzhen crystal artwork. Other cities
     // keep their own horizon; never download a panorama on the initial map.
     if(!environmentRequested&&profileId==='shenzhen-stadium'){

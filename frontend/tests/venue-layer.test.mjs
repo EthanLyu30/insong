@@ -15,10 +15,11 @@ test('returning to a close venue map fully removes the scene instead of leaving 
   const source=await readFile(new URL('../src/venueMapLayer.ts',import.meta.url),'utf8');
   const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   let now=1000,zoom=16.1;
-  const canvas={width:390,dataset:{}},module={exports:{}};
+  const canvas={width:390,height:844,dataset:{}},module={exports:{}};
   const container={clientWidth:390,clientHeight:844,parentElement:{style:{setProperty(){}}},classList:{toggle(){}}};
   const map={getCanvas:()=>canvas,getContainer:()=>container,getZoom:()=>zoom,on(){},off(){},triggerRepaint(){},addLayer(layer){this.layer=layer;layer.onAdd(this,{});}};
-  const mockedThree={...THREE,TextureLoader:class{load(_url,success){success(new THREE.Texture({width:941,height:1672}));}},WebGLRenderer:class{capabilities={getMaxAnisotropy:()=>1};shadowMap={};resetState(){}clearDepth(){}render(){}dispose(){}}};
+  const renderCommands=[],renderSizes=[];
+  const mockedThree={...THREE,TextureLoader:class{load(_url,success){success(new THREE.Texture({width:941,height:1672}));}},WebGLRenderer:class{capabilities={getMaxAnisotropy:()=>1};shadowMap={};setSize(w,h,style){renderSizes.push([w,h,style]);}resetState(){renderCommands.push('reset');}clearDepth(){renderCommands.push('clear-depth');}render(scene){renderCommands.push(scene.children[0]?.isGroup?'drone':'portrait');}dispose(){}}};
   const dependencies={'three':mockedThree,'./sceneFraming':framing,'./sceneDepthSurface':surface,'./venueScenes':profiles,'./droneOrbit':droneOrbit,'./droneVenue':droneVenue};
   const previousDocument=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({drawImage(){}})})};
   new Function('require','module','exports','window','document','performance',compiled)(name=>{assert.ok(name in dependencies,name);return dependencies[name];},module,module.exports,{matchMedia:()=>({matches:false})},{hidden:false,addEventListener(){},removeEventListener(){}},{now:()=>now});
@@ -28,6 +29,11 @@ test('returning to a close venue map fully removes the scene instead of leaving 
   layer.orbit(1800,0);
   for(let i=0;i<30;i++){now+=100;map.layer.render();}
   assert.equal(canvas.dataset.model,'drone-volume');assert.ok(Math.abs(JSON.parse(canvas.dataset.droneView).azimuth-droneOrbit.HOME_DRONE.azimuth)>360);
+  assert.ok(renderCommands.includes('drone'));
+  assert.deepEqual(renderSizes.at(-1),[390,844,false],'Three must use the map drawing buffer, without changing its CSS size');
+  container.clientWidth=430;container.clientHeight=932;canvas.width=645;canvas.height=1398;now+=100;map.layer.render();
+  assert.deepEqual(renderSizes.at(-1),[645,1398,false],'mobile resize and DPR changes must update the separate renderer viewport');
+  renderCommands.forEach((command,index)=>{if(command==='drone')assert.equal(renderCommands[index-1],'clear-depth','map depth cannot occlude the orbit sky and facade');});
   layer.scene('sky');now+=2600;map.layer.render();assert.equal(Number(canvas.dataset.night),1,'the night remains the chosen photographic starfield');
   layer.scene('venue');now+=2600;map.layer.render();
   const departingAt=now;
