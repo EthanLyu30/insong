@@ -219,6 +219,60 @@ test('writing first requires a chosen song before saving and changing music pres
   assert.equal(sent.song_id,2);assert.equal(sent.offset_ms,null);assert.equal(sent.lyric_id,null);assert.equal(sent.theme_id,'summer');assert.deepEqual(sent.tags,['夏天']);
 });
 
+test('creation visibility stays private by default and publishes only after the explicit public save',async()=>{
+  let sent,writes=0;
+  await harness('/songs/1/write',async(url,options)=>{
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);writes++;return Response.json({...card,publication:{published:true}});}throw new Error(url);
+  },async({act,fill,location})=>{
+    const picker=document.querySelector('[aria-label="设置记忆可见范围"]');assert.ok(picker);
+    assert.match(picker.textContent,/仅自己/);
+    await fill('memory-story','想与听友分享的这一晚。');
+    await act(async()=>picker.click());
+    await act(async()=>document.querySelector('[role="option"][data-value="public"]').click());
+    assert.match(document.querySelector('.composer-save button').textContent,/发布/);
+    assert.equal(writes,0,'choosing public must not publish an unfinished draft');
+    assert.equal(document.querySelector('[aria-label="匿名分享"]').checked,true);
+    assert.equal(document.querySelector('[aria-label="公开人生时间"]').checked,false);
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/memories/88');
+  });
+  assert.equal(writes,1);assert.deepEqual(sent.publication,{confirmed:true,anonymous:true,share_life_time:false});
+  assert.equal(sent.story,'想与听友分享的这一晚。');
+});
+
+test('switching public creation back to private preserves the draft and does not send publication consent',async()=>{
+  let sent;
+  await harness('/songs/1/write',async(url,options)=>{
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);
+  },async({act,fill})=>{
+    await fill('memory-story','这一段最后还是只留给自己。');
+    await act(async()=>document.querySelector('[aria-label="设置记忆可见范围"]').click());
+    await act(async()=>document.querySelector('[role="option"][data-value="public"]').click());
+    await act(async()=>document.querySelector('[aria-label="匿名分享"]').click());
+    await act(async()=>document.querySelector('[aria-label="设置记忆可见范围"]').click());
+    await act(async()=>document.querySelector('[role="option"][data-value="private"]').click());
+    assert.equal(document.querySelector('[aria-label="匿名分享"]'),null);
+    assert.equal(document.querySelector('#memory-story').value,'这一段最后还是只留给自己。');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+  });
+  assert.equal(sent.publication,undefined);
+});
+
+test('failed public creation keeps both the visibility choice and writing for retry',async()=>{
+  await harness('/songs/1/write',async(url)=>{
+    if(url==='/api/memories')return Response.json({detail:'发布暂时没有完成，请重试。'},{status:503});throw new Error(url);
+  },async({act,fill,location})=>{
+    await fill('memory-story','失败后仍然保留的正文。');
+    await act(async()=>document.querySelector('[aria-label="设置记忆可见范围"]').click());
+    await act(async()=>document.querySelector('[role="option"][data-value="public"]').click());
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/songs/1/write');
+    assert.equal(document.querySelector('#memory-story').value,'失败后仍然保留的正文。');
+    assert.match(document.querySelector('[aria-label="设置记忆可见范围"]').textContent,/公开/);
+    assert.match(document.querySelector('[role="alert"]').textContent,/发布暂时没有完成/);
+  });
+});
+
 test('choice list measures wrapped content and closes when its anchor leaves the mobile viewport',async()=>{
   await harness('/memories',async url=>{throw new Error(url);},async({act})=>{
     const trigger=document.querySelector('.memory-filter button');

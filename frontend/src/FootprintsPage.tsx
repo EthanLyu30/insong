@@ -156,7 +156,7 @@ export function FootprintsPage() {
       <header><h2>{recentHeading}</h2><button type="button" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}>{expanded?'收起':'更多'} <CaretDown size={16}/></button></header>
       {scheduleFilters()}
       <div className="atlas-schedule-list">{(expanded?recentRuns:recentRuns.slice(0,1)).map(run=>runCard(run))}</div>
-      {!recent.length&&<div className="atlas-schedule-empty"><p>{period==='upcoming'?'未来 7 天暂无待演场次。':'当前筛选暂无往期场次。'}</p>{period==='upcoming'&&selectSchedule(events,'past','',today).length>0&&<button type="button" onClick={()=>changePeriod('past')}>看看往期现场 <ArrowRight size={14}/></button>}{month&&<button type="button" onClick={()=>setParams(filters({...((artist)?{artist:artist.id}:{}),month:''}),{replace:true})}>清除筛选</button>}</div>}{!expanded&&recentRuns[0]&&recentRuns[0].events.some(event=>event.event_status!=='cancelled')&&<button className="atlas-primary-action map-primary-action" type="button" onClick={()=>approach(runEvent(recentRuns[0]))}>靠近这场现场 <ArrowRight size={20}/></button>}
+      {!recent.length&&<div className="atlas-schedule-empty"><p>{period==='upcoming'?'未来 7 天暂无待演场次。':'当前筛选暂无往期场次。'}</p>{period==='upcoming'&&selectSchedule(events,'past','',today).length>0&&<button type="button" onClick={()=>changePeriod('past')}>看看往期现场 <ArrowRight size={14}/></button>}{month&&<button type="button" onClick={()=>setParams(filters({...((artist)?{artist:artist.id}:{}),month:''}),{replace:true})}>清除筛选</button>}</div>}
       {expanded&&<p className="atlas-catalog-coverage">{recentRuns.length} 组现场 · {recent.length} 晚</p>}
     </section>:null}
     {scene==='venue'&&venue&&stageEvent&&<section ref={mapPanel} className="atlas-panel atlas-show-sheet">

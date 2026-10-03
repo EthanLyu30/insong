@@ -173,6 +173,8 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [cover,setCover]=useState<string|null>(existing?.photo_id??null);
   const [uploading,setUploading]=useState(false);
   const [eventId,setEventId]=useState(existing?existing.event_id??null:initialEvent);
+  const [visibility,setVisibility]=useState('private');
+  const [anonymous,setAnonymous]=useState(true),[shareLife,setShareLife]=useState(false);
   const [error, setError] = useState('');const [busy, setBusy] = useState(false);
   const lock = useRef(false);const requestKey = useRef(crypto.randomUUID());
   function chooseSong(value:Song){
@@ -188,7 +190,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const tags=parseTags(tagText);if(tags.length>8||tags.some(tag=>tag.length>24)){if(extraOptions.current)extraOptions.current.open=true;setError('最多添加8个标签，每个不超过24字。');return;}
     lock.current = true;setBusy(true);
     try {
-      const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:themeId,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : 'unknown',offset_ms:offset,...(existing ? {revision:existing.revision} : {song_id:song.id,request_key:requestKey.current})};
+      const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:themeId,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : 'unknown',offset_ms:offset,...(existing ? {revision:existing.revision} : {song_id:song.id,request_key:requestKey.current,...(visibility==='public'?{publication:{confirmed:true,anonymous,share_life_time:shareLife}}:{})})};
       const saved = await apiRequest<Memory>(apiBaseUrl, existing ? `/api/memories/${existing.id}` : '/api/memories', {method:existing ? 'PATCH' : 'POST',body:JSON.stringify(body)});
       if (!live.current) return;
       if(existing&&previous?.url.split('?')[0]===`/memories/${saved.id}`)back();
@@ -197,10 +199,11 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     finally {lock.current = false;setBusy(false);}
   }
   return <section className="journal-page memory-composer">
-    <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'留下一刻'}</h1><span>仅自己可见</span></header>
+    <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'留下一刻'}</h1>{existing?<span>修改后重新分享</span>:<div className="composer-visibility"><ChoicePicker label="设置记忆可见范围" value={visibility} onChange={setVisibility} options={[{value:'private',label:'仅自己'},{value:'public',label:'公开'}]} disabled={busy||uploading}/></div>}</header>
     <SampleNotice compact/>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
+      {!existing&&visibility==='public'&&<section className="composer-sharing" aria-label="发布设置"><p>公开正文、照片与关联现场</p><div><label><input type="checkbox" aria-label="匿名分享" checked={anonymous} onChange={event=>setAnonymous(event.target.checked)}/>匿名分享</label><label><input type="checkbox" aria-label="公开人生时间" checked={shareLife} onChange={event=>setShareLife(event.target.checked)}/>公开人生时间</label></div></section>}
       {eventId&&<div className="composer-event-context"><EventNote key={eventId} id={eventId} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>setEventId(null)}><X size={16} aria-hidden="true"/></button></div>}
       <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="给这一刻起个名字（选填）"/></label>
       <label className="composer-story" htmlFor="memory-story"><span className="sr-only">听到这里，你想起了什么？</span><textarea id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="听到这里，你想起了什么？&#10;一句心事，或一个难忘的瞬间。"/></label><span className="character-count">{story.length} / 500</span>
@@ -217,7 +220,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       </div></details>
       {existing?.publication?.published&&<p className="sample-notice">修改原文或坐标后，会先撤回旧的公开片段。保存后可重新预览并分享。</p>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <div className="composer-save"><p className="privacy-line">先留给自己，分享由你决定。</p><button className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '正在收好…' : uploading?'正在收好照片…':existing ? '保存修改' : '保存这一刻'}</button></div>
+      <div className="composer-save"><p className="privacy-line">{!existing&&visibility==='public'?'让听友看见这一刻。':'先留给自己，分享由你决定。'}</p><button className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '正在收好…' : uploading?'正在收好照片…':existing ? '保存修改' : visibility==='public'?'发布这一刻':'保存这一刻'}</button></div>
       </fieldset>
     </form>
   </section>;

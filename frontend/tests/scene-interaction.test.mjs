@@ -50,25 +50,16 @@ test('two pointers reach the scene camera and never activate the venue entrance'
       }
     });
     assert.deepEqual(calls[1],['orbit',30,0]);assert.equal(entries,0);
-    const hint=document.querySelector('.cinematic-orbit-hint');
-    await React.act(async()=>{
-      for(const [type,x] of [['pointerdown',130],['pointermove',190],['pointerup',190]]){
-        const event=new dom.window.MouseEvent(type,{bubbles:true,clientX:x,clientY:350,button:0});Object.defineProperty(event,'pointerId',{value:4});hint.dispatchEvent(event);
-      }
-      hint.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,detail:1}));
-    });
-    assert.deepEqual(calls.at(-1),['orbit',60,0],'dragging the central orbit hint also reaches the camera');
-    assert.equal(calls.length,3,'a drag does not add an accidental tap/reset at pointer up');assert.equal(entries,0);
+    assert.ok(!document.querySelector('.cinematic-orbit-hint'),'the retired orbit action is absent');
     const stage=document.querySelector('.cinematic-stage');
+    assert.ok(!stage.getAttribute('aria-label').includes('360'));
     await React.act(async()=>{
-      const down=new dom.window.MouseEvent('pointerdown',{bubbles:true,clientX:180,clientY:350,button:0});Object.defineProperty(down,'pointerId',{value:5});hint.dispatchEvent(down);
+      const down=new dom.window.MouseEvent('pointerdown',{bubbles:true,clientX:180,clientY:350,button:0});Object.defineProperty(down,'pointerId',{value:5});entrance.dispatchEvent(down);
       // Native pointer capture retargets pointer-up and its click to the stage.
       const up=new dom.window.MouseEvent('pointerup',{bubbles:true,clientX:180,clientY:350,button:0});Object.defineProperty(up,'pointerId',{value:5});stage.dispatchEvent(up);
       stage.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,detail:1}));
     });
-    assert.deepEqual(calls.at(-1),['orbit',0,0],'a captured hint tap activates the drone view');
-    assert.equal(calls.length,4);assert.equal(entries,0);
-    await React.act(async()=>hint.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,detail:0})));
-    assert.equal(calls.length,5,'keyboard activation still works');
+    assert.equal(entries,1,'an ordinary entrance tap still opens the concert');
+    assert.equal(calls.length,2,'a tap never starts an orbit or resets the camera');
   }finally{await React.act(async()=>root.unmount());await server.close();dom.window.close();delete globalThis.window;delete globalThis.document;delete globalThis.IS_REACT_ACT_ENVIRONMENT;}
 });

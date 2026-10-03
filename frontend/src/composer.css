@@ -4,6 +4,13 @@
 .composer-heading .back-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px 0 0; color: #685446; font-size: 13px; }
 .memory-composer .composer-heading h1 { margin: 0; font-size: 28px; line-height: 1.3; }
 .composer-heading > span { font-size: 11px; color: #7b7e67; }
+.composer-visibility { width:104px;flex:none; }
+.composer-visibility .choice-trigger { width:100%;min-height:44px;padding:0 10px;font-size:12px;border-color:transparent;background:transparent; }
+.composer-sharing { margin:0 0 12px;padding:8px 0 12px;color:#7d6856;border-bottom:1px solid #e3d8c8; }
+.composer-sharing p { margin:0 0 10px;font-size:12px; }
+.composer-sharing>div { display:flex;flex-wrap:wrap;gap:12px 20px; }
+.memory-composer .composer-sharing label { display:inline-flex;flex-direction:row;align-items:center;gap:6px;min-height:32px;font-size:12px;cursor:pointer; }
+.memory-composer .composer-sharing input { width:16px;height:16px;padding:0;accent-color:#ad714c;margin:0; }
 .memory-composer .sample-notice.is-compact { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 8px; background: none; border: 0; border-bottom: 1px solid #e7dfd2; margin: 0 0 12px; padding: 7px 0; font-size: 10px; }
 .composer-paper { border: 0; background: transparent; padding: 0; }
 .composer-paper .form-fields { gap: 0; }

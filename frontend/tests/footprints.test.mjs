@@ -73,6 +73,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
     await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回上一页'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,3);
     await click('邓紫棋'); assert.equal(writes,0);
+    assert.ok(!document.querySelector('.map-primary-action'),'the schedule row is the single approach action');
     assert.ok(document.querySelector('[aria-label="日程时期"]'));
     assert.equal([...document.querySelectorAll('.atlas-schedule-filters button')].find(button=>button.textContent==='往期').getAttribute('aria-pressed'),'true','history is the default');
     assert.ok(!document.body.textContent.includes('我关心'));
@@ -80,13 +81,13 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('往期');assert.match(document.querySelector('.atlas-schedule-list').textContent,/大运体育场/);
     assert.ok(!document.querySelector('.atlas-schedule-list').textContent.includes('10.01'),'past filter excludes the next show');
     await click('接下来');
-    await click('靠近这场现场');
+    await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
     assert.ok(document.querySelector('[data-scene="map"]'),'approaching an itinerary stops on the venue map before the exterior');
     assert.deepEqual(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).center,[114.2123,22.697]);
     await click('进入大运体育场');
     assert.ok(document.querySelector('[data-scene="venue"]'));
     assert.equal(document.querySelectorAll('.cinematic-controls button').length,0);
-    assert.match(document.querySelector('.cinematic-orbit-hint').textContent,/拖动，环绕现场/);
+    assert.ok(!document.querySelector('.cinematic-orbit-hint'),'the retired 360-degree action is absent');
     await React.act(async()=>{
       const entrance=document.querySelector('.cinematic-enter');
       for(const [type,x,y] of [['pointerdown',100,300],['pointermove',140,310],['pointermove',103,304],['pointerup',103,304]]){
@@ -101,7 +102,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('返回上一页');assert.ok(document.querySelector('[data-scene="venue"]'));
     await click('返回上一页');assert.ok(document.querySelector('.atlas-city-sheet'));
     await click('返回上一页');assert.ok(document.querySelector('.atlas-itinerary'),'three scene backs return to the original national itinerary');
-    await click('往期'); await click('靠近这场现场'); await click('进入大运体育场'); await click('2026.09.11');
+    await click('往期'); await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click()); await click('进入大运体育场'); await click('2026.09.11');
     await click('泡沫'); assert.ok(document.querySelector('.concert-song-list'));assert.equal(document.querySelector('a[data-qq-song]'),null);assert.equal(document.querySelector('.atlas-event-source'),null);
     assert.equal(playCalls,1,'clicking the song star starts its audio');
     await React.act(async()=>document.querySelector('.concert-song-list button').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
@@ -147,20 +148,20 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     assert.ok([...document.querySelectorAll('.atlas-attendance button')].some(button=>button.disabled&&button.textContent==='演出已取消'));
     catalog.events[0].event_status='scheduled';
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'filtered-night',initialEntries:['/footprints?artist=gem&period=past&month=2026-09']},React.createElement(AtlasWithNavigation))));
-    await click('靠近这场现场');await click('进入大运体育场');
+    await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());await click('进入大运体育场');
     assert.match(document.querySelector('.atlas-show-sheet').textContent,/09.11/,'the selected past night survives approach and venue selection');
     assert.ok(!document.querySelector('.atlas-show-sheet').textContent.includes('10.01'),'month and period remain applied inside the venue');
     catalog.events.push({...catalog.events[1],id:'gem-other',venue:'另一座体育馆'});
     catalog.events.push({...catalog.events[1],id:'liu-future',artist_id:'liu',venue:'刘雨昕体育馆'});
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'all-map',initialEntries:['/footprints']},React.createElement(AtlasWithNavigation))));
-    await click('靠近这场现场');
+    await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
     await click('返回上一页');
     assert.equal([...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').getAttribute('aria-pressed'),'true','an approached event does not become an implicit artist filter');
     catalog.events.push({...catalog.events[0],id:'gem-second-night',date:'2026-09-12'});
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'grouped',initialEntries:['/footprints?artist=gem&period=past']},React.createElement(AtlasWithNavigation))));
     assert.equal(document.querySelectorAll('.atlas-schedule-item').length,1,'a run should occupy one itinerary row');
     assert.match(document.querySelector('.atlas-schedule-row').textContent,/09.11.*09.12/);
-    await click('靠近这场现场');await click('进入大运体育场');
+    await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());await click('进入大运体育场');
     assert.ok(!document.querySelector('.atlas-show-sheet .atlas-primary-action'),'the exterior sheet should not duplicate venue entry');
     await click('搜索场次');
     await React.act(async()=>{const input=document.querySelector('input[aria-label="搜索这座场馆的现场"]');const setter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;setter.call(input,'09.12');input.dispatchEvent(new window.Event('input',{bubbles:true}));});

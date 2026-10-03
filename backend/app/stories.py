@@ -2,35 +2,23 @@
 import json
 
 from fastapi import Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
+from pydantic import Field, field_validator
 from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session as OrmSession
 
 from .content import THEMES, selected_lyric
 from .media import serialize_song
-from .memories import CreateMemory, owner_card, update_card, validate_gallery
-from .models import MemoryCard, PublicStory, User, utc_now
+from .memories import CreateMemory, PublicationConsent, owner_card, set_publication_snapshot, update_card, validate_gallery
+from .models import MemoryCard, PublicStory, User
 from .recall import SearchInput, keyword_score
 from .photos import photo_url
-from .card_metadata import gallery_ids, memory_tags, normalize_tag, serialize_photos
+from .card_metadata import gallery_ids, normalize_tag, serialize_photos
 from .footprints import load_catalog
 
 
-class PublishInput(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+class PublishInput(PublicationConsent):
     revision: int = Field(ge=1, strict=True)
     excerpt: str = Field(min_length=1, max_length=500)
-    share_life_time: StrictBool = False
-    anonymous: StrictBool = True
-    confirmed: StrictBool
-
-    @field_validator('confirmed')
-    @classmethod
-    def explicit_consent(cls, value):
-        if not value:
-            raise ValueError('请先确认公开预览')
-        return value
-
     @field_validator('excerpt')
     @classmethod
     def nonblank(cls, value):
@@ -103,23 +91,7 @@ def install_stories(app, get_db, get_user):
         if data.excerpt not in card.story:
             raise HTTPException(422, '请选择原文中连续的一段，公开前不会替你改写故事。')
         validate_gallery(db, gallery_ids(card), user)
-        public = card.publication
-        if public is None:
-            public = PublicStory(memory_id=card.id, version=0)
-            db.add(public)
-        public.excerpt = data.excerpt
-        public.title = card.title
-        public.tags_json = json.dumps(memory_tags(card), ensure_ascii=False)
-        public.photo_ids_json = json.dumps(gallery_ids(card))
-        public.share_life_time = data.share_life_time
-        public.life_time = card.life_time if data.share_life_time else None
-        public.life_year = card.life_year if data.share_life_time else None
-        public.anonymous = data.anonymous
-        public.author_name = '匿名听友' if data.anonymous else user.display_name
-        public.offset_ms, public.lyric_id, public.theme_id = card.offset_ms, card.lyric_id, card.theme_id
-        public.photo_id, public.end_ms, public.event_id = card.photo_id, card.end_ms, card.event_id
-        public.published, public.published_at = True, utc_now()
-        public.version += 1
+        set_publication_snapshot(card, data.excerpt, data, user)
         # Snapshot and revision claim commit atomically; a stale request rolls both back.
         return update_card(db, card, data.revision, {})
 
