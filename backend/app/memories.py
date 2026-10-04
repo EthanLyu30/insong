@@ -28,10 +28,16 @@ class Coordinates(BaseModel):
     end_ms: StrictInt | None = Field(default=None, ge=0)
     photo_id: str | None = Field(default=None, min_length=1, max_length=36)
     event_id: str | None = Field(default=None, min_length=1, max_length=100)
+    location_name: str | None = Field(default=None, max_length=160)
 
     @field_validator('title', mode='before')
     @classmethod
     def trimmed_title(cls, value):
+        return (value.strip() or None) if isinstance(value, str) else value
+
+    @field_validator('location_name', mode='before')
+    @classmethod
+    def trimmed_location(cls, value):
         return (value.strip() or None) if isinstance(value, str) else value
 
     @field_validator('tags')
@@ -149,7 +155,7 @@ def serialize_memory(card):
     return {key: getattr(card, key) for key in (
         'id', 'owner_id', 'song_id', 'story', 'life_time', 'life_precision', 'scene',
         'visibility', 'is_demo_sample', 'offset_ms', 'end_ms', 'photo_id', 'event_id',
-        'revision', 'lyric_id', 'life_year', 'theme_id', 'title',
+        'revision', 'lyric_id', 'life_year', 'theme_id', 'title', 'location_name',
     )} | {
         'owner_display_name': card.owner.display_name,
         'tags': memory_tags(card), 'photos': serialize_photos(card),
@@ -262,7 +268,7 @@ def set_publication_snapshot(card, excerpt, consent, user):
 def install_memories(app, get_db, get_user):
     def retry_result(existing, data):
         fields = ('song_id', 'story', 'offset_ms', 'end_ms', 'event_id', 'title',
-                  'life_time', 'life_precision', 'lyric_id', 'life_year', 'theme_id')
+                  'life_time', 'life_precision', 'lyric_id', 'life_year', 'theme_id', 'location_name')
         ids, cover = resolve_gallery(data)
         if (any(getattr(existing, key) != getattr(data, key) for key in fields)
                 or existing.photo_id != cover or gallery_ids(existing) != ids or memory_tags(existing) != data.tags):

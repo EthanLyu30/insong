@@ -50,6 +50,7 @@ def initialize_database(engine: Engine) -> None:
         'lyric_id': 'VARCHAR(40)', 'life_year': 'INTEGER', 'theme_id': 'VARCHAR(40)',
         'photo_id': 'VARCHAR(36) REFERENCES photos(id)', 'end_ms': 'INTEGER', 'event_id': 'VARCHAR(100)',
         'title': 'VARCHAR(80)', 'tags_json': 'TEXT',
+        'location_name': 'VARCHAR(160)',
         'photo_ids_json': "TEXT NOT NULL DEFAULT '[]'",
     }
     with engine.begin() as connection:

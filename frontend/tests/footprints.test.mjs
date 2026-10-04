@@ -71,7 +71,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   try{
     await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(AtlasWithNavigation))));
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
-    await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回上一页'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,3);
+    await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回上一页'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,6.4);
     await click('邓紫棋'); assert.equal(writes,0);
     assert.ok(!document.querySelector('.map-primary-action'),'the schedule row is the single approach action');
     assert.ok(document.querySelector('[aria-label="日程时期"]'));

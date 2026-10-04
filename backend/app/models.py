@@ -58,6 +58,7 @@ class MemoryCard(Base):
     tags_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     photo_ids_json: Mapped[str] = mapped_column(Text, default='[]', server_default='[]')
     life_time: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    location_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
     scene: Mapped[str | None] = mapped_column(String(160), nullable=True)
     offset_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)

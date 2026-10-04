@@ -9,6 +9,7 @@ export type Memory = {
   created_at: string; updated_at: string; reflections: Reflection[]; tags: string[];
   life_year?: number | null; lyric_id?: string | null; lyric?: Lyric | null; theme_id?: string | null;
   photo_id?:string|null; photo_url?:string|null; end_ms?:number|null; event_id?:string|null;
+  location_name?:string|null;
   publication?: { published: boolean; excerpt: string; share_life_time: boolean; anonymous: boolean } | null;
 };
 export type PublicStory = { id: number; excerpt: string; song_id: number; song: Song; author_name: string; title?:string|null; tags?:string[]; photos?:Photo[];

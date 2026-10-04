@@ -58,6 +58,21 @@ def test_create_public_memory_shares_time_and_name_only_when_selected(tmp_path):
         assert public['life_time'] == data['life_time'] and public['life_year'] == 2025
 
 
+def test_private_location_survives_create_edit_and_read_without_joining_public_snapshot(tmp_path):
+    with TestClient(create_app(f'sqlite:///{tmp_path / "location.db"}')) as owner:
+        register(owner)
+        response = owner.post('/api/memories', json=payload(location_name='深圳湾体育中心'))
+        assert response.status_code == 201, response.text
+        card = response.json()
+        assert card['location_name'] == '深圳湾体育中心'
+        changed = owner.patch(f'/api/memories/{card["id"]}', json={
+            'revision': card['revision'], 'location_name': '苏州奥林匹克体育中心',
+        })
+        assert changed.status_code == 200, changed.text
+        assert changed.json()['location_name'] == '苏州奥林匹克体育中心'
+        assert owner.get(f'/api/memories/{card["id"]}').json()['location_name'] == '苏州奥林匹克体育中心'
+
+
 @pytest.mark.parametrize('settings', [
     {}, {'confirmed': False}, {'confirmed': 'true'},
     {'confirmed': True, 'anonymous': 'false'}, {'confirmed': True, 'share_life_time': 'true'},

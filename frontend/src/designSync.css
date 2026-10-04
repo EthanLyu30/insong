@@ -1,0 +1,130 @@
+/* Confirmed 393px H5 layout shared by the composer, collection and concert map. */
+.site-shell,.site-shell.atlas-shell{width:min(100%,393px);max-width:393px;margin-inline:auto}
+.site-shell .bottom-nav.three-item-nav{width:min(100%,393px);grid-template-columns:1fr 72px 1fr;height:calc(70px + env(safe-area-inset-bottom));background:#fbf7f0f2;border-color:#e6d9ca}
+.three-item-nav .nav-item{font-size:11px;gap:3px;color:#978878}
+.three-item-nav .nav-item.active{color:#bd7d59}
+.three-item-nav .nav-item.active::after{display:none}
+.intro-shell .main-content{padding-bottom:0}
+.atlas-shell .bottom-nav.three-item-nav{z-index:30}
+
+/* My memories: searchable, category-first, with the same card design in both views. */
+.collection-page{padding-top:8px}
+.collection-page .collection-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.collection-page .collection-title h1{margin:0;font:400 28px/1.5 'Noto Serif SC','Songti SC',serif;color:#514431}
+.collection-new{display:inline-flex;align-items:center;gap:3px;padding:8px 11px;border-radius:7px;background:#bd7d59;color:white;text-decoration:none;font-size:12px;white-space:nowrap}
+.collection-search-trigger{display:flex;align-items:center;gap:8px;width:100%;min-height:43px;padding:0 13px;border:1px solid #e4d7c5;border-radius:10px;background:#fffdf9;color:#a09280;text-align:left;font-size:13px}
+.collection-categories{display:flex;gap:5px;overflow:auto;scrollbar-width:none;margin:11px 0 14px}
+.collection-categories button{flex:none;border:0;border-radius:6px;padding:7px 10px;background:transparent;color:#948574;font-size:12px}
+.collection-categories button[aria-pressed=true]{background:#f0e7db;color:#b77854}
+.collection-page .collection-tools{margin:0 0 9px;padding:0;border:0;gap:8px}
+.collection-tools .memory-playlist-link{font-size:11px;white-space:nowrap}
+.collection-tools .memory-filter{min-width:122px;max-width:150px}
+.collection-tag-filter{margin:0 0 6px;color:#998774;font-size:11px}
+.collection-tag-filter summary{width:max-content;cursor:pointer;padding:6px 0}
+.collection-tag-filter .choice-trigger{max-width:220px}
+.collection-page .timeline-toggle{margin:8px 0 18px;max-width:215px}
+.collection-page .timeline-toggle button{min-height:38px}
+.collection-card-grid{display:flex;flex-direction:column;gap:15px}
+.collection-page .collection-card,.collection-page .timeline-year .collection-card{display:flex;flex-direction:column;gap:0;width:100%;margin:0 0 15px;padding:13px;border:1px solid #e4d7c5;border-radius:14px;background:#fffcf5;box-shadow:0 3px 8px #5d432a17}
+.collection-page .collection-card .snapshot-date{margin:0 0 12px;padding:0 0 11px;border-bottom:1px solid #f0e6d8;color:#bd7d59;font-size:12px}
+.collection-page .collection-card .snapshot-image{flex:none;width:100%;height:148px;min-height:148px;aspect-ratio:auto;border-radius:8px}
+.collection-page .collection-card .snapshot-copy{padding:13px 0 0}
+.collection-page .collection-card .snapshot-copy h3{margin:0 0 4px;font:400 18px/1.5 'Noto Serif SC','Songti SC',serif}
+.collection-page .collection-card .snapshot-copy>strong{font:400 20px/1.5 'Noto Serif SC','Songti SC',serif;color:#514431}
+.collection-page .collection-card .snapshot-copy>small{margin-top:6px;color:#9b8d7b;font-size:13px}
+.collection-page .collection-card .snapshot-status{margin-top:7px;color:#9b8d7b;font-size:12px}
+.collection-page .timeline-year{margin-left:8px;padding-left:19px}
+.collection-page .timeline-year>h3{justify-content:flex-start;margin-left:-10px;color:#bd7d59;background:#fbf7ef}
+.collection-page .timeline-year .collection-card::before,.collection-page .timeline-year .collection-card::after{display:none}
+.collection-search-overlay{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;align-items:center;padding:75px 20px 0;background:#1c1b1830}
+.collection-search-backdrop{position:absolute;inset:0;border:0;background:transparent;z-index:0}
+.collection-search-panel,.collection-search-preview{position:relative;z-index:1;width:min(100%,353px)}
+.collection-search-panel{display:flex;gap:8px;padding:10px;background:#fefdf9;border-radius:13px;box-shadow:0 12px 30px #2f241b25}
+.collection-search-panel label{display:flex;align-items:center;gap:8px;flex:1;padding:0 10px;background:#f2ece2;border-radius:8px}
+.collection-search-panel input{min-width:0;width:100%;border:0;background:transparent;outline:none;font-size:13px}
+.collection-search-panel>button{border:0;background:transparent;color:#bd7d59;font-size:13px}
+.collection-search-preview{padding:10px;color:#514431;background:#fefdf9;border-radius:0 0 10px 10px;font-size:11px}
+
+/* Create: photographs and selected song lead; text is bounded by horizontal rules only. */
+.memory-composer.is-new .composer-heading h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.memory-composer .composer-heading{height:48px;margin-bottom:12px}
+.composer-draft{padding:8px 13px;border:1px solid #e4d7c5;border-radius:18px;background:#fefdf9;color:#514431;font-size:13px}
+.memory-composer .gallery-picker.is-compact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 14px}
+.memory-composer .gallery-label{grid-column:1/-1;margin-bottom:0}
+.memory-composer .gallery-edit-grid{display:contents}
+.memory-composer .gallery-edit-grid>div{width:100%;height:106px}
+.memory-composer .gallery-edit-grid>div>button:first-child{height:106px;aspect-ratio:auto}
+.memory-composer .gallery-picker .photo-picker{margin:0;height:106px}
+.memory-composer .photo-picker-small .photo-add{display:flex;flex-direction:column;gap:0;width:100%;height:106px;min-height:106px;margin:0;padding:6px;border:1px solid #e4d7c5;border-radius:8px;background:#f2ece2;color:#9b8d7b;font-size:11px}
+.memory-composer .photo-picker-small .photo-add>span{font-size:32px;line-height:1.1}
+.memory-composer .composer-song-picker{border:1px solid #e4d7c5;border-radius:10px;margin:2px 0 20px;padding:0 10px;background:#fffcf5}
+.memory-composer .composer-song-trigger{min-height:65px}
+.memory-composer .composer-title input{padding:10px 0 14px;border-bottom:1px solid #e4d7c5;border-radius:0;font-size:17px}
+.memory-composer .composer-story{margin-top:5px}
+.memory-composer .composer-story textarea{min-height:155px;padding:10px 0;border:0;border-bottom:1px solid #e4d7c5;border-radius:0;font-size:14px}
+.memory-composer .character-count{align-self:flex-end;margin:2px 0 15px}
+.composer-recommendations{display:flex;gap:7px;overflow:auto;scrollbar-width:none;margin:13px 0 12px}
+.composer-recommendations button,.composer-mentions button,.composer-place-suggestions button{flex:none;border:0;border-radius:18px;padding:7px 11px;background:#f2ece2;color:#786652;font-size:12px;white-space:nowrap}
+.composer-mentions{display:flex;gap:10px;margin-bottom:18px}
+.composer-mentions button{display:flex;align-items:center;gap:4px;min-width:90px;justify-content:center;background:#f2ebde;color:#514431;font-size:13px}
+.composer-tag-entry{display:block;margin:0 0 15px;font-size:12px;color:#786652}
+.composer-tag-entry input{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #e4d7c5;border-radius:8px;background:#fffdf9}
+.composer-setting-rows>button{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:0;border:0;border-top:1px solid #e4d7c5;background:transparent;color:#514431;text-align:left;font-size:14px}
+.composer-setting-rows>button:last-child{border-bottom:1px solid #e4d7c5}
+.composer-setting-rows>button>span{display:flex;align-items:center;gap:4px;justify-content:flex-end;flex:1;color:#9b8d7b;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.composer-place-suggestions{display:flex;gap:6px;overflow:auto;scrollbar-width:none;padding:0 0 12px}
+.composer-place-suggestions button{background:#f6f0e7;color:#9b8d7b;font-size:11px}
+.memory-composer.is-new .composer-music{margin-top:14px}
+.memory-composer .composer-extra{margin-top:4px}
+.memory-composer .composer-save{bottom:calc(70px + env(safe-area-inset-bottom));margin:15px -20px 0;padding:10px 20px;background:#faf7f0f5;box-shadow:0 -7px 20px #faf7f0}
+.memory-composer .composer-save .privacy-line{display:flex;align-items:center;gap:4px;min-height:44px;padding:0;border:0;background:transparent;color:#8e806f;text-align:left;font-size:11px}
+.memory-composer .composer-save .primary-button{border-radius:22px;background:#bd7d59}
+.composer-modal{position:fixed;inset:0;z-index:60}
+.composer-modal-scrim{position:absolute;inset:0;width:100%;border:0;background:rgba(20,18,15,.18)}
+.composer-sheet{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,393px);max-height:min(72dvh,560px);overflow:auto;padding:10px 20px max(20px,env(safe-area-inset-bottom));border-radius:20px 20px 0 0;background:#fefdf9;color:#514431;box-shadow:0 -9px 28px #241b171a}
+.composer-sheet-handle{width:38px;height:4px;margin:0 auto 8px;border-radius:3px;background:#e4d7c5}
+.composer-sheet header{display:flex;align-items:center;min-height:44px}
+.composer-sheet header button{border:0;background:transparent;color:#786652}
+.composer-sheet h2{flex:1;margin:0;text-align:center;font:500 18px/1.5 'Noto Sans SC',sans-serif}
+.composer-location-search{display:flex;align-items:center;gap:9px;min-height:44px;margin:8px 0 10px;padding:0 14px;border-radius:22px;background:#f2ebde;color:#9b8d7b}
+.composer-location-search input{width:100%;border:0;background:transparent;outline:none;font-size:13px}
+.composer-sheet-options{max-height:360px;overflow:auto}
+.composer-sheet-options button{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:0;border:0;border-bottom:1px solid #e4d7c5;background:transparent;color:#514431;text-align:left;font-size:14px}
+.composer-sheet-options button:last-child{border-bottom:0}
+.composer-sheet-options button span{margin-left:auto;color:#bd7d59;font-size:19px}
+.composer-time-sheet{display:flex;flex-direction:column;gap:13px;padding-top:8px}
+.composer-time-sheet p,.composer-time-sheet small{margin:0;color:#9b8d7b;font-size:12px}
+.composer-time-sheet>input,.composer-time-sheet label{display:flex;justify-content:space-between;align-items:center;min-height:54px;padding:0 15px;border:0;border-radius:10px;background:#f2ebde;color:#514431;font-size:14px}
+.composer-time-sheet label input{border:0;background:transparent;color:#bd7d59;font-size:14px}
+.composer-time-sheet .primary-button{border-radius:24px;background:#bd7d59;color:#fff}
+
+/* A continuous paper map, artist portrait markers, and a scrollable schedule sheet. */
+.atlas-map .real-map-canvas{background:#cde3e3}
+.atlas-map .atlas-cloud-canopy{display:none}
+.atlas-map .atlas-sky-canopy{height:185px;opacity:.75;mask-image:linear-gradient(#000 0%,#000 78%,transparent 100%)}
+.atlas-map .real-city-pin{width:58px;height:58px;color:#514431;text-shadow:none}
+.atlas-map .real-city-pin img{display:block;width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 3px 6px #3f4f4a35)}
+.atlas-map .real-city-pin span{top:100%;left:50%;transform:translateX(-50%);padding:2px 5px;border-radius:8px;background:#fffdf9e8;color:#514431;font-size:10px;opacity:0}
+.atlas-map .real-city-pin:hover span,.atlas-map .real-city-pin:focus-visible span,.atlas-map .real-city-pin.is-selected span{opacity:1}
+.atlas-map .real-city-pin i{display:none}
+.atlas-map .atlas-legend{display:none}
+.atlas-map .atlas-searchbar{padding:28px 20px 14px;background:linear-gradient(#faf7f0ee,#faf7f0bb 75%,transparent)}
+.atlas-map .atlas-wordmark>div>span{font:500 28px/1.3 'Noto Serif SC','Songti SC',serif;color:#514431}
+.atlas-map .atlas-wordmark small{font-size:18px;color:#bd7d59;text-shadow:none}
+.atlas-map .atlas-artist-pills button{min-height:33px;padding:6px 12px}
+.atlas-map .atlas-map-controls{right:17px;bottom:calc(var(--atlas-sheet-height,230px) + 82px)}
+.atlas-map .atlas-map-controls button{width:40px;height:40px;background:#fefdf9ed}
+.atlas-map .atlas-panel{left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom));padding:13px 20px 11px;border-radius:24px 24px 0 0;background:#faf7f0f2}
+.atlas-map .atlas-itinerary::before{content:'';display:block;width:36px;height:4px;margin:0 auto 12px;border-radius:3px;background:#c5b7a4}
+.atlas-map .atlas-itinerary h2{font:500 22px/1.4 'Noto Serif SC','Songti SC',serif;color:#514431}
+.atlas-map .atlas-itinerary .atlas-schedule-list{max-height:130px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+.atlas-map .atlas-schedule-item{display:grid;grid-template-columns:minmax(0,1fr) 38px;align-items:center;padding:3px 0;border-top:1px solid #e4d7c5}
+.atlas-map .atlas-schedule-row{width:100%;gap:9px;min-height:62px;padding:4px 0}
+.atlas-map .atlas-itinerary .atlas-schedule-row time{min-width:92px;padding:0;border:0;font-size:17px;color:#514431}
+.atlas-map .atlas-schedule-row strong{font-size:13px;line-height:1.4}
+.atlas-map .atlas-schedule-row small{font-size:10px}
+.atlas-map .atlas-schedule-heart{display:grid;place-items:center;width:38px;height:44px;border:0;background:transparent;color:#bd7d59}
+.atlas-map .atlas-schedule-heart.is-saved{color:#bd7d59;opacity:1}
+.atlas-map .atlas-schedule-details{grid-column:1/-1}
+.atlas-map .atlas-save-error{margin:4px 0;color:#a7473b;font-size:11px}
+@media(max-width:360px){.site-shell .bottom-nav.three-item-nav{grid-template-columns:1fr 64px 1fr}.atlas-map .atlas-schedule-row strong{font-size:12px}.atlas-map .atlas-itinerary .atlas-schedule-row time{min-width:78px;font-size:15px}}

@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useRef,useState,type RefObject} from 'react';
 import type {Map as GLMap,Marker,GeoJSONSource} from 'maplibre-gl';
-import {cameraTarget,CHINA_BOUNDS} from './atlasCamera';
+import {cameraTarget,overviewFocus} from './atlasCamera';
 import {eventPhase,projectChina,type AtlasCity,type AtlasEvent} from './footprintAtlas';
 import provinces from './china-provinces.json';
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -11,12 +11,13 @@ import {orbitScene,pinchScene,type SceneController} from './sceneInteraction';
 import type {VenueLayer} from './venueMapLayer';
 import {MapResourceStatus,resourceTileKey} from './mapResourceStatus';
 
-type Props={cities:AtlasCity[];events:AtlasEvent[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
-function nationalPadding(height:number){return {top:height<=720?160:220,bottom:height<=720?192:208,left:12,right:12};}
-function fitNation(map:GLMap,height:number,duration:number){
-  // MapLibre adds retained camera padding when fitting bounds; venue padding must be cleared.
+type Props={cities:AtlasCity[];events:AtlasEvent[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];focusPoint?:[number,number];onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
+const portraitByCity:Record<string,number>={上海:1,苏州:2,南京:3,杭州:4,宁波:5,天津:1,北京:2,唐山:6,保定:7,济南:5,青岛:8,武汉:9,长沙:10,深圳:11,广州:12,成都:13,厦门:4,常州:3,嘉兴:5};
+function artistPhoto(city:string){return `/artist-map/${portraitByCity[city]??1}.png`;}
+function fitNation(map:GLMap,_height:number,duration:number,center:[number,number]){
+  // Keep the map geographically continuous while focusing an area with concerts.
   map.setPadding({top:0,bottom:0,left:0,right:0});
-  map.fitBounds(CHINA_BOUNDS,{padding:nationalPadding(height),offset:[0,height<=720?-22:-52],duration,maxZoom:5,pitch:0,bearing:0});
+  map.easeTo({center,zoom:6.4,offset:[0,-85],duration,pitch:0,bearing:0});
 }
 export function AtlasMap(props:Props){
   const {cities,events,today,selectedCity,artistSelected,scene='map',venueEvent}=props;
@@ -29,8 +30,10 @@ export function AtlasMap(props:Props){
   const [sceneImageLoading,setSceneImageLoading]=useState(false);
   const [layerRetry,setLayerRetry]=useState(0);
   const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[imageryError,setImageryError]=useState(false);
+  const interacted=useRef(false);
   const needsModel=scene!=='map';
   const target=cameraTarget(scene,selectedCity,venueEvent);
+  useEffect(()=>{if(!selectedCity)interacted.current=false;},[selectedCity?.id]);
   const route=useMemo(()=>{
     const seen=new Set<string>();return events.filter(event=>event.event_status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date)).flatMap(event=>{const city=cities.find(c=>c.name===event.city);if(!city||seen.has(city.id))return [];seen.add(city.id);return [[city.lng,city.lat]];});
   },[cities,events]);
@@ -42,8 +45,9 @@ export function AtlasMap(props:Props){
       if(cancelled||!container.current)return;
       gl.setWorkerCount(2);
       gl.setWorkerUrl(mapWorkerUrl);
-      const map=new gl.Map({container:container.current,center:[104,35],zoom:3,renderWorldCopies:false,minZoom:1,maxZoom:21,maxPitch:85,centerClampedToGround:false,pixelRatio:Math.min(window.devicePixelRatio||1,1.5),fadeDuration:160,maxTileCacheSize:120,attributionControl:false,canvasContextAttributes:{antialias:true},style:atlasMapStyle()});
+      const map=new gl.Map({container:container.current,center:overviewFocus(null),zoom:6.4,renderWorldCopies:false,minZoom:1,maxZoom:21,maxPitch:85,centerClampedToGround:false,pixelRatio:Math.min(window.devicePixelRatio||1,1.5),fadeDuration:160,maxTileCacheSize:120,attributionControl:false,canvasContextAttributes:{antialias:true},style:atlasMapStyle()});
       engine.current=map;
+      container.current.addEventListener('pointerdown',()=>{interacted.current=true;},{passive:true});
       makeVenueMarker.current=(element,point)=>new gl.Marker({element,anchor:'bottom'}).setLngLat(point).addTo(map);
       map.addControl(new gl.AttributionControl({compact:true,customAttribution:'省界 DataV'}),'bottom-left');
       const resources=new MapResourceStatus();
@@ -76,7 +80,7 @@ export function AtlasMap(props:Props){
       });
       latest.current.cities.forEach(city=>{
         const button=document.createElement('button');button.type='button';button.className='real-city-pin';button.dataset.city=city.id;
-        button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=city.name;
+        const photo=document.createElement('img');photo.src=artistPhoto(city.name);photo.alt='';photo.loading='lazy';button.append(photo,document.createElement('span'));button.lastElementChild!.textContent=city.name;
         button.addEventListener('click',()=>latest.current.onCity(city));
         markers.current.push(new gl.Marker({element:button,anchor:'center'}).setLngLat([city.lng,city.lat]).addTo(map));
       });
@@ -105,7 +109,7 @@ export function AtlasMap(props:Props){
       resize=new ResizeObserver(()=>{
         const w=container.current?.clientWidth??390,h=container.current?.clientHeight??844;
         const changed=w!==size[0]||h!==size[1];size=[w,h];map.resize();
-        if(changed&&latest.current.scene==='map'&&!latest.current.selectedCity)fitNation(map,h,0);
+        if(changed&&latest.current.scene==='map'&&!latest.current.selectedCity)map.resize();
         arrange();
       });resize.observe(container.current);
       cleanup=()=>{clearInterval(resourceTimer);latest.current.controller.current=null;markers.current.forEach(marker=>marker.remove());markers.current=[];venuePins.current.forEach(marker=>marker.remove());venuePins.current=[];makeVenueMarker.current=null;engine.current=null;map.remove();venueLayer.current=null;};
@@ -145,7 +149,7 @@ export function AtlasMap(props:Props){
       map.setPadding({top:0,bottom:0,left:0,right:0});
       map.fitBounds([[Math.min(...lngs)-.003,Math.min(...lats)-.003],[Math.max(...lngs)+.003,Math.max(...lats)+.003]],{pitch:36,bearing:0,padding:{top:210,bottom:230,left:45,right:45},duration:reduced?0:2200,maxZoom:14.3});
     }
-    else if(scene==='map'&&!selectedCity)fitNation(map,container.current?.clientHeight??844,reduced?0:1800);
+    else if(scene==='map'&&!selectedCity&&!interacted.current)fitNation(map,container.current?.clientHeight??844,reduced?0:1100,props.focusPoint??overviewFocus(null));
     else map.flyTo({...cameraTarget(scene,selectedCity,venueEvent,reduced),elevation:scene==='sky'?32:0,essential:false,curve:1.2,padding:{top:scene==='map'?190:scene==='sky'?145:170,bottom:scene==='map'?230:scene==='sky'?230:200,left:20,right:20}});
     latest.current.controller.current={
       orbit(dx,dy){
@@ -168,7 +172,7 @@ export function AtlasMap(props:Props){
       },
     };
     return()=>{stopProjection();map.off('idle',settleProjection);map.stop();map.setTransformCameraUpdate(null);};
-  },[ready,modelReady,selectedCity?.id,scene,venueEvent?.venue,artistSelected]);
+  },[ready,modelReady,selectedCity?.id,scene,venueEvent?.venue,artistSelected,props.focusPoint]);
   useEffect(()=>{
     const map=engine.current;if(!map||!ready||!needsModel||venueLayer.current)return;
     let cancelled=false;
@@ -196,7 +200,7 @@ export function AtlasMap(props:Props){
       button.addEventListener('click',()=>latest.current.onVenue(event));const marker=makeVenueMarker.current?.(button,[event.venue_lng!,event.venue_lat!]);if(marker)venuePins.current.push(marker);
     }
   },[ready,cities,events,today,selectedCity?.id,artistSelected,route,scene,props.wantedEventIds]);
-  function reset(){if(selectedCity){props.onNation();return;}if(engine.current)fitNation(engine.current,container.current?.clientHeight??844,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:1000);}
+  function reset(){if(selectedCity){props.onNation();return;}if(engine.current)fitNation(engine.current,container.current?.clientHeight??844,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:1000,props.focusPoint??overviewFocus(null));}
   function retryScene(){if(venueLayer.current)venueLayer.current.location(latest.current.venueEvent);else{setSceneImageError(false);setSceneImageLoading(true);setLayerRetry(value=>value+1);}}
   return <div className={'atlas-map-stage '+(scene!=='map'?'is-travelling':'')}>
     <div className="real-map-canvas" ref={container} aria-label="中国演唱会地图" role="region" data-camera={JSON.stringify(target)}/>

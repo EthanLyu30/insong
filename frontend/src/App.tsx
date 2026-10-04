@@ -10,8 +10,7 @@ import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from '
 import {CreationPage} from './CreationPage';
 import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
 import './footprints.css';
-import {House,MagnifyingGlass,BookmarkSimple,MapTrifold,Plus} from '@phosphor-icons/react';
-function AtlasGlyph({name}:{name:'home'|'search'|'bookmark'|'map'}){const Icon={home:House,search:MagnifyingGlass,bookmark:BookmarkSimple,map:MapTrifold}[name];return <Icon size={25} weight="light" aria-hidden="true"/>;}
+import {Plus} from '@phosphor-icons/react';
 const FootprintsPage = lazy(() => import('./FootprintsPage').then(module => ({default:module.FootprintsPage})));
 const PlaylistsPage = lazy(() => import('./ConcertPlaylist').then(module => ({default:module.PlaylistsPage})));
 
@@ -53,8 +52,9 @@ function Shell() {
   // Home has one visual state, regardless of how the user arrived here.
   const intro = location.pathname === '/' && !['theme','event','choose'].some(key=>homeParams.has(key));
   const atlas = location.pathname === '/footprints';
+  const composerRoute=location.pathname==='/create'||/\/songs\/\d+\/write$/.test(location.pathname);
   return <div className={`site-shell${intro?' intro-shell':''}${atlas?' atlas-shell':''}`}>
-    {!atlas && <header className="topbar"><Link to="/" className="brand" aria-label="歌里有我，返回首页"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
+    {!atlas&&!composerRoute && <header className="topbar"><Link to={intro?'/':'/discover'} className="brand" aria-label="歌里有我，前往共鸣"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
       {loading ? <div className="status-card" role="status">正在打开你的空间…</div> : error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
         <Routes key={`${user?.id ?? 'guest'}:${location.pathname}`}>
@@ -74,9 +74,9 @@ function Shell() {
           <Route path="*" element={<section className="journal-page empty-journal"><h1>这一页，还没有写下。</h1><BackLink className="soft-button"/></section>}/>
         </Routes>}
     </main>
-    {<nav className="bottom-nav" aria-label="主导航">{([
-      ['/', 'home', '听见'], ['/discover', 'search', '共鸣'], ['/create', 'create', '记录'], ['/memories', 'bookmark', '我的记忆'], ['/footprints', 'map', '足迹'],
-    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} end={path === '/'} aria-label={icon==='create'?'创建记忆':undefined} className={({isActive}) => `nav-item${icon==='create'?' nav-create':''}${isActive||(icon==='create'&&location.pathname.endsWith('/write')) ? ' active' : ''}`}>{icon==='create'?<span className="nav-create-icon"><Plus size={25} weight="regular" aria-hidden="true"/></span>:atlas?<AtlasGlyph name={icon}/>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
+    {!intro&&<nav className="bottom-nav three-item-nav" aria-label="主导航">{([
+      ['/discover', 'search', '共鸣'], ['/create', 'create', '记录'], ['/memories', 'bookmark', '我的记忆'],
+    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} aria-label={icon==='create'?'创建记忆':undefined} className={({isActive}) => `nav-item${icon==='create'?' nav-create':''}${isActive||(icon==='create'&&location.pathname.endsWith('/write')) ? ' active' : ''}`}>{icon==='create'?<span className="nav-create-icon"><Plus size={25} weight="regular" aria-hidden="true"/></span>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
   </div>;
 }
 

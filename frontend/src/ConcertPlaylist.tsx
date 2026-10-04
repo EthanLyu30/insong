@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Link,useLocation,useSearchParams} from 'react-router';
-import {BookmarkSimple,Check,Play,Pause} from '@phosphor-icons/react';
+import {Play,Pause,Heart} from '@phosphor-icons/react';
 import {useSession} from './SessionContext';
 import {apiBaseUrl} from './api';
 import {ApiError,apiRequest,dayLabel} from './memoryClient';
@@ -98,7 +98,7 @@ export function CollectConcert({event,next}:{event:AtlasEvent;next:string}){
   }
   const message=error||update.error,needsLogin=!user||message.includes('请先登录');
   async function reload(signal:AbortSignal){const values=await apiRequest<SavedPlaylist[]>(apiBaseUrl,'/api/playlists',{signal});if(!signal.aborted)setSaved(values.find(value=>value.event_id===event.id)??null);}
-  return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}><BookmarkSimple size={19} weight="light"/>登录收藏歌单</Link>:saved?<><Link className="collect-button is-saved" to={`/playlists?list=${saved.id}`}><Check size={19}/>已收藏 · 查看歌单</Link><SnapshotSummary playlist={saved} compact/><PlaylistUpdate playlist={saved} refreshing={update.refreshing} onUpdate={()=>void update.refresh(saved,setSaved,reload)}/></>:<button className="collect-button" type="button" disabled={busy||checking||!event.songs.length} onClick={()=>void collect()}>{!busy&&!checking&&event.songs.length>0&&<BookmarkSimple size={19} weight="light"/>}{busy?'正在收藏…':checking?'读取歌单…':event.songs.length?'收藏为歌单':'曲目尚未收录'}</button>}{message&&!needsLogin&&<p role="alert">{message}</p>}</div>;
+  return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}><Heart size={19} weight="regular"/>登录收藏歌单</Link>:saved?<><Link className="collect-button is-saved" to={`/playlists?list=${saved.id}`}><Heart size={19} weight="fill"/>已收藏 · 查看歌单</Link><SnapshotSummary playlist={saved} compact/><PlaylistUpdate playlist={saved} refreshing={update.refreshing} onUpdate={()=>void update.refresh(saved,setSaved,reload)}/></>:<button className="collect-button" type="button" disabled={busy||checking||!event.songs.length} onClick={()=>void collect()}>{!busy&&!checking&&event.songs.length>0&&<Heart size={19} weight="regular"/>}{busy?'正在收藏…':checking?'读取歌单…':event.songs.length?'收藏为歌单':'曲目尚未收录'}</button>}{message&&!needsLogin&&<p role="alert">{message}</p>}</div>;
 }
 export function SongList({songs,selected,playing,onSong}:{songs:Pick<AtlasSong,'title'|'artist'>[];selected?:string;playing?:string;onSong?:(index:number)=>void}){
   const list=useRef<HTMLOListElement>(null);
