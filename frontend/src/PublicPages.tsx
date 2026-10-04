@@ -2,29 +2,18 @@ import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {Link, useParams, useSearchParams} from 'react-router';
 import {ArrowUpRight, MusicNote} from '@phosphor-icons/react';
 import {apiBaseUrl} from './api';
-import {AudioPlayer} from './AudioPlayer';
-import {apiRequest, formatPosition, type Memory, type PublicStory, type PublicSearchResult, type Theme} from './memoryClient';
-import {cardCover, cardPhotos, songCover} from './cardMedia';
-import {PhotoGallery} from './PhotoGallery';
+import {apiRequest, type Memory, type PublicStory, type PublicSearchResult, type Theme} from './memoryClient';
+import {cardCover, cardPhotos} from './cardMedia';
+import {StoryCard} from './StoryCard';
+import {TagLinks} from './StoryContent';
+export {TagLinks,StoryBody} from './StoryContent';
 import {useData} from './useData';
 import {EventNote} from './EventNote';
 import {chinaToday, dateLabel, phaseLabel, type AtlasCatalog} from './footprintAtlas';
 import {venuePhotograph} from './photoSources';
 import {BackLink} from './Navigation';
 import {useSession} from './SessionContext';
-import {extractHashtags,rankRecommendedStories} from './revisionBehavior';
-
-export function TagLinks({tags=[],scope='public',inline=false}:{tags?:string[];scope?:'public'|'mine';inline?:boolean}) {
-  const destination=scope==='mine'?'/memories':'/discover';
-  const links=tags.map(tag=><Link key={tag} to={`${destination}?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>);
-  return tags.length?inline?<span className="story-tags inline-tags"> {links}</span>:<div className="story-tags">{links}</div>:null;
-}
-
-export function StoryBody({text,tags=[],scope='public'}:{text:string;tags?:string[];scope?:'public'|'mine'}){
-  const present=new Set(extractHashtags(text));
-  const destination=scope==='mine'?'/memories':'/discover';
-  return <p className="original-story">{text.split(/(#[\p{L}\p{N}_]+)/u).map((part,index)=>part.startsWith('#')?<span className="story-tags inline-tags" key={index}><Link to={`${destination}?tag=${encodeURIComponent(part.slice(1))}`}>{part}</Link></span>:part)}<TagLinks tags={tags.filter(tag=>!present.has(tag))} scope={scope} inline/></p>;
-}
+import {rankRecommendedStories} from './revisionBehavior';
 
 export function ThemeLinks() {
   const {value:themes,error}=useData<Theme[]>('/api/themes');
@@ -145,20 +134,8 @@ export function StoryPage() {
   const {value:story,error}=useData<PublicStory>(`/api/stories/${storyId}`,retry);
   if(!story)return <section className="journal-page"><BackLink fallback="/discover"/>{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
-  const playback=new URLSearchParams();if(story.offset_ms!==null)playback.set('at',String(story.offset_ms));if(story.end_ms!=null)playback.set('end',String(story.end_ms));
   return <section className="journal-page public-detail"><BackLink fallback="/discover"/>
-    <article className="keepsake-paper public-moment unified-story-card">
-      <div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>
-      {(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}
-      {story.title&&<h1 className="moment-title">{story.title}</h1>}
-      <div className="card-song-line"><strong>{story.song.title}</strong><span>{story.song.artist}</span></div>
-      <PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/>
-      <StoryBody text={story.excerpt} tags={story.tags}/>
-      {story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}
-    </article>
-    <Link className="card-song-action" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`}>查看歌曲 →</Link>
-    {story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}
-    <AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>
+    <StoryCard author={story.author_name} sample={story.is_demo_sample} title={story.title} year={story.life_year} time={story.life_time} song={story.song} photos={cardPhotos(story)} text={story.excerpt} tags={story.tags} anchor={story.offset_ms} end={story.end_ms} lyric={story.lyric}/>
     {story.event_id&&<EventNote id={story.event_id}/>}
     <Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link>
   </section>;

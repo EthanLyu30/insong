@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef,useState,type RefObject} from 'react';
 import type {Map as GLMap,Marker,GeoJSONSource} from 'maplibre-gl';
 import {cameraTarget,overviewFocus} from './atlasCamera';
-import {eventPhase,projectChina,type AtlasCity,type AtlasEvent} from './footprintAtlas';
+import {eventPhase,projectChina,type AtlasArtist,type AtlasCity,type AtlasEvent} from './footprintAtlas';
 import provinces from './china-provinces.json';
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -11,9 +11,22 @@ import {orbitScene,pinchScene,type SceneController} from './sceneInteraction';
 import type {VenueLayer} from './venueMapLayer';
 import {MapResourceStatus,resourceTileKey} from './mapResourceStatus';
 
-type Props={cities:AtlasCity[];events:AtlasEvent[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];focusPoint?:[number,number];onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
-const portraitByCity:Record<string,number>={上海:1,苏州:2,南京:3,杭州:4,宁波:5,天津:1,北京:2,唐山:6,保定:7,济南:5,青岛:8,武汉:9,长沙:10,深圳:11,广州:12,成都:13,厦门:4,常州:3,嘉兴:5};
-function artistPhoto(city:string){return `/artist-map/${portraitByCity[city]??1}.png`;}
+type Props={cities:AtlasCity[];events:AtlasEvent[];artists?:AtlasArtist[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];focusPoint?:[number,number];onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
+const portraitByArtist:Record<string,number>={gem:1,'liu-yuxin':11,liu:11};
+function artistIdentity(city:string,events:AtlasEvent[],artists:AtlasArtist[]=[]){
+  const event=events.find(item=>item.city===city&&item.event_status!=='cancelled');
+  return {photo:event&&portraitByArtist[event.artist_id]?`/artist-map/${portraitByArtist[event.artist_id]}.png`:null,name:artists.find(artist=>artist.id===event?.artist_id)?.name??event?.songs[0]?.artist??'',id:event?.artist_id??''};
+}
+function renderCityIdentity(button:HTMLElement,city:AtlasCity,events:AtlasEvent[],artists?:AtlasArtist[]){
+  const identity=artistIdentity(city.name,events,artists);
+  const portrait=document.createElement(identity.photo?'img':'span');
+  if(portrait instanceof HTMLImageElement){portrait.src=identity.photo!;portrait.alt='';portrait.loading='lazy';}
+  else{portrait.className='map-artist-fallback';portrait.textContent=identity.name||city.name;}
+  const label=document.createElement('span');label.className='map-city-label';label.textContent=city.name;
+  button.replaceChildren(portrait,label);
+  button.dataset.artist=identity.id;button.dataset.portrait=identity.photo?'verified':'unavailable';
+  button.title=identity.name?`${identity.name} · ${city.name}${identity.photo?'':' · 暂无已核实头像'}`:city.name;
+}
 function fitNation(map:GLMap,_height:number,duration:number,center:[number,number]){
   // Keep the map geographically continuous while focusing an area with concerts.
   map.setPadding({top:0,bottom:0,left:0,right:0});
@@ -80,7 +93,7 @@ export function AtlasMap(props:Props){
       });
       latest.current.cities.forEach(city=>{
         const button=document.createElement('button');button.type='button';button.className='real-city-pin';button.dataset.city=city.id;
-        const photo=document.createElement('img');photo.src=artistPhoto(city.name);photo.alt='';photo.loading='lazy';button.append(photo,document.createElement('span'));button.lastElementChild!.textContent=city.name;
+        renderCityIdentity(button,city,latest.current.events,latest.current.artists);
         button.addEventListener('click',()=>latest.current.onCity(city));
         markers.current.push(new gl.Marker({element:button,anchor:'center'}).setLngLat([city.lng,city.lat]).addTo(map));
       });
@@ -96,6 +109,7 @@ export function AtlasMap(props:Props){
         });
         ordered.forEach(marker=>{
           const p=map.project(marker.getLngLat()),el=marker.getElement();
+          if(el.style.display==='none')return;
           const collision=map.getZoom()<5&&occupied.some(other=>Math.abs(other.x-p.x)<58&&Math.abs(other.y-p.y)<38);
           const obscured=latest.current.scene!=='map'||p.y<(h<=720?160:190)||p.y>h-sheet-76||p.x<10||p.x>w-12;
           el.style.visibility=collision||obscured?'hidden':'visible';
@@ -185,9 +199,11 @@ export function AtlasMap(props:Props){
     markers.current.forEach(marker=>{
       const city=cities.find(c=>c.id===marker.getElement().dataset.city)!;const shows=events.filter(e=>e.city===city.name&&e.event_status!=='cancelled');
       const upcoming=shows.some(event=>['upcoming','today'].includes(eventPhase(event,today)));const button=marker.getElement();
+      button.style.display=artistSelected&&!shows.length?'none':'';
+      renderCityIdentity(button,city,events,props.artists);
       button.classList.toggle('is-lit',shows.length>0);button.classList.toggle('is-upcoming',upcoming);button.classList.toggle('is-selected',city.id===selectedCity?.id||(!selectedCity&&artistSelected&&city.name===nextEvent?.city));
       const wanted=shows.some(show=>latest.current.wantedEventIds?.includes(show.id));button.classList.toggle('is-wanted',wanted);
-      button.setAttribute('aria-label',city.name+(shows.length?' · '+shows.length+' 场'+(upcoming?' · 有待演':'')+(wanted?' · 有想去的现场':''):''));
+      button.setAttribute('aria-label',city.name+(artistIdentity(city.name,events,props.artists).name?' · '+artistIdentity(city.name,events,props.artists).name:'')+(shows.length?' · '+shows.length+' 场'+(upcoming?' · 有待演':'')+(wanted?' · 有想去的现场':''):''));
     });
     (map.getSource('route') as GeoJSONSource)?.setData({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:artistSelected&&route.length>1?route:[]}});
     const seen=new Set<string>();const local=events.filter(event=>{const key=`${event.city}:${event.venue}`;if(seen.has(key)||event.city!==selectedCity?.name||!Number.isFinite(event.venue_lng)||!Number.isFinite(event.venue_lat))return false;seen.add(key);return true;});
@@ -199,14 +215,14 @@ export function AtlasMap(props:Props){
       button.classList.toggle('is-wanted',wanted);button.setAttribute('aria-label',`地图场馆 · ${event.venue} · 进入外景`);button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=event.venue+(wanted?' · 想去':'');
       button.addEventListener('click',()=>latest.current.onVenue(event));const marker=makeVenueMarker.current?.(button,[event.venue_lng!,event.venue_lat!]);if(marker)venuePins.current.push(marker);
     }
-  },[ready,cities,events,today,selectedCity?.id,artistSelected,route,scene,props.wantedEventIds]);
+  },[ready,cities,events,today,selectedCity?.id,artistSelected,route,scene,props.wantedEventIds,props.artists]);
   function reset(){if(selectedCity){props.onNation();return;}if(engine.current)fitNation(engine.current,container.current?.clientHeight??844,window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:1000,props.focusPoint??overviewFocus(null));}
   function retryScene(){if(venueLayer.current)venueLayer.current.location(latest.current.venueEvent);else{setSceneImageError(false);setSceneImageLoading(true);setLayerRetry(value=>value+1);}}
   return <div className={'atlas-map-stage '+(scene!=='map'?'is-travelling':'')}>
     <div className="real-map-canvas" ref={container} aria-label="中国演唱会地图" role="region" data-camera={JSON.stringify(target)}/>
     <img className="atlas-sky-canopy" src="/scenes/atlas-sky.webp" alt="" aria-hidden="true"/>
     {scene==='map'&&!selectedCity&&<img className="atlas-cloud-canopy" src="/scenes/atlas-clouds.png" alt="" aria-hidden="true"/>}
-    {failed&&<div className="atlas-map-fallback"><svg viewBox="0 0 1000 1050" aria-hidden="true">{provinces.features.map(feature=>{const polygons=feature.geometry.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry.coordinates;const d=(polygons as number[][][][]).map(p=>p.map(r=>r.map(([x,y],i)=>(i?'L':'M')+projectChina(x,y).join(',')).join(' ')+'Z').join(' ')).join(' ');return <path key={feature.properties.adcode} d={d}/>;})}</svg>{cities.map(city=>{const [x,y]=projectChina(city.lng,city.lat);return <button type="button" key={city.id} onClick={()=>props.onCity(city)} style={{left:x/10+'%',top:y/10.5+'%'}}>{city.name}</button>;})}<p>当前设备无法开启三维地图，可继续选择城市。</p></div>}
+    {failed&&<div className="atlas-map-fallback"><svg viewBox="0 0 1000 1050" aria-hidden="true">{provinces.features.map(feature=>{const polygons=feature.geometry.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry.coordinates;const d=(polygons as number[][][][]).map(p=>p.map(r=>r.map(([x,y],i)=>(i?'L':'M')+projectChina(x,y).join(',')).join(' ')+'Z').join(' ')).join(' ');return <path key={feature.properties.adcode} d={d}/>;})}</svg>{cities.filter(city=>!artistSelected||events.some(event=>event.city===city.name&&event.event_status!=='cancelled')).map(city=>{const [x,y]=projectChina(city.lng,city.lat),identity=artistIdentity(city.name,events,props.artists);return <button type="button" key={city.id} aria-label={`${city.name}${identity.name?' · '+identity.name:''}`} onClick={()=>props.onCity(city)} style={{left:x/10+'%',top:y/10.5+'%'}}>{identity.name&&!identity.photo&&<span className="map-artist-fallback">{identity.name}</span>}{city.name}</button>;})}<p>当前设备无法开启三维地图，可继续选择城市。</p></div>}
     {imageryError&&scene==='map'&&<div className="atlas-imagery-error" role="status">地图连接较慢，地点与日程仍可查看。</div>}
     {(!modelReady||sceneImageLoading)&&scene!=='map'&&!failed&&<span className="cinematic-loading" role="status">正在准备场馆画面…</span>}
     {sceneImageError&&scene!=='map'&&<span className="cinematic-loading cinematic-load-error" role="status">现场画面暂未载入，仍可查看歌单或返回地图。<button type="button" onClick={retryScene}>重新载入画面</button></span>}

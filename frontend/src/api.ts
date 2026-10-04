@@ -14,6 +14,7 @@ export type Song = {
   cover_url?: string;
   lyrics?: Lyric[];
   lyrics_note?: string;
+  qq_music_url?: string | null;
 };
 
 export type Lyric = { id: string; text: string; start_ms: number };

@@ -41,6 +41,26 @@ def refresh_input(saved):
     return {'expected_snapshot_version': saved['snapshot_version'], 'expected_current_version': saved['current_version']}
 
 
+def test_unfavorite_is_idempotent_owner_scoped_and_can_be_collected_again(snapshot_catalog):
+    app = create_app('sqlite:///:memory:')
+    with TestClient(app) as owner, TestClient(app) as other:
+        register(owner)
+        register(other, name='another_listener')
+        owner.put('/api/playlists/concerts/concert')
+        other.put('/api/playlists/concerts/concert')
+        assert owner.delete('/api/playlists/concerts/concert').status_code == 204
+        assert owner.get('/api/playlists').json() == []
+        assert len(other.get('/api/playlists').json()) == 1
+        assert owner.delete('/api/playlists/concerts/concert').status_code == 204
+        assert owner.put('/api/playlists/concerts/concert').status_code == 200
+        assert len(owner.get('/api/playlists').json()) == 1
+
+
+def test_unfavorite_requires_login(snapshot_catalog):
+    with TestClient(create_app('sqlite:///:memory:')) as guest:
+        assert guest.delete('/api/playlists/concerts/concert').status_code == 401
+
+
 def test_new_snapshot_keeps_specific_provenance_and_versions(snapshot_catalog):
     source = snapshot_catalog['events'][0]
     source.update({

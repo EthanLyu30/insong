@@ -4,6 +4,16 @@ from .content import song_lyrics
 AUDIO_ROOT = Path(__file__).resolve().parents[1] / 'media'
 DURATION_MS = 48000
 
+# Exact original recordings checked against QQ Music's official search on
+# 2026-10-04. Demo Artist tracks deliberately have no commercial counterpart.
+QQ_TRACKS = {
+    ('稻香', '周杰伦'): '003aAYrm3GE0Ac',
+    ('光年之外', '邓紫棋'): '002E3MtF0IAMMY',
+    ('泡沫', '邓紫棋'): '001X0PDf0W4lBq',
+    ('reality', '刘雨昕'): '000h6xTe1LRGfl',
+    ('倔强', '五月天'): '004HyLC74RYiBC',
+}
+
 
 def song_audio(song):
     path = AUDIO_ROOT / f'song-{song.id}-v1.wav'
@@ -17,7 +27,9 @@ def song_audio(song):
 
 
 def serialize_song(song):
+    qq_mid = None if song.is_demo else QQ_TRACKS.get((song.title.lower(), song.artist))
     return {key: getattr(song, key) for key in (
         'id', 'title', 'artist', 'version', 'source_label', 'is_demo', 'cover_url'
     )} | song_audio(song) | {'lyrics': song_lyrics(song),
+        'qq_music_url': f'https://y.qq.com/n/ryqq/songDetail/{qq_mid}' if qq_mid else None,
         'lyrics_note': '原创示例词句 · 配合器乐演示逐句定位，无人声演唱' if song.is_demo else '曲目资料 · 暂无授权音频与歌词'}

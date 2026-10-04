@@ -30,7 +30,7 @@ async function refreshSnapshot(playlist:SavedPlaylist,signal:AbortSignal):Promis
   }
 }
 
-function usePlaylistRefresh(scope:string){
+export function usePlaylistRefresh(scope:string){
   const request=useRef<AbortController|null>(null);
   const [refreshing,setRefreshing]=useState(false),[error,setError]=useState('');
   useEffect(()=>{
@@ -51,7 +51,7 @@ function usePlaylistRefresh(scope:string){
       }
     }finally{if(active()){request.current=null;setRefreshing(false);}}
   }
-  return {refresh,refreshing,error};
+  return {refresh,refreshing,error,inFlight:()=>!!request.current};
 }
 
 function playlistKind(playlist:SavedPlaylist){
@@ -71,15 +71,28 @@ function SnapshotSummary({playlist,compact=false}:{playlist:SavedPlaylist;compac
   </div>;
 }
 
-function PlaylistUpdate({playlist,refreshing,onUpdate}:{playlist:SavedPlaylist;refreshing:boolean;onUpdate:()=>void}){
+function PlaylistUpdate({playlist,refreshing,blocked=false,onUpdate}:{playlist:SavedPlaylist;refreshing:boolean;blocked?:boolean;onUpdate:()=>void}){
   if(!playlist.update_available||!playlist.current_version)return null;
   return <div className="playlist-update-notice">
     <p>这场的歌单资料已有更新。<span>当前保留收藏时的版本。</span></p>
-    <button type="button" className="playlist-update-button" disabled={refreshing} onClick={onUpdate}>{refreshing?'更新中…':'更新这张歌单'}</button>
+    <button type="button" className="playlist-update-button" disabled={refreshing||blocked} onClick={onUpdate}>{refreshing?'更新中…':'更新这张歌单'}</button>
   </div>;
 }
 
-export function CollectConcert({event,next}:{event:AtlasEvent;next:string}){
+export type ConcertCollectionState={saved:SavedPlaylist|null;checking:boolean;unavailable?:boolean;busy:boolean;refreshing:boolean;error:string;onCollect:()=>void;onRemove:()=>void;onUpdate:()=>void;onRetry?:()=>void};
+
+function ConcertCollectionView({event,next,state}:{event:AtlasEvent;next:string;state:ConcertCollectionState}){
+  const {user}=useSession();
+  const {saved,checking,unavailable=false,busy,refreshing,error,onCollect,onRemove,onUpdate,onRetry}=state;
+  const needsLogin=!user||error.includes('请先登录');
+  return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}><Heart size={19} weight="regular"/>登录收藏歌单</Link>:saved?<><button className="collect-button is-saved" type="button" aria-label="取消收藏歌单" disabled={busy||refreshing||checking||unavailable} onClick={onRemove}><Heart size={19} weight="fill"/>{busy?'正在取消…':'已收藏 · 取消'}</button><Link className="text-button" to={`/playlists?list=${saved.id}`}>查看歌单 ↗</Link><SnapshotSummary playlist={saved} compact/><PlaylistUpdate playlist={saved} refreshing={refreshing} blocked={busy||checking||unavailable} onUpdate={onUpdate}/></>:<button className="collect-button" type="button" disabled={busy||refreshing||checking||unavailable||!event.songs.length} onClick={onCollect}>{!busy&&!checking&&!unavailable&&event.songs.length>0&&<Heart size={19} weight="regular"/>}{busy?'正在收藏…':checking?'读取歌单…':unavailable?'收藏状态未读到':event.songs.length?'收藏为歌单':'曲目尚未收录'}</button>}{error&&!needsLogin&&<p role="alert">{error}{onRetry&&<button type="button" disabled={busy||checking||refreshing} onClick={onRetry}>重试读取收藏</button>}</p>}</div>;
+}
+
+export function CollectConcert({event,next,onChange,collection}:{event:AtlasEvent;next:string;onChange?:(value:SavedPlaylist|null,eventId:string)=>void;collection?:ConcertCollectionState}){
+  return collection?<ConcertCollectionView event={event} next={next} state={collection}/>:<IndependentCollectConcert event={event} next={next} onChange={onChange}/>;
+}
+
+function IndependentCollectConcert({event,next,onChange}:{event:AtlasEvent;next:string;onChange?:(value:SavedPlaylist|null,eventId:string)=>void}){
   const {user}=useSession();const location=useLocation();const [saved,setSaved]=useState<SavedPlaylist|null>(null),[busy,setBusy]=useState(false),[checking,setChecking]=useState(false),[error,setError]=useState('');
   const update=usePlaylistRefresh(`${user?.id??''}/${event.id}/${location.key}`);
   const request=useRef<AbortController|null>(null);
@@ -92,13 +105,20 @@ export function CollectConcert({event,next}:{event:AtlasEvent;next:string}){
   async function collect(){
     if(!user||saved||request.current||!event.songs.length)return;
     const controller=new AbortController();request.current=controller;setBusy(true);setError('');
-    try{const value=await apiRequest<SavedPlaylist>(apiBaseUrl,`/api/playlists/concerts/${encodeURIComponent(event.id)}`,{method:'PUT',signal:controller.signal});if(!controller.signal.aborted)setSaved(value);}
+    try{const value=await apiRequest<SavedPlaylist>(apiBaseUrl,`/api/playlists/concerts/${encodeURIComponent(event.id)}`,{method:'PUT',signal:controller.signal});if(!controller.signal.aborted){setSaved(value);onChange?.(value,event.id);}}
     catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'歌单没有收藏成功。');}
     finally{if(!controller.signal.aborted){request.current=null;setBusy(false);}}
   }
-  const message=error||update.error,needsLogin=!user||message.includes('请先登录');
+  const message=error||update.error;
+  async function remove(){
+    if(!user||!saved||request.current||update.refreshing)return;
+    const controller=new AbortController();request.current=controller;setBusy(true);setError('');
+    try{await apiRequest(apiBaseUrl,`/api/playlists/concerts/${encodeURIComponent(event.id)}`,{method:'DELETE',signal:controller.signal});if(!controller.signal.aborted){setSaved(null);onChange?.(null,event.id);}}
+    catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'没有取消成功，请重试。');}
+    finally{if(!controller.signal.aborted){request.current=null;setBusy(false);}}
+  }
   async function reload(signal:AbortSignal){const values=await apiRequest<SavedPlaylist[]>(apiBaseUrl,'/api/playlists',{signal});if(!signal.aborted)setSaved(values.find(value=>value.event_id===event.id)??null);}
-  return <div className="concert-collect">{needsLogin?<Link className="collect-button" to={`/account?next=${encodeURIComponent(next)}`}><Heart size={19} weight="regular"/>登录收藏歌单</Link>:saved?<><Link className="collect-button is-saved" to={`/playlists?list=${saved.id}`}><Heart size={19} weight="fill"/>已收藏 · 查看歌单</Link><SnapshotSummary playlist={saved} compact/><PlaylistUpdate playlist={saved} refreshing={update.refreshing} onUpdate={()=>void update.refresh(saved,setSaved,reload)}/></>:<button className="collect-button" type="button" disabled={busy||checking||!event.songs.length} onClick={()=>void collect()}>{!busy&&!checking&&event.songs.length>0&&<Heart size={19} weight="regular"/>}{busy?'正在收藏…':checking?'读取歌单…':event.songs.length?'收藏为歌单':'曲目尚未收录'}</button>}{message&&!needsLogin&&<p role="alert">{message}</p>}</div>;
+  return <ConcertCollectionView event={event} next={next} state={{saved,checking,busy,refreshing:update.refreshing,error:message,onCollect:()=>void collect(),onRemove:()=>void remove(),onUpdate:()=>{if(saved&&!request.current)void update.refresh(saved,setSaved,reload);}}}/>;
 }
 export function SongList({songs,selected,playing,onSong}:{songs:Pick<AtlasSong,'title'|'artist'>[];selected?:string;playing?:string;onSong?:(index:number)=>void}){
   const list=useRef<HTMLOListElement>(null);

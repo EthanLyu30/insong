@@ -104,6 +104,8 @@
 .atlas-map .atlas-sky-canopy{height:185px;opacity:.75;mask-image:linear-gradient(#000 0%,#000 78%,transparent 100%)}
 .atlas-map .real-city-pin{width:58px;height:58px;color:#514431;text-shadow:none}
 .atlas-map .real-city-pin img{display:block;width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 3px 6px #3f4f4a35)}
+.atlas-map .real-city-pin .map-artist-fallback{position:static;display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:5px;padding:5px;border:2px solid #fffdf9;border-radius:50%;background:#eee0ce;color:#514431;font-size:11px;line-height:15px;white-space:normal;word-break:break-all;text-align:center;opacity:1;transform:none;box-shadow:0 3px 6px #3f4f4a35}
+.atlas-map-fallback .map-artist-fallback{display:block;font-size:11px}
 .atlas-map .real-city-pin span{top:100%;left:50%;transform:translateX(-50%);padding:2px 5px;border-radius:8px;background:#fffdf9e8;color:#514431;font-size:10px;opacity:0}
 .atlas-map .real-city-pin:hover span,.atlas-map .real-city-pin:focus-visible span,.atlas-map .real-city-pin.is-selected span{opacity:1}
 .atlas-map .real-city-pin i{display:none}
@@ -148,7 +150,39 @@
 .collection-page .collection-card .snapshot-status{padding-right:38px}
 
 .unified-story-card .moment-title{margin:15px 0 14px;font-family:'Microsoft YaHei',sans-serif;font-size:20px;font-weight:600;line-height:1.5;color:#4c3e31}
-.unified-story-card .card-song-line{display:flex;flex-direction:column;gap:3px;margin:14px 0 16px;color:#5c4a38}
+.unified-story-card .card-song-line{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;gap:3px 10px;margin:14px 0 16px;padding:11px 12px;border:1px solid #e7dac9;border-radius:10px;color:#5c4a38;background:#fffdf7}
+.card-song-name{display:grid;grid-template-columns:minmax(0,1fr) 16px;gap:3px;color:inherit;text-decoration:none;min-width:0}
+.card-song-name strong,.card-song-name span{grid-column:1;overflow-wrap:anywhere}
+.card-song-name svg{grid-column:2;grid-row:1/3;align-self:center;color:#b6805c}
+.card-song-name:focus-visible{outline:2px solid #b6805c;border-radius:4px;outline-offset:4px}
+.card-song-play{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border:0;border-radius:50%;background:#f1e7d9;color:#ad7352;text-decoration:none}
+.card-song-play:hover{background:#eaddcb}
+.card-song-play:disabled{opacity:.45}
+.card-song-status{grid-column:1/-1;font-size:10px;line-height:1.4;color:#9a826d}
+.card-song-line .inline-player{display:contents}
+.inline-player audio{display:none}
+.inline-player .form-error{grid-column:1/-1;margin:0;font-size:11px}
+.unified-story-card .story-life{font-size:10px;margin:14px 0 0;color:#9a826d}
+.unified-story-card .story-byline{display:flex;gap:9px;align-items:center}
+.memory-detail>.card-visibility{margin:16px 0;padding:12px 0;border-top:1px dashed #dfcdb8}
+.composer-place-row{display:flex;align-items:center;border-top:1px solid #e4d7c5}
+.composer-place-row>button:first-child{display:flex;align-items:center;gap:10px;flex:1;min-width:0;min-height:54px;border:0;padding:0;background:transparent;color:#514431;text-align:left;font-size:14px}
+.composer-place-row>button:first-child>span{display:flex;align-items:center;gap:4px;justify-content:flex-end;flex:1;color:#9b8d7b;font-size:12px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.composer-clear-place{display:flex;align-items:center;justify-content:center;width:32px;height:40px;border:0;background:transparent;color:#9b8d7b}
+.memory-composer .composer-location-search input:focus-visible{outline:none;box-shadow:none}
+.composer-location-search:focus-within{box-shadow:0 0 0 1.5px #b38665}
+.composer-sheet-options .place-option-name{display:flex;flex:1;flex-direction:column;align-items:flex-start;gap:2px;color:inherit}
+.place-option-name small{font-size:11px;color:#9b8d7b}
+.place-option-circle{display:block;width:15px;height:15px;border:1px solid currentColor;border-radius:50%}
+.atlas-month-sheet .schedule-month-parts{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin:18px 0 24px}
+.schedule-month-parts label{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;background:#f2ebde}
+.schedule-month-parts input{width:100%;min-width:0;padding:8px 0;border:0;outline:0;background:transparent;text-align:center;color:#514431;font-size:22px}
+.schedule-month-parts label:focus-within{box-shadow:0 0 0 1.5px #b38665}
+.schedule-month-parts span{flex:none;font-size:17px}
+.atlas-month-sheet .primary-button{width:100%;border:0;border-radius:24px}
+.month-show-all{display:block;width:100%;min-height:44px;margin-top:8px;border:0;background:transparent;color:#927a65}
+.atlas-page .atlas-schedule-heart{display:grid;place-items:center;justify-self:end;align-self:center;width:38px;height:44px;border:0;background:transparent;color:#bd7d59}
+.atlas-page .atlas-schedule-heart:disabled{opacity:.45}
 .card-song-line strong{font-size:16px;line-height:1.4}
 .card-song-line span{font-size:12px;color:#9a826d}
 .card-song-action{display:inline-block;margin:8px 0 0;color:#a77154;font-size:11px;text-decoration:none}

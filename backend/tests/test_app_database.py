@@ -23,8 +23,9 @@ def test_song_api_reads_persisted_data(tmp_path):
     assert set(detail_response.json()) == {
         "id", "title", "artist", "version", "source_label", "is_demo", "audio_available",
         "audio_url", "duration_ms", "recording_label",
-        "lyrics", "lyrics_note", "cover_url",
+        "lyrics", "lyrics_note", "cover_url", "qq_music_url",
     }
+    assert detail_response.json()["qq_music_url"] is None
 
 
 def test_fresh_database_directory_and_restart(tmp_path):

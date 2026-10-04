@@ -7,9 +7,10 @@ import { useSession } from './SessionContext';
 import { useLivePage } from './useLivePage';
 import { useData } from './useData';
 import { LyricPicker } from './LyricPicker';
-import { PublicStoryList, StoryBody } from './PublicPages';
+import { PublicStoryList } from './PublicPages';
+import {StoryCard} from './StoryCard';
 import { PublicationPanel } from './PublicationPanel';
-import { PhotoGallery, GalleryPicker } from './PhotoGallery';
+import { GalleryPicker } from './PhotoGallery';
 import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
 import { Plus, X, MagnifyingGlass, MapPin, CalendarBlank, LockSimple, CaretRight, Hash, At } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
@@ -18,6 +19,8 @@ import {BackLink,useBackNavigation} from './Navigation';
 import {MemoryActions} from './MemoryActions';
 import {ChoicePicker} from './ChoicePicker';
 import {SongPicker} from './SongPicker';
+import {PlacePicker} from './PlacePicker';
+import {lockPageScroll,trapDialogFocus} from './dialogScroll';
 import './composer.css';
 import {filterMemories,memoryCategory,memoryCity} from './memoryPresentation';
 import {currentLocalMark,extractHashtags,insertAtCursor} from './revisionBehavior';
@@ -173,6 +176,8 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [locationName,setLocationName]=useState(existing?.location_name??'');
   const [locationQuery,setLocationQuery]=useState('');
   const [sheet,setSheet]=useState<'place'|'time'|'visibility'|null>(null);
+  const sheetPanel=useRef<HTMLDivElement>(null),sheetOrigin=useRef<HTMLElement|null>(null);
+  function openSheet(value:'place'|'time'|'visibility'){sheetOrigin.current=document.activeElement as HTMLElement|null;setSheet(value);}
   const [draftSaved,setDraftSaved]=useState(false);
   const storyInput=useRef<HTMLTextAreaElement>(null);
   const [markedDate,setMarkedDate]=useState(/^\d{4}-\d{2}-\d{2}/.exec(existing?.life_time??'')?.[0]??'');
@@ -191,7 +196,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [anonymous,setAnonymous]=useState(true),[shareLife,setShareLife]=useState(false);
   const [error, setError] = useState('');const [busy, setBusy] = useState(false);
   const lock = useRef(false);const requestKey = useRef(crypto.randomUUID());
-  useEffect(()=>{if(!sheet)return;const key=(event:KeyboardEvent)=>{if(event.key==='Escape')setSheet(null);};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[sheet]);
+  useEffect(()=>{if(!sheet)return;const unlock=lockPageScroll();const release=sheetPanel.current?trapDialogFocus(sheetPanel.current,()=>setSheet(null),sheetOrigin.current):()=>{};return()=>{release();unlock();};},[sheet]);
   useEffect(()=>{
     if(existing||!user)return;
     try {
@@ -247,7 +252,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const now=currentLocalMark(new Date());
     if(!markedDate)setMarkedDate(now.date);
     if(!markedClock)setMarkedClock(now.clock);
-    setSheet('time');
+    openSheet('time');
   }
   async function save(event: FormEvent) {
     event.preventDefault();if (lock.current||uploading) return;
@@ -279,7 +284,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       <label className="composer-story" htmlFor="memory-story"><span className="sr-only">写下这一刻</span><textarea ref={storyInput} id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="写下这一刻的故事…"/></label><span className="character-count">{story.length} / 500</span>
       <div className="composer-recommendations" aria-label="推荐标签">{existing&&parseTags(tagText).map(value=><button className="composer-existing-tag" key={`saved-${value}`} type="button" aria-label={`移除标签${value}`} onClick={()=>setTagText(parseTags(tagText).filter(tag=>tag!==value).join('，'))}>#{value} ×</button>)}{['散场以后','演出现场','邓紫棋','深圳站','听见此刻'].map(value=><button key={value} type="button" onClick={()=>insertToken(`#${value}`)}>#{value}</button>)}</div>
       <div className="composer-mentions"><button type="button" onClick={()=>insertToken('#')}><Hash size={16}/>话题</button><button type="button" onClick={()=>insertToken('@')}><At size={16}/>用户</button></div>
-      <div className="composer-setting-rows"><button type="button" onClick={()=>setSheet('place')}><MapPin size={20}/>标记地点 <span>{locationName||'未标记'} <CaretRight size={17}/></span></button><div className="composer-place-suggestions">{['深圳湾体育中心','演出现场 · 深圳','旅途路上'].map(value=><button type="button" key={value} onClick={()=>setLocationName(value)}>{value}</button>)}</div><button type="button" onClick={openTimeSheet}><CalendarBlank size={20}/>标记时间 <span>{lifeTime||'未标记'} <CaretRight size={17}/></span></button><button type="button" onClick={()=>setSheet('visibility')}><LockSimple size={20}/>可见范围 <span>{visibility==='public'?'公开可见':'仅自己可见'} <CaretRight size={17}/></span></button></div>
+      <div className="composer-setting-rows"><div className="composer-place-row"><button type="button" onClick={()=>openSheet('place')}><MapPin size={20}/>标记地点 <span>{locationName||'未标记'} <CaretRight size={17}/></span></button>{locationName&&<button type="button" className="composer-clear-place" aria-label="清除已标记地点" onClick={()=>setLocationName('')}><X size={16}/></button>}</div><button type="button" onClick={openTimeSheet}><CalendarBlank size={20}/>标记时间 <span>{lifeTime||'未标记'} <CaretRight size={17}/></span></button><button type="button" onClick={()=>openSheet('visibility')}><LockSimple size={20}/>可见范围 <span>{visibility==='public'?'公开可见':'仅自己可见'} <CaretRight size={17}/></span></button></div>
       {!existing&&visibility==='public'&&<div className="composer-sharing" role="group" aria-label="公开设置"><label><input type="checkbox" aria-label="匿名发布" checked={anonymous} onChange={event=>setAnonymous(event.target.checked)}/>匿名发布</label><label><input type="checkbox" aria-label="公开年份和时间" checked={shareLife} onChange={event=>setShareLife(event.target.checked)}/>公开年份和时间</label></div>}
       {song&&<details ref={musicOptions} className="composer-options composer-music"><summary>{existing&&<img src={songCover(song)} alt=""/>}<span><strong>{existing?song.title:'词句与片段'}</strong><small>{timeText?`${lyricId?'所选词句 · ':''}${timeText}${endText?`—${endText}`:' 起'}`:'整首歌'}</small></span><span className="composer-disclosure">调整</span></summary><div className="composer-options-body">
       <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/><LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/>
@@ -287,10 +292,10 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       </div></details>}
       {existing?.publication?.published&&<p className="sample-notice">修改原文或坐标后，会先撤回旧的公开片段。保存后可重新预览并分享。</p>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <div className="composer-save"><button type="button" className="privacy-line" onClick={()=>setSheet('visibility')}>{!existing&&visibility==='public'?'公开可见':'仅自己可见'} <CaretRight size={14}/></button><button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '保存中…' : uploading?'上传中…':existing ? '保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
+      <div className="composer-save"><button type="button" className="privacy-line" onClick={()=>openSheet('visibility')}>{!existing&&visibility==='public'?'公开可见':'仅自己可见'} <CaretRight size={14}/></button><button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '保存中…' : uploading?'上传中…':existing ? '保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
       </fieldset>
     </form>
-    {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':'谁可以看到这段记忆'}</h2></header>{sheet==='place'?<><label className="composer-location-search"><MagnifyingGlass size={18}/><input value={locationQuery} onChange={event=>setLocationQuery(event.target.value)} placeholder="搜索城市或演出地点"/></label><div className="composer-sheet-options">{[...new Set([...(locationQuery.trim()?[locationQuery.trim()]:[]),locationName,'深圳湾体育中心','演出现场 · 深圳','旅途路上','不标记地点'].filter(Boolean))].map(value=><button key={value} type="button" onClick={()=>{setLocationName(value==='不标记地点'?'':value);setSheet(null);}}><MapPin size={18}/>{value}<span>{locationName===value?'✓':'○'}</span></button>)}</div></>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><label>具体时间 <input aria-label="具体时间" type="text" inputMode="numeric" maxLength={5} value={markedClock} onChange={event=>setMarkedClock(event.target.value)} placeholder="HH:mm"/></label><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)||Boolean(markedClock&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(markedClock))} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');setLifeYear(year);setLifeTime(date+(markedClock?` ${markedClock}`:''));setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
+    {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div ref={sheetPanel} className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':'谁可以看到这段记忆'}</h2></header>{sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><label>具体时间 <input aria-label="具体时间" type="text" inputMode="numeric" maxLength={5} value={markedClock} onChange={event=>setMarkedClock(event.target.value)} placeholder="HH:mm"/></label><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)||Boolean(markedClock&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(markedClock))} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');setLifeYear(year);setLifeTime(date+(markedClock?` ${markedClock}`:''));setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
   </section>;
 }
 
@@ -308,14 +313,10 @@ function DetailContent({ edit }: { edit: boolean }) {
   return <section className="journal-page memory-detail">
     <header className="memory-toolbar"><BackLink fallback="/memories"/></header>
     {location.state?.saved && <p className="saved-notice" role="status">已保存。</p>}
-    <article className={`keepsake-paper unified-story-card${card.photo_url?' has-photo':''}`}>
-      <span className="paper-date">{[card.life_year,card.life_time].filter(Boolean).join(' · ')||`记录于 ${dayLabel(card.created_at)}`}</span>{card.title&&<h1 className="moment-title">{card.title}</h1>}<div className="card-song-line"><strong>{card.song.title}</strong><span>{card.song.artist}</span></div><PhotoGallery photos={cardPhotos(card)} fallback={songCover(card.song)}/><StoryBody text={card.story} tags={card.tags} scope="mine"/>{card.offset_ms!==null&&<span className="paper-caption">我最喜欢的片段 · {formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</span>}
-      <PublicationPanel key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
-    </article>
+    <StoryCard author={card.is_demo_sample?'虚构歌迷 · 演示故事':user.display_name} sample={card.is_demo_sample} title={card.title} year={card.life_year} time={card.life_time} song={card.song} photos={cardPhotos(card)} text={card.story} tags={card.tags} scope="mine" anchor={card.offset_ms} end={card.end_ms} lyric={card.lyric}/>
     <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
+    <PublicationPanel key={'publication:'+card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
     {card.event_id&&<EventNote id={card.event_id}/>}
-    {card.lyric&&<blockquote className="lyric-quote">“{card.lyric.text}”<small>原创示例词句</small></blockquote>}
-    <AudioPlayer song={card.song} anchor={card.offset_ms} end={card.end_ms}/>
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
   </section>;
 }

@@ -18,6 +18,7 @@ async function harness(path,respond,work,fixtures={}){
   globalThis.ResizeObserver=class {observe(){} disconnect(){}};
   window.HTMLMediaElement.prototype.play=async function(){this.dispatchEvent(new window.Event('play'));};
   window.HTMLMediaElement.prototype.pause=function(){this.dispatchEvent(new window.Event('pause'));};
+  window.HTMLMediaElement.prototype.load=function(){};
   const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter,useNavigate,useLocation}=await import('react-router');
   let navigate,current;function Probe(){navigate=useNavigate();current=useLocation();return null;}
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
@@ -33,7 +34,7 @@ async function harness(path,respond,work,fixtures={}){
   };
   const root=createRoot(document.getElementById('root'));
   const act=React.act;
-  const until=async selector=>{for(let i=0;i<40&&!document.querySelector(selector);i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});assert.ok(document.querySelector(selector),selector);};
+  const until=async selector=>{const deadline=Date.now()+15000;while(!document.querySelector(selector)&&Date.now()<deadline)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});assert.ok(document.querySelector(selector),selector);};
   const fill=async(id,text)=>act(async()=>{const input=document.getElementById(id);assert.ok(input,`missing ${id}`);const proto=input.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,text);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
   try{await act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(App),React.createElement(Probe))));await work({act,fill,until,go:async to=>act(async()=>navigate(to)),location:()=>current});}
   finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;globalThis.FormData=priorFormData;delete globalThis.ResizeObserver;dom.window.close();}
@@ -133,18 +134,276 @@ test('public and private detail titles use the same card typography',async()=>{
   assert.equal(actual,expected);
 });
 
-test('a public detail card contains only song name and artist in its song line',async()=>{
+test('detail song region owns playback and song navigation without duplicate outside players',async()=>{
   const story={...card,excerpt:card.story,author_name:'听友',is_demo_sample:false};
   let songLineHasLink,hasSongAction,songLineText;
-  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async()=>{
+  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({act,location})=>{
     const songLine=document.querySelector('.public-detail .unified-story-card .card-song-line');
     songLineHasLink=Boolean(songLine.querySelector('a'));
     songLineText=songLine.textContent;
     hasSongAction=[...document.querySelectorAll('.public-detail a')].some(link=>link.textContent==='查看歌曲 →');
+    const play=songLine.querySelector('button[aria-label="播放散场以后"]');
+    assert.ok(play,'playback belongs inside the bordered song region');
+    assert.equal(document.querySelectorAll('.public-detail audio').length,1);
+    assert.ok(songLine.contains(document.querySelector('audio')));
+    await act(async()=>play.click());
+    assert.ok(songLine.querySelector('button[aria-label="暂停散场以后"]'));
+    assert.equal(location().pathname,'/stories/88','play is separate from song navigation');
+    await act(async()=>songLine.querySelector('button').click());
+    assert.ok(songLine.querySelector('button[aria-label="播放散场以后"]'));
   });
-  assert.equal(songLineHasLink,false);
+  assert.equal(songLineHasLink,true);
   assert.match(songLineText,/散场以后.*Demo Artist/);
-  assert.equal(hasSongAction,true,'song navigation remains outside the story card');
+  assert.equal(hasSongAction,false,'no duplicate song action outside the card');
+});
+
+const revisionCatalog={today:'2026-10-04',artists:[{id:'gem',name:'邓紫棋'},{id:'liu-yuxin',name:'刘雨昕'}],cities:[{id:'shanghai',name:'上海',lng:121.47,lat:31.23},{id:'beijing',name:'北京',lng:116.4,lat:39.9}],events:[
+  {id:'sh',artist_id:'gem',title:'邓紫棋上海站',city:'上海',venue:'上海体育场',date:'2026-10-02',source_url:'https://example.com',source_title:'公告',songs:[{title:'光年之外',artist:'邓紫棋',url:'https://y.qq.com/'}]},
+  {id:'bj',artist_id:'liu-yuxin',title:'刘雨昕北京站',city:'北京',venue:'五棵松',date:'2026-10-03',source_url:'https://example.com',source_title:'公告',songs:[]},
+]};
+
+test('selected singer removes unrelated map markers and All restores them',async()=>{
+  await harness('/footprints',async url=>{if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,until})=>{
+    await until('.atlas-map-fallback');
+    assert.equal(document.querySelectorAll('.atlas-map-fallback button').length,2);
+    await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='邓紫棋').click());
+    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button')].map(button=>button.textContent),['上海']);
+    await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').click());
+    assert.equal(document.querySelectorAll('.atlas-map-fallback button').length,2);
+  });
+});
+
+test('a singer without a verified portrait has an explicitly named map fallback',async()=>{
+  const catalog={...revisionCatalog,artists:[{id:'phoenix',name:'凤凰传奇'}],events:[{...revisionCatalog.events[0],artist_id:'phoenix'}]};
+  await harness('/footprints?artist=phoenix',async url=>{if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({until})=>{
+    await until('.atlas-map-fallback');
+    const marker=document.querySelector('.atlas-map-fallback button');
+    assert.match(marker.getAttribute('aria-label'),/凤凰传奇/);
+    assert.equal(marker.querySelector('.map-artist-fallback').textContent,'凤凰传奇');
+    assert.equal(marker.querySelector('img'),null,'a concert image is never represented as this singer’s portrait');
+  });
+});
+
+test('month filter defaults to this month and applies numeric year/month only on confirmation',async()=>{
+  await harness('/footprints',async url=>{if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,fill,until,location})=>{
+    await until('.atlas-month-filter button');
+    await act(async()=>document.querySelector('.atlas-month-filter button').click());
+    assert.equal(document.body.style.overflow,'hidden','the month sheet prevents background scrolling');
+    const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+    assert.equal(document.getElementById('schedule-year').value,parts.find(part=>part.type==='year').value);
+    assert.equal(document.getElementById('schedule-month').value,parts.find(part=>part.type==='month').value);
+    await fill('schedule-year','2025');await fill('schedule-month','9');
+    assert.equal(new URLSearchParams(location().search).has('month'),false);
+    await act(async()=>document.querySelector('.atlas-month-sheet button[type="submit"]').click());
+    assert.equal(new URLSearchParams(location().search).get('month'),'2025-09');
+    assert.equal(document.querySelector('.atlas-month-sheet'),null);
+    assert.equal(document.body.style.overflow,'');
+    assert.match(document.querySelector('.atlas-itinerary').textContent,/暂无/);
+  });
+});
+
+test('saved schedule heart toggles off and can be collected again',async()=>{
+  let saved=true;
+  await harness('/footprints?month=2026-10',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json(saved?[{id:7,event_id:'sh'}]:[]);
+    if(url==='/api/playlists/concerts/sh'&&options.method==='DELETE'){saved=false;return new Response(null,{status:204});}
+    if(url==='/api/playlists/concerts/sh'&&options.method==='PUT'){saved=true;return Response.json({id:8,event_id:'sh'});}
+    throw new Error(url);
+  },async({act,until})=>{
+    await until('.atlas-schedule-heart.is-saved');
+    const heart=document.querySelector('.atlas-schedule-heart.is-saved');
+    assert.equal(heart.disabled,false,'a saved heart is still actionable');
+    await act(async()=>heart.click());
+    assert.equal(saved,false);
+    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'false');
+    await act(async()=>document.querySelector('.atlas-schedule-heart').click());
+    assert.equal(saved,true);
+    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'true');
+  });
+});
+
+test('real-song names open the exact QQ homepage with playback independently available',async()=>{
+  const real={...song,id:104,title:'REALITY',artist:'刘雨昕',is_demo:false,audio_available:false,audio_url:null,qq_music_url:'https://y.qq.com/n/ryqq/songDetail/000h6xTe1LRGfl'};
+  await harness('/stories/104',async url=>{if(url==='/api/stories/104')return Response.json({...card,song:real,song_id:104,excerpt:card.story,author_name:'听友'});throw new Error(url);},async()=>{
+    const region=document.querySelector('.card-song-line');
+    assert.equal(region.querySelector('.card-song-name').getAttribute('href'),'https://y.qq.com/n/ryqq/songDetail/000h6xTe1LRGfl');
+    assert.equal(region.querySelector('.card-song-name').target,'_blank');
+    assert.ok(region.querySelector('[aria-label="在QQ音乐播放REALITY"]'));
+    assert.equal(document.querySelector('.public-detail>.audio-unavailable'),null);
+  });
+});
+
+test('saved concert panel supports cancel and synchronizes the schedule when returning',async()=>{
+  const event=revisionCatalog.events[0];let saved=[{id:7,event_id:event.id,songs:event.songs}];
+  await harness('/footprints?month=2026-10',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json(saved);
+    if(url==='/api/footprints')return Response.json([]);
+    if(url==='/api/playlists/concerts/sh'&&options.method==='DELETE'){saved=[];return new Response(null,{status:204});}
+    throw new Error(url);
+  },async({act,go,until})=>{
+    await until('.atlas-schedule-heart.is-saved');
+    await go('/footprints?event=sh&scene=sky&month=2026-10');
+    await until('.concert-collect .is-saved');
+    const cancel=document.querySelector('.concert-collect button[aria-label="取消收藏歌单"]');
+    assert.ok(cancel);
+    await act(async()=>cancel.click());
+    await go('/footprints?month=2026-10');
+    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'false');
+  });
+});
+
+test('cancelling a saved concert cannot start a conflicting snapshot refresh',async()=>{
+  const event=revisionCatalog.events[0];let finishDelete,refreshes=0;
+  const saved={id:7,event_id:event.id,songs:event.songs,update_available:true,snapshot_version:'old',current_version:'new'};
+  await harness('/footprints?event=sh&scene=sky&month=2026-10',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([saved]);
+    if(url==='/api/footprints')return Response.json([]);
+    if(url==='/api/playlists/concerts/sh'&&options.method==='DELETE')return new Promise(resolve=>{finishDelete=()=>resolve(new Response(null,{status:204}));});
+    if(url==='/api/playlists/7/refresh'){refreshes++;return Response.json(saved);}
+    throw new Error(url);
+  },async({act,until})=>{
+    await until('.concert-collect .is-saved');
+    await act(async()=>document.querySelector('.concert-collect button[aria-label="取消收藏歌单"]').click());
+    const update=document.querySelector('.concert-collect .playlist-update-button');
+    assert.equal(update.disabled,true,'a cancellation in progress blocks a conflicting refresh');
+    await act(async()=>update.click());
+    assert.equal(refreshes,0);
+    await act(async()=>finishDelete());
+    assert.equal(document.querySelector('.concert-collect .is-saved'),null);
+  });
+});
+
+test('one shared playlist read gates cancellation and preserves other favorites across panels',async()=>{
+  let reads=0,finishInitial;
+  const saved=[{id:7,event_id:'sh',songs:revisionCatalog.events[0].songs},{id:8,event_id:'bj',songs:revisionCatalog.events[1].songs}];
+  await harness('/footprints?event=sh&scene=sky&month=2026-10',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return ++reads===1?new Promise(resolve=>{finishInitial=()=>resolve(Response.json(saved));}):Response.json(saved);
+    if(url==='/api/footprints')return Response.json([]);
+    if(url==='/api/playlists/concerts/sh'&&options.method==='DELETE')return new Response(null,{status:204});
+    throw new Error(url);
+  },async({act,go,until})=>{
+    await until('.concert-collect button');
+    assert.equal(document.querySelector('.concert-collect button').disabled,true,'no independent panel snapshot permits mutations before the shared read');
+    assert.equal(reads,1,'the page and its concert panel use one owner-scoped read');
+    await act(async()=>finishInitial());
+    await until('.concert-collect .is-saved');
+    await act(async()=>document.querySelector('.concert-collect button[aria-label="取消收藏歌单"]').click());
+    await go('/footprints?month=2026-10');
+    const sh=document.querySelector('[aria-label="收藏 上海 邓紫棋"]');
+    assert.ok(sh,'the cancelled heart stays unfilled after the obsolete read');
+    assert.equal(sh.getAttribute('aria-pressed'),'false');
+    await go('/footprints?month=2026-10&city=beijing&venue=北京:北京五棵松&event=bj&scene=venue');
+    assert.equal(document.querySelector('[aria-label="取消收藏 北京 刘雨昕"]').getAttribute('aria-pressed'),'true','unrelated saved events remain available');
+  });
+});
+
+for(const origin of ['schedule','concert'])test(`pending ${origin} cancellation stays locked and reconciles after changing panels`,async()=>{
+  let finishDelete,refreshes=0;
+  const saved={id:7,event_id:'sh',songs:revisionCatalog.events[0].songs,update_available:true,snapshot_version:'old',current_version:'new'};
+  await harness(origin==='schedule'?'/footprints?month=2026-10':'/footprints?event=sh&scene=sky&month=2026-10',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([saved]);
+    if(url==='/api/footprints')return Response.json([]);
+    if(url==='/api/playlists/concerts/sh'&&options.method==='DELETE')return new Promise(resolve=>{finishDelete=()=>resolve(new Response(null,{status:204}));});
+    if(url==='/api/playlists/7/refresh'){refreshes++;return Response.json(saved);}
+    throw new Error(url);
+  },async({act,go,until})=>{
+    await until(origin==='schedule'?'.atlas-schedule-heart.is-saved':'.concert-collect .is-saved');
+    await act(async()=>document.querySelector(origin==='schedule'?'.atlas-schedule-heart.is-saved':'.concert-collect button[aria-label="取消收藏歌单"]').click());
+    if(origin==='schedule'){
+      await go('/footprints?event=sh&scene=sky&month=2026-10');
+      await until('.playlist-update-button');
+      assert.equal(document.querySelector('.playlist-update-button').disabled,true);
+      await act(async()=>document.querySelector('.playlist-update-button').click());
+    }else{
+      await go('/footprints?month=2026-10');
+      assert.equal(document.querySelector('.atlas-schedule-heart').disabled,true);
+    }
+    assert.equal(refreshes,0,'refresh cannot compete with a cancellation started in another panel');
+    await act(async()=>finishDelete());
+    await go('/footprints?month=2026-10');
+    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'false');
+    assert.equal(document.querySelector('.atlas-schedule-heart').disabled,false);
+  });
+});
+
+test('a failed shared favorite read can retry without leaving the music scene',async()=>{
+  let reads=0;
+  await harness('/footprints?event=sh&scene=sky&month=2026-10',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return ++reads===1?Response.json({detail:'连接暂时中断'},{status:503}):Response.json([{id:7,event_id:'sh',songs:revisionCatalog.events[0].songs}]);
+    if(url==='/api/footprints')return Response.json([]);
+    throw new Error(url);
+  },async({act,until})=>{
+    await until('.concert-collect [role="alert"]');
+    assert.equal(document.querySelector('.concert-collect .collect-button').disabled,true,'unknown favorite state must not permit writes');
+    const retry=[...document.querySelectorAll('.concert-collect button')].find(button=>button.textContent==='重试读取收藏');
+    assert.ok(retry,'transient failure has a local recovery entry');
+    await act(async()=>retry.click());
+    await until('.concert-collect .is-saved');
+    assert.equal(reads,2);
+    assert.equal(document.querySelector('.concert-collect .collect-button').disabled,false);
+  });
+});
+
+test('My and public details share the full reading-card template with ownership controls outside',async()=>{
+  const story={...card,excerpt:card.story,author_name:'我',is_demo_sample:false};
+  await harness('/memories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({go})=>{
+    const mine=document.querySelector('.unified-story-card');
+    assert.ok(mine.querySelector('.story-byline'),'My detail has the same author header');
+    assert.equal(mine.querySelector('.visibility-trigger'),null,'privacy operations are outside the reading card');
+    const sections=[...mine.children].map(element=>element.className);
+    await go('/stories/88');
+    assert.deepEqual([...document.querySelector('.unified-story-card').children].map(element=>element.className),sections);
+    assert.equal(document.querySelector('.unified-story-card h1').textContent,card.title);
+    assert.equal(document.querySelector('.unified-story-card .original-story').textContent,card.story+' #演唱会#散场');
+  });
+});
+
+test('place search follows catalog cities and venues rather than hardcoded choices',async()=>{
+  const catalog={artists:[],cities:[{id:'shanghai',name:'上海'},{id:'shenzhen',name:'深圳'}],events:[{id:'sh',city:'上海',venue:'上海体育场'},{id:'sz',city:'深圳',venue:'深圳湾体育中心'}]};
+  await harness('/memories/88/edit',async url=>{if(url==='/api/footprints/catalog')return Response.json(catalog);throw new Error(url);},async({act,fill,until})=>{
+    assert.equal(document.querySelector('.composer-setting-rows button').textContent.includes('未标记'),true);
+    await act(async()=>document.querySelector('.composer-setting-rows button').click());
+    await until('#composer-location-query');
+    assert.equal(document.body.style.overflow,'hidden','the location sheet prevents background scrolling');
+    assert.equal(document.getElementById('memory-story').value,card.story);
+    await fill('composer-location-query','上海');
+    const options=document.querySelector('.composer-sheet-options');
+    assert.match(options.textContent,/上海体育场/);
+    assert.ok(!options.textContent.includes('深圳'),'unrelated Shenzhen places are not returned');
+    assert.ok(!options.textContent.includes('不标记地点'),'unset is the default, not a standalone action');
+    await act(async()=>[...options.querySelectorAll('button')].find(button=>button.textContent.includes('上海体育场')).click());
+    assert.match(document.querySelector('.composer-setting-rows').textContent,/上海体育场/);
+    assert.equal(document.querySelector('.composer-modal'),null);
+    assert.equal(document.body.style.overflow,'');
+    assert.equal(document.getElementById('memory-story').value,card.story);
+  });
+});
+
+for(const name of ['标记地点','标记时间','可见范围'])test(`${name} sheet keeps keyboard focus inside and restores its trigger`,async()=>{
+  await harness('/memories/88/edit',async url=>{if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);throw new Error(url);},async({act,until})=>{
+    const trigger=[...document.querySelectorAll('.composer-setting-rows button')].find(button=>button.textContent.includes(name));
+    trigger.focus();
+    await act(async()=>trigger.click());
+    await until('.composer-sheet');
+    const sheet=document.querySelector('.composer-sheet');
+    assert.equal(sheet.contains(document.activeElement),true,'time and privacy also start inside the sheet');
+    const controls=[...sheet.querySelectorAll('button:not(:disabled),input:not(:disabled)')],first=controls[0],last=controls.at(-1);
+    await act(async()=>{last.focus();window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Tab',cancelable:true}));});
+    assert.equal(document.activeElement,first);
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Tab',shiftKey:true,cancelable:true})));
+    assert.equal(document.activeElement,last);
+    await act(async()=>document.querySelector('.bottom-nav a').focus());
+    assert.equal(sheet.contains(document.activeElement),true,'background navigation cannot receive focus while a sheet is open');
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',cancelable:true})));
+    assert.equal(document.querySelector('.composer-sheet'),null);
+    assert.equal(document.activeElement,trigger);
+  });
 });
 
 test('timeline shows dated groups and compact cards without repeating the full story',async()=>{
@@ -267,7 +526,7 @@ test('reading a searched story and returning restores the search; player keeps t
     const read=document.querySelector('.card-read');assert.ok(read,'URL search loads matching cards');
     await act(async()=>read.click());
     assert.ok(document.querySelector('.public-detail .back-link').href.endsWith('/discover?q=%E6%95%A3%E5%9C%BA&mode=semantic') || document.querySelector('.public-detail .back-link').href.endsWith('/discover?q=散场&mode=semantic'));
-    const player=[...document.querySelectorAll('a')].find(link=>link.textContent==='查看歌曲 →');
+    const player=document.querySelector('.card-song-name');
     assert.ok(player.href.includes('at=10000&end=14000'));
     await act(async()=>player.click());
     await act(async()=>document.querySelector('.listening-page .back-link').click());

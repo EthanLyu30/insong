@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 from sqlalchemy import delete, select, update
 from sqlalchemy.dialects.sqlite import insert
@@ -166,6 +166,15 @@ def install_footprints(app, get_db, get_user):
         db.commit()
         record = db.scalar(select(ConcertPlaylist).where(ConcertPlaylist.owner_id == user.id, ConcertPlaylist.event_id == event_id))
         return serialize_playlist(record, catalog)
+
+    @app.delete('/api/playlists/concerts/{event_id}', status_code=204)
+    def remove_concert_playlist(event_id: str, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
+        # Unsave even if the catalog entry has since disappeared. Other owners'
+        # snapshots and attendance records are unaffected.
+        db.execute(delete(ConcertPlaylist).where(ConcertPlaylist.owner_id == user.id,
+                                                 ConcertPlaylist.event_id == event_id))
+        db.commit()
+        return Response(status_code=204)
 
     @app.post('/api/playlists/{playlist_id}/refresh')
     def refresh_playlist(playlist_id: int, data: PlaylistRefreshInput,

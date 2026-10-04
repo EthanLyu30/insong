@@ -67,7 +67,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     if(url==='/api/footprints/gem-test' && options.method==='PUT'){writes++;return new Promise(resolve=>{finishWrite=()=>{saved=JSON.parse(options.body).attended?['gem-test']:[];resolve(Response.json(saved));};});}
     throw new Error('Unexpected request '+url);
   };
-  const click=async label=>React.act(async()=>{const button=[...document.querySelectorAll('button,[role="button"]')].find(el=>el.getAttribute('aria-label')?.includes(label) || el.textContent.includes(label));assert.ok(button,label);button.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));});
+  const click=async label=>React.act(async()=>{const buttons=[...document.querySelectorAll('button,[role="button"]')];const button=buttons.find(el=>el.getAttribute('aria-label')===label||el.textContent.trim()===label)??buttons.find(el=>el.getAttribute('aria-label')?.includes(label)||el.textContent.includes(label));assert.ok(button,label);button.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));});
   try{
     await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(AtlasWithNavigation))));
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
@@ -115,7 +115,10 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('取消到场'); await React.act(async()=>finishWrite());
     await click('我去过'); await click('返回上一页');await click('返回上一页');await click('返回上一页'); await click('接下来'); await click('刘雨昕'); await React.act(async()=>finishWrite());
     assert.match(document.querySelector('.atlas-itinerary').textContent,/暂无待演/,'past-only artists should offer the past tab without promising a future stop');
-    await click('往期');assert.match(document.querySelector('.atlas-itinerary h2').textContent,/最近一站/);
+    await click('往期');
+    await React.act(async()=>document.querySelector('.atlas-month-filter button').click());
+    await click('全部月份');
+    assert.match(document.querySelector('.atlas-itinerary h2').textContent,/最近一站/);
     assert.ok(!document.body.textContent.includes('取消到场'));
     await click('北京');await click('进入五棵松');await click('2025.09.20');assert.ok(!document.body.textContent.includes('取消到场'));
     await React.act(async()=>{user=null;window.dispatchEvent(new window.StorageEvent('storage',{key:'memory-session-change'}));});

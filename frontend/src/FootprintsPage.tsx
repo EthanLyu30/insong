@@ -6,15 +6,15 @@ import { apiRequest } from './memoryClient';
 import { useSession } from './SessionContext';
 import { useData } from './useData';
 import { PublicStoryList } from './PublicPages';
-import {ChoicePicker} from './ChoicePicker';
+import {MonthFilter} from './MonthFilter';
 import { AtlasMap } from './AtlasMap';
 import { CinematicStage } from './CinematicStage';
 import {venuePhotograph} from './photoSources';
 import type {SceneController} from './sceneInteraction';
-import { CollectConcert, SongList, type SavedPlaylist } from './ConcertPlaylist';
+import { CollectConcert, SongList, usePlaylistRefresh, type SavedPlaylist } from './ConcertPlaylist';
 import {overviewFocus} from './atlasCamera';
 import {ConcertPlayer,useConcertPlayer} from './ConcertPlayer';
-import {selectSchedule,scheduleMonths,eventChangeNote,groupConcertRuns,matchesConcertSearch,type ConcertRun,type SchedulePeriod} from './concertSchedule';
+import {selectSchedule,eventChangeNote,groupConcertRuns,matchesConcertSearch,type ConcertRun,type SchedulePeriod} from './concertSchedule';
 import { chinaToday, dateLabel, eventPhase, filterArtists, groupVenues, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong, type AtlasVenue } from './footprintAtlas';
 import './footprints.css';
 import {BackLink,useBackNavigation} from './Navigation';
@@ -52,14 +52,17 @@ export function FootprintsPage() {
   const returnToMine=params.get('from')==='mine'&&/^\/memories(?:\?[^#]*)?$/.test(requestedReturn)?requestedReturn:null;
   const [focusPoint,setFocusPoint]=useState<[number,number]|null>(null);
   const [savedPlaylists,setSavedPlaylists]=useState<SavedPlaylist[]|null>(null);
+  const [playlistRetry,setPlaylistRetry]=useState(0),[playlistLoading,setPlaylistLoading]=useState(false);
   const [savingEvent,setSavingEvent]=useState('');
   const [saveError,setSaveError]=useState('');
+  const collectionRequest=useRef<AbortController|null>(null);
+  const playlistUpdate=usePlaylistRefresh(String(user?.id??''));
   const sceneController=useRef<SceneController|null>(null);const [listOpen,setListOpen]=useState(true);
   const storyTrigger=useRef<HTMLButtonElement>(null);const storyClose=useRef<HTMLButtonElement>(null);
   const nightPanel=useRef<HTMLElement>(null);
   const mapPanel=useRef<HTMLElement>(null);
   useEffect(()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(position=>setFocusPoint(overviewFocus(position.coords)),()=>{}, {enableHighAccuracy:false,timeout:3500,maximumAge:10*60*1000});},[]);
-  useEffect(()=>{setSavedPlaylists(null);if(!user)return;const controller=new AbortController();apiRequest<SavedPlaylist[]>(apiBaseUrl,'/api/playlists',{signal:controller.signal}).then(value=>{if(!controller.signal.aborted)setSavedPlaylists(value);}).catch(reason=>{if(!controller.signal.aborted)setSaveError(reason instanceof Error?reason.message:'收藏状态暂时未读到。');});return()=>controller.abort();},[user?.id]);
+  useEffect(()=>{setSavedPlaylists(null);setSavingEvent('');setSaveError('');setPlaylistLoading(!!user);if(!user)return;const controller=new AbortController();apiRequest<SavedPlaylist[]>(apiBaseUrl,'/api/playlists',{signal:controller.signal}).then(value=>{if(!controller.signal.aborted)setSavedPlaylists(value);}).catch(reason=>{if(!controller.signal.aborted)setSaveError(reason instanceof Error?reason.message:'收藏状态暂时未读到。');}).finally(()=>{if(!controller.signal.aborted)setPlaylistLoading(false);});return()=>{controller.abort();collectionRequest.current?.abort();collectionRequest.current=null;};},[user?.id,playlistRetry]);
 
   const [query,setQuery]=useState('');const [searchOpen,setSearchOpen]=useState(false);const [expanded,setExpanded]=useState(false);const [selectedSong,setSelectedSong]=useState<AtlasSong|null>(null);const [stories,setStories]=useState(false);
   const [venueSearch,setVenueSearch]=useState(false),[venueQuery,setVenueQuery]=useState('');
@@ -69,8 +72,7 @@ export function FootprintsPage() {
   const events=useMemo(()=>catalog?.events.filter(event=>!artist || event.artist_id===artist.id)??[],[catalog,artist]);
   const today=catalog?.today??chinaToday();
   const period:SchedulePeriod=params.get('period')==='upcoming'?'upcoming':'past';
-  const month=/^\d{4}-(?:0[1-9]|1[0-2])$/.test(params.get('month')??'')?params.get('month')!:'';
-  const months=useMemo(()=>scheduleMonths(events,period,today),[events,period,today]);
+  const month=period==='upcoming'||params.get('month')==='all'?'':/^\d{4}-(?:0[1-9]|1[0-2])$/.test(params.get('month')??'')?params.get('month')!:chinaToday().slice(0,7);
   const recent=useMemo(()=>selectSchedule(events,period,month,today),[events,period,month,today]);
   // A direct saved-night link may be outside today's default period. Keep that
   // explicitly selected night without adding unrelated dates or venues.
@@ -104,20 +106,33 @@ export function FootprintsPage() {
   },[scene,city?.id,searchOpen,venueSearch,expanded]);
   function playSong(song:AtlasSong){setSelectedSong(song);player.select(song);}
   const recentHeading=displayRuns[0]?`${period==='past'?'最近一站':'下一站'} · ${displayRuns[0].events[0].city}`:'最近的现场';
-  async function collectEvent(event:AtlasEvent){
+  async function collectEvent(event:AtlasEvent,run:ConcertRun<AtlasEvent>){
     if(!user){navigate(`/account?next=${encodeURIComponent('/footprints'+(params.size?`?${params}`:''))}`);return;}
-    if(savedPlaylists?.some(item=>item.event_id===event.id)||savingEvent||!event.songs.length)return;
-    setSavingEvent(event.id);setSaveError('');
-    try{const saved=await apiRequest<SavedPlaylist>(apiBaseUrl,`/api/playlists/concerts/${encodeURIComponent(event.id)}`,{method:'PUT'});setSavedPlaylists(items=>[...(items??[]).filter(item=>item.event_id!==event.id),saved]);}
-    catch(reason){setSaveError(reason instanceof Error?reason.message:'没有收藏成功，请重试。');}
-    finally{setSavingEvent('');}
+    const saved=(savedPlaylists??[]).filter(item=>run.events.some(night=>night.id===item.event_id));
+    if(collectionRequest.current||playlistUpdate.inFlight()||savedPlaylists===null||!saved.length&&!event.songs.length)return;
+    const controller=new AbortController();collectionRequest.current=controller;setSavingEvent(run.id);setSaveError('');
+    try{
+      if(saved.length){
+        for(const item of saved){await apiRequest(apiBaseUrl,`/api/playlists/concerts/${encodeURIComponent(item.event_id)}`,{method:'DELETE',signal:controller.signal});if(!controller.signal.aborted)setSavedPlaylists(items=>items?.filter(value=>value.event_id!==item.event_id)??null);}
+      }else{
+        const value=await apiRequest<SavedPlaylist>(apiBaseUrl,`/api/playlists/concerts/${encodeURIComponent(event.id)}`,{method:'PUT',signal:controller.signal});if(!controller.signal.aborted)setSavedPlaylists(items=>[...(items??[]).filter(item=>item.event_id!==event.id),value]);
+      }
+    }
+    catch(reason){if(!controller.signal.aborted)setSaveError(reason instanceof Error?reason.message:'收藏状态没有更新成功，请重试。');}
+    finally{if(!controller.signal.aborted){collectionRequest.current=null;setSavingEvent('');}}
   }
-  function filters(extra:Record<string,string>={}){return Object.fromEntries(Object.entries({...(returnToMine?{from:'mine',return:returnToMine}:{}),period,...(month?{month}:{}),...extra}).filter(([,value])=>value));}
+  async function reloadPlaylists(signal:AbortSignal){const values=await apiRequest<SavedPlaylist[]>(apiBaseUrl,'/api/playlists',{signal});if(!signal.aborted)setSavedPlaylists(values);}
+  function refreshPlaylist(playlist:SavedPlaylist){
+    if(collectionRequest.current)return;
+    void playlistUpdate.refresh(playlist,value=>setSavedPlaylists(items=>items?.map(item=>item.event_id===value.event_id?value:item)??null),reloadPlaylists);
+  }
+  function retryPlaylists(){if(!collectionRequest.current&&!playlistUpdate.inFlight())setPlaylistRetry(value=>value+1);}
+  function filters(extra:Record<string,string>={}){return Object.fromEntries(Object.entries({...(returnToMine?{from:'mine',return:returnToMine}:{}),period,...(params.get('month')==='all'?{month:'all'}:month?{month}:{}),...extra}).filter(([,value])=>value));}
   function filterLocation(){return {...(artist?{artist:artist.id}:{}),...(city?{city:city.id}:{})};}
-  function changePeriod(value:SchedulePeriod){setParams(filters({...filterLocation(),period:value,month:''}),{replace:true});setExpanded(false);}
+  function changePeriod(value:SchedulePeriod){setParams(filters({...filterLocation(),period:value}),{replace:true});setExpanded(false);}
   function changeMonth(value:string){setParams(filters({...filterLocation(),month:value}),{replace:true});setExpanded(true);}
   useEffect(()=>{setSelectedSong(linkedEvent?.songs[0]??null);setStories(false);setListOpen(true);},[linkedEvent?.id]);
-  function chooseArtist(id:string){setParams(filters({...(id?{artist:id}:{}),month:''}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);}
+  function chooseArtist(id:string){setParams(filters({...(id?{artist:id}:{})}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);}
   function chooseCity(value:AtlasCity){setParams(filters({...(artist?{artist:artist.id}:{}),city:value.id}));setSearchOpen(false);setQuery('');}
   function openVenue(value:AtlasVenue){const selected=value.events.find(event=>event.id===linkedEvent?.id)??value.events[0];setParams(filters({...(artist?{artist:artist.id}:{}),city:city!.id,venue:value.id,...(selected?{event:selected.id}:{}),scene:'venue'}));}
   function mapVenue(event:AtlasEvent){const c=cities.find(item=>item.name===event.city);if(c)setParams(filters({...(artist?{artist:artist.id}:{}),city:c.id,venue:`${event.city}:${event.venue}`,event:event.id,scene:'venue'}));}
@@ -154,7 +169,7 @@ export function FootprintsPage() {
         <time data-old-year={!first.date.startsWith(today.slice(0,4))}><span>{first.date.slice(5).replace('-','.')}{multiple&&<>—{last.date.slice(5).replace('-','.')}</>}</span>{(inside||multiple||!first.date.startsWith(today.slice(0,4)))&&<small>{first.date.slice(0,4)}{multiple?` · ${run.events.length} 晚`:event.time?` · ${event.time}`:''}</small>}</time>
         <span><strong>{event.city} · {loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}</strong><small>{inside?event.title:event.venue}</small></span>
       </button>
-      <button type="button" className={`atlas-schedule-heart${saved?' is-saved':''}`} aria-label={`${saved?'已收藏':'收藏'} ${event.city} ${loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}`} aria-pressed={saved} disabled={saved||savingEvent===event.id||!!user&&savedPlaylists===null||!event.songs.length} onClick={()=>void collectEvent(event)}><Heart size={21} weight={saved?'fill':'regular'}/></button>
+      <button type="button" className={`atlas-schedule-heart${saved?' is-saved':''}`} aria-label={`${saved?'取消收藏':'收藏'} ${event.city} ${loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}`} aria-pressed={saved} disabled={!!savingEvent||playlistUpdate.refreshing||!!user&&savedPlaylists===null||!saved&&!event.songs.length} onClick={()=>void collectEvent(event,run)}><Heart size={21} weight={saved?'fill':'regular'}/></button>
       <div className="atlas-schedule-details"><ScheduleFacts event={event} catalog={loadedCatalog}/>{multiple&&run.events.some(night=>night.event_status==='cancelled')&&!cancelled&&<small className="atlas-run-warning">部分日期已取消</small>}</div>
     </article>;
   }
@@ -162,10 +177,10 @@ export function FootprintsPage() {
   const matchingArtists=filterArtists(catalog.artists,query);
   const matchingCities=query.trim()?cities.filter(item=>item.name.includes(query.trim())).slice(0,6):[];
   const invalidEvent=params.get('event')&&!linkedEvent;
-  function scheduleFilters(){return <div className="atlas-schedule-filters"><div aria-label="日程时期" role="group"><button type="button" aria-pressed={period==='past'} onClick={()=>changePeriod('past')}>往期</button><button type="button" aria-pressed={period==='upcoming'} onClick={()=>changePeriod('upcoming')}>接下来</button></div>{period==='past'?<div className="atlas-month-filter"><ChoicePicker label="筛选演出月份" value={month} onChange={changeMonth} options={[{value:'',label:'全部月份'},...[...new Set([...(month?[month]:[]),...months])].map(value=>({value,label:`${value.replace('-','年')}月`}))]}/></div>:<span className="atlas-week-window">未来 7 天</span>}</div>;}
+  function scheduleFilters(){return <div className="atlas-schedule-filters"><div aria-label="日程时期" role="group"><button type="button" aria-pressed={period==='past'} onClick={()=>changePeriod('past')}>往期</button><button type="button" aria-pressed={period==='upcoming'} onClick={()=>changePeriod('upcoming')}>接下来</button></div>{period==='past'?<div className="atlas-month-filter"><MonthFilter value={month} onChange={changeMonth}/></div>:<span className="atlas-week-window">未来 7 天</span>}</div>;}
   return <section className={`atlas-page atlas-${scene} ${city&&scene==='map'?'is-venue-map':''}`} data-scene={scene}>
     <div className="atlas-scene">
-      <AtlasMap cities={cities} events={events} today={today} focusPoint={focusPoint??undefined} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} onVenue={mapVenue} onNation={()=>{setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
+      <AtlasMap cities={cities} events={events} artists={catalog.artists} today={today} focusPoint={focusPoint??undefined} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} onVenue={mapVenue} onNation={()=>{setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
       <CinematicStage scene={scene} controller={sceneController} event={stageEvent} venueName={venue?.name} city={city?.name} artistName={catalog.artists.find(item=>item.id===stageEvent?.artist_id)?.name} selected={selectedSong} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={playSong} onEnter={()=>{if(stageEvent)openEvent(stageEvent);}}/>
     </div>
     {scene==='map'?<header className={`atlas-searchbar${returnToMine?' has-mine-return':''}`}>
@@ -186,14 +201,15 @@ export function FootprintsPage() {
       <header><h2>{recentHeading}</h2><button type="button" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}>{expanded?'收起':'更多'} <CaretDown size={16}/></button></header>
       {scheduleFilters()}
       <div className="atlas-schedule-list">{displayRuns.map(run=>runCard(run))}</div>
-      {saveError&&<p className="atlas-save-error" role="alert">{saveError}</p>}
-      {!recent.length&&<div className="atlas-schedule-empty"><p>{period==='upcoming'?'未来 7 天暂无待演场次。':'当前筛选暂无往期场次。'}</p>{period==='upcoming'&&selectSchedule(events,'past','',today).length>0&&<button type="button" onClick={()=>changePeriod('past')}>看看往期现场 <ArrowRight size={14}/></button>}{month&&<button type="button" onClick={()=>setParams(filters({...((artist)?{artist:artist.id}:{}),month:''}),{replace:true})}>清除筛选</button>}</div>}
+      {(saveError||playlistUpdate.error)&&<p className="atlas-save-error" role="alert">{saveError||playlistUpdate.error}<button type="button" disabled={!!savingEvent||playlistLoading||playlistUpdate.refreshing} onClick={retryPlaylists}>重试读取收藏</button></p>}
+      {!recent.length&&<div className="atlas-schedule-empty"><p>{period==='upcoming'?'未来 7 天暂无待演场次。':'当前筛选暂无往期场次。'}</p>{period==='upcoming'&&selectSchedule(events,'past','',today).length>0&&<button type="button" onClick={()=>changePeriod('past')}>看看往期现场 <ArrowRight size={14}/></button>}{month&&<button type="button" onClick={()=>changeMonth('all')}>清除筛选</button>}</div>}
       {expanded&&<p className="atlas-catalog-coverage">{displayRuns.length} 组现场 · {recent.length} 晚</p>}
     </section>:null}
     {scene==='venue'&&venue&&stageEvent&&<section ref={mapPanel} className="atlas-panel atlas-show-sheet">
       <header><h2>这里的现场</h2><button type="button" className="atlas-venue-search-toggle" aria-label={venueSearch?'收起场次搜索':'搜索场次'} aria-expanded={venueSearch} onClick={()=>{setVenueSearch(!venueSearch);setVenueQuery('');}}>{venueSearch?<X size={19}/>:<MagnifyingGlass size={20}/>}</button></header>
       {venueSearch&&<div className="atlas-venue-search"><MagnifyingGlass size={17}/><input autoFocus aria-label="搜索这座场馆的现场" placeholder="歌手或日期" value={venueQuery} onChange={event=>setVenueQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape'){setVenueSearch(false);setVenueQuery('');}}}/></div>}
       <div className="atlas-schedule-list">{(venueSearch?searchedRuns:venueRuns).map(run=>runCard(run,true))}</div>
+      {(saveError||playlistUpdate.error)&&<p className="atlas-save-error" role="alert">{saveError||playlistUpdate.error}<button type="button" disabled={!!savingEvent||playlistLoading||playlistUpdate.refreshing} onClick={retryPlaylists}>重试读取收藏</button></p>}
       {venueSearch&&!searchedRuns.length&&<p className="atlas-schedule-empty">没有找到这场现场。</p>}
     </section>}
     {scene==='sky'&&linkedEvent&&<section ref={nightPanel} className={`atlas-panel atlas-night-panel${!listOpen?' is-collapsed':''}`}>
@@ -204,7 +220,7 @@ export function FootprintsPage() {
       <ConcertPlayer player={player}/>
       <SongList songs={linkedEvent.songs} selected={selectedSong?.title} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={index=>playSong(linkedEvent.songs[index])}/>
       {!linkedEvent.songs.length&&<p className="atlas-no-songs">曲目尚未收录。</p>}
-      <CollectConcert key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} next={next}/>
+      <CollectConcert event={linkedEvent} next={next} collection={{saved:savedPlaylists?.find(item=>item.event_id===linkedEvent.id)??null,checking:playlistLoading,unavailable:!!user&&savedPlaylists===null&&!playlistLoading,busy:!!savingEvent,refreshing:playlistUpdate.refreshing,error:saveError||playlistUpdate.error,onCollect:()=>void collectEvent(linkedEvent,{id:linkedEvent.id,events:[linkedEvent]}),onRemove:()=>void collectEvent(linkedEvent,{id:linkedEvent.id,events:[linkedEvent]}),onUpdate:()=>{const saved=savedPlaylists?.find(item=>item.event_id===linkedEvent.id);if(saved)refreshPlaylist(saved);},onRetry:retryPlaylists}}/>
       <div className="atlas-night-personal"><ScheduleFacts event={linkedEvent} catalog={catalog}/></div>
       <div className="atlas-night-actions"><Link to={`/create?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><details><summary>同场记录</summary><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>同场故事</button></div></details></div>
       </div>
