@@ -8,6 +8,7 @@ import { AccountControl, SessionProvider, useSession } from './SessionContext';
 import { AccountPage } from './AccountPage';
 import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from './MemoryPages';
 import {CreationPage} from './CreationPage';
+import {SongSearchPage} from './SongPicker';
 import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
 import './footprints.css';
 import {Plus} from '@phosphor-icons/react';
@@ -52,7 +53,8 @@ function Shell() {
   // Home has one visual state, regardless of how the user arrived here.
   const intro = location.pathname === '/' && !['theme','event','choose'].some(key=>homeParams.has(key));
   const atlas = location.pathname === '/footprints';
-  const composerRoute=location.pathname==='/create'||/\/songs\/\d+\/write$/.test(location.pathname);
+  const songSearchRoute=location.pathname==='/song-search';
+  const composerRoute=songSearchRoute||location.pathname==='/create'||/\/songs\/\d+\/write$/.test(location.pathname);
   return <div className={`site-shell${intro?' intro-shell':''}${atlas?' atlas-shell':''}`}>
     {!atlas&&!composerRoute && <header className="topbar"><Link to={intro?'/':'/discover'} className="brand" aria-label="歌里有我，前往共鸣"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
@@ -69,14 +71,15 @@ function Shell() {
           <Route path="/themes/:themeId" element={<ThemePage/>}/>
           <Route path="/memories" element={<MemoryCollection/>}/>
           <Route path="/create" element={<CreationPage/>}/>
+          <Route path="/song-search" element={<SongSearchPage/>}/>
           <Route path="/memories/:memoryId" element={<MemoryDetailPage/>}/>
           <Route path="/memories/:memoryId/edit" element={<MemoryDetailPage edit/>}/>
           <Route path="*" element={<section className="journal-page empty-journal"><h1>这一页，还没有写下。</h1><BackLink className="soft-button"/></section>}/>
         </Routes>}
     </main>
     {!intro&&<nav className="bottom-nav three-item-nav" aria-label="主导航">{([
-      ['/discover', 'search', '共鸣'], ['/create', 'create', '记录'], ['/memories', 'bookmark', '我的记忆'],
-    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} aria-label={icon==='create'?'创建记忆':undefined} className={({isActive}) => `nav-item${icon==='create'?' nav-create':''}${isActive||(icon==='create'&&location.pathname.endsWith('/write')) ? ' active' : ''}`}>{icon==='create'?<span className="nav-create-icon"><Plus size={25} weight="regular" aria-hidden="true"/></span>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
+      ['/discover', 'search', '共鸣'], ['/create', 'create', ''], ['/memories', 'bookmark', '我的'],
+    ] as const).map(([path, icon, label]) => <NavLink key={path} to={path} aria-label={icon==='create'?'创建记忆':undefined} className={({isActive}) => `nav-item${icon==='create'?' nav-create':''}${isActive||(icon==='create'&&(location.pathname.endsWith('/write')||songSearchRoute)) ? ' active' : ''}`}>{icon==='create'?<span className="nav-create-icon"><Plus size={25} weight="regular" aria-hidden="true"/></span>:<Glyph name={icon}/>}<span>{label}</span></NavLink>)}</nav>}
   </div>;
 }
 

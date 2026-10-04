@@ -109,6 +109,8 @@
 .atlas-map .real-city-pin i{display:none}
 .atlas-map .atlas-legend{display:none}
 .atlas-map .atlas-searchbar{padding:28px 20px 14px;background:linear-gradient(#faf7f0ee,#faf7f0bb 75%,transparent)}
+.atlas-map .atlas-searchbar.has-mine-return{padding-top:12px}
+.atlas-return-mine{display:inline-flex;align-items:center;gap:3px;min-height:18px;margin-bottom:5px;color:#8d705b;font-size:11px;text-decoration:none}
 .atlas-map .atlas-wordmark>div>span{font:500 28px/1.3 'Noto Serif SC','Songti SC',serif;color:#514431}
 .atlas-map .atlas-wordmark small{font-size:18px;color:#bd7d59;text-shadow:none}
 .atlas-map .atlas-artist-pills button{min-height:33px;padding:6px 12px}
@@ -128,3 +130,55 @@
 .atlas-map .atlas-schedule-details{grid-column:1/-1}
 .atlas-map .atlas-save-error{margin:4px 0;color:#a7473b;font-size:11px}
 @media(max-width:360px){.site-shell .bottom-nav.three-item-nav{grid-template-columns:1fr 64px 1fr}.atlas-map .atlas-schedule-row strong{font-size:12px}.atlas-map .atlas-itinerary .atlas-schedule-row time{min-width:78px;font-size:15px}}
+
+/* The startup page keeps its original collage; its caption stays on one line. */
+.collage-intro .collage-scene{height:78%}
+.collage-intro .intro-copy{height:22%;justify-content:flex-start;padding-top:18px;gap:15px}
+.collage-intro .intro-copy h1{white-space:nowrap;font-size:clamp(23px,7vw,30px);letter-spacing:-.025em}
+.collage-intro .intro-copy h1 em{margin-left:4px}
+.collage-intro .intro-copy .collage-primary{margin-top:auto;margin-bottom:10px}
+
+.three-item-nav .nav-create>span:last-child{display:none}
+.public-search .recall-input input:focus{outline:0;box-shadow:none;border:0}
+.public-search .recall-input:focus-within{border-color:#b78165}
+.public-search .recall-input button{border-left:0;box-shadow:none}
+
+.collection-page .collection-card{position:relative;padding-bottom:27px}
+.collection-page .collection-card .snapshot-privacy{position:absolute;right:14px;bottom:9px;color:#aa7658;font-size:11px}
+.collection-page .collection-card .snapshot-status{padding-right:38px}
+
+.unified-story-card .moment-title{margin:15px 0 14px;font-family:'Microsoft YaHei',sans-serif;font-size:20px;font-weight:600;line-height:1.5;color:#4c3e31}
+.unified-story-card .card-song-line{display:flex;flex-direction:column;gap:3px;margin:14px 0 16px;color:#5c4a38}
+.card-song-line strong{font-size:16px;line-height:1.4}
+.card-song-line span{font-size:12px;color:#9a826d}
+.card-song-action{display:inline-block;margin:8px 0 0;color:#a77154;font-size:11px;text-decoration:none}
+.unified-story-card .original-story{margin:14px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.unified-story-card .story-tags.inline-tags{display:inline;margin:0;white-space:normal;font:inherit}
+.unified-story-card .inline-tags a{font:inherit;color:#b97c5d;text-decoration:none;margin-left:.45em}
+.unified-story-card .inline-tags a:hover{text-decoration:underline}
+.unified-story-card .moment-gallery{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.unified-story-card .moment-gallery button{scroll-snap-align:center}
+.photo-lightbox>img{touch-action:pan-y;cursor:pointer}
+
+.composer-date-parts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.composer-date-parts label{display:flex;gap:2px;justify-content:center;padding:0 6px}
+.composer-date-parts input{width:54px;min-width:0;padding:0;border:0;background:transparent;color:#514431;text-align:center;font-size:16px;outline:0}
+.composer-date-parts label:first-child input{width:65px}
+.composer-date-parts label span{color:#958775}
+.composer-time-sheet>label input{width:80px;text-align:right;outline:0}
+.composer-time-sheet .primary-button:disabled{opacity:.55}
+
+.song-search-page{min-height:calc(100dvh - 70px);padding:16px 18px 85px;background:#fbf7ef}
+.song-search-page header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.song-search-page h1{margin:0;font:500 19px/1.5 'Noto Serif SC','Songti SC',serif}
+.song-search-back{display:grid;place-items:center;width:36px;height:36px;border:0;background:transparent;color:#655342}
+.song-search-field{display:flex;align-items:center;gap:9px;min-height:50px;padding:0 15px;border:1px solid #decbb7;border-radius:25px;background:#fffdf8;color:#9e8b77}
+.song-search-field:focus-within{border-color:#a97556}
+.song-search-field:focus-within svg{display:none}
+.song-search-field input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:15px;color:#514431}
+.song-search-list{height:calc(100dvh - 215px);overflow-y:auto;margin-top:17px;overscroll-behavior:contain}
+.song-search-list>button{display:flex;align-items:center;gap:13px;width:100%;min-height:73px;padding:8px 2px;border:0;border-bottom:1px solid #eadfce;background:transparent;text-align:left;color:#514431}
+.song-search-list img{width:52px;height:52px;object-fit:cover;border-radius:7px}
+.song-search-list button span{display:flex;flex:1;flex-direction:column;gap:4px}
+.song-search-list strong{font-size:15px}.song-search-list small{font-size:12px;color:#96816d}
+.composer-recommendations .composer-existing-tag{background:#e7d3c2;color:#76513e}

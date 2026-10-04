@@ -32,7 +32,7 @@ class PublicSearch(SearchInput):
     tag: str | None = Field(default=None, max_length=25)
 
 
-def serialize_story(public):
+def serialize_story(public, viewer: User | None = None):
     card = public.memory
     return {
         'id': public.memory_id, 'excerpt': public.excerpt, 'title': public.title,
@@ -45,6 +45,7 @@ def serialize_story(public):
         'lyric': selected_lyric(card.song, public.lyric_id), 'lyric_id': public.lyric_id,
         'theme_id': public.theme_id, 'is_demo_sample': card.is_demo_sample,
         'published_at': public.published_at.isoformat(),
+        'is_mine': viewer is not None and card.owner_id == viewer.id,
     }
 
 
@@ -80,7 +81,7 @@ def public_search_text(public, catalog):
     return ' '.join(fields)
 
 
-def install_stories(app, get_db, get_user):
+def install_stories(app, get_db, get_user, get_optional_user):
     @app.get('/api/themes')
     def themes():
         return THEMES
@@ -104,11 +105,11 @@ def install_stories(app, get_db, get_user):
     def list_stories(song_id: int | None = Query(default=None, gt=0, lt=2**63),
                      theme_id: str | None = None, lyric_id: str | None = None, event_id: str | None = None,
                      tag: str | None = Query(default=None, max_length=25),
-                     db: OrmSession = Depends(get_db)):
-        return [serialize_story(public) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id, tag))]
+                     db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
+        return [serialize_story(public, viewer) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id, tag))]
 
     @app.post('/api/stories/search')
-    def search(data: PublicSearch, db: OrmSession = Depends(get_db)):
+    def search(data: PublicSearch, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
         exact_tag = normalize_tag(data.query) if data.query.startswith('#') else None
         candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id, exact_tag or data.tag)))
         versions = {public.memory_id: public.version for public in candidates}
@@ -136,13 +137,13 @@ def install_stories(app, get_db, get_user):
             fresh = db.get(PublicStory, memory_id)
             if fresh is None or not fresh.published or fresh.version != versions[memory_id]:
                 continue
-            items.append({'story': serialize_story(fresh), 'evidence': fresh.excerpt,
+            items.append({'story': serialize_story(fresh, viewer), 'evidence': fresh.excerpt,
                           'match_label': '经历语义相近 · 请结合原文判断' if mode == 'semantic' else '公开原文或分享信息包含相近关键词'})
         return {'items': items, 'mode': mode, 'notice': notice}
 
     @app.get('/api/stories/{story_id}')
-    def get_story(story_id: int, db: OrmSession = Depends(get_db)):
+    def get_story(story_id: int, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
         public = db.get(PublicStory, story_id) if 0 < story_id < 2**63 else None
         if public is None or not public.published:
             raise HTTPException(404, '这段故事尚未公开，或已被作者收回。')
-        return serialize_story(public)
+        return serialize_story(public, viewer)

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 import {createServer} from 'vite';
 
@@ -26,7 +27,7 @@ async function harness(path,respond,work,fixtures={}){
     if(url==='/api/themes')return fixtures.themesError?Response.json({detail:'主题服务不可用'},{status:503}):Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
     if(url==='/api/memories/88'&&!options.method)return Response.json(fixtures.memory?fixtures.memory():card);
-    if(url==='/api/memories'&&!options.method)return Response.json(fixtures.memories??[card]);
+    if(url==='/api/memories'&&!options.method)return fixtures.memoriesError?Response.json({detail:'个人记忆暂不可用'},{status:503}):Response.json(fixtures.memories??[card]);
     if(url.startsWith('/api/stories?'))return Response.json(fixtures.stories??[]);
     return respond(url,options);
   };
@@ -56,16 +57,61 @@ test('launch home keeps its full collage and is not a persistent navigation tab'
   });
 });
 
-test('gallery cover, title and tags remain editable and are sent together',async()=>{
-  let sent;
+test('editing keeps the cover and title, uses inline topics, and removes supplemental fields',async()=>{
+  let sent,hasSupplemental,hasSampleBanner;
   await harness('/memories/88/edit',async(url,options)=>{if(url==='/api/memories/88'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);},async({act,fill})=>{
     await fill('memory-title','第一次跨城，值得了');
-    await fill('memory-tags','#跨城追星，演唱会');
+    hasSupplemental=Boolean(document.querySelector('.composer-extra'));
+    hasSampleBanner=Boolean(document.querySelector('.memory-composer .sample-notice'));
+    await act(async()=>document.querySelector('.composer-recommendations button:not(.composer-existing-tag)').click());
     const cover=document.querySelector('[aria-label="将第2张照片设为封面"]');assert.ok(cover);
     await act(async()=>cover.click());
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   });
-  assert.equal(sent.title,'第一次跨城，值得了');assert.deepEqual(sent.tags,['跨城追星','演唱会']);assert.deepEqual(sent.photo_ids,['a','b']);assert.equal(sent.photo_id,'b');
+  assert.equal(hasSupplemental,false,'the removed supplemental section must not reappear when editing');
+  assert.equal(hasSampleBanner,false,'the sample banner is not part of the composer');
+  assert.equal(sent.title,'第一次跨城，值得了');assert.deepEqual(sent.tags,['演唱会','散场','散场以后']);assert.deepEqual(sent.photo_ids,['a','b']);assert.equal(sent.photo_id,'b');
+});
+
+test('editing can remove an existing tag without the deleted tag input',async()=>{
+  let sent;
+  await harness('/memories/88/edit',async(url,options)=>{if(url==='/api/memories/88'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);},async({act})=>{
+    await act(async()=>document.querySelector('[aria-label="移除标签演唱会"]').click());
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+  });
+  assert.deepEqual(sent.tags,['散场']);
+});
+
+test('music scene from My opens the existing map and returns to the same My view',async()=>{
+  await harness('/memories?view=cards',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-04',artists:[],cities:[],events:[]});
+    if(url==='/api/playlists')return Response.json([]);
+    throw new Error(url);
+  },async({act,until,location})=>{
+    await act(async()=>[...document.querySelectorAll('.collection-categories button')].find(button=>button.textContent==='音乐现场').click());
+    assert.equal(location().pathname,'/footprints');
+    await until('.atlas-searchbar');
+    const back=document.querySelector('.atlas-return-mine');
+    assert.ok(back,'the map needs an explicit way back to My');
+    await act(async()=>document.querySelector('.atlas-artist-pills button').click());
+    assert.ok(document.querySelector('.atlas-return-mine'),'the return action persists when map filters change');
+    await act(async()=>document.querySelector('.atlas-return-mine').click());
+    assert.equal(location().pathname,'/memories');
+    assert.equal(location().search,'?view=cards');
+  });
+});
+
+test('the music scene still returns to My when its map data cannot load',async()=>{
+  let backHref;
+  await harness('/footprints?from=mine&return=%2Fmemories%3Fview%3Dcards',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({detail:'地图暂不可用'},{status:503});
+    if(url==='/api/playlists')return Response.json([]);
+    throw new Error(url);
+  },async({until})=>{
+    await until('.atlas-loading .back-link');
+    backHref=document.querySelector('.atlas-loading .back-link').getAttribute('href');
+  });
+  assert.equal(backHref,'/memories?view=cards');
 });
 
 test('publication preview discloses complete gallery, title and tags without sharing private time',async()=>{
@@ -76,6 +122,29 @@ test('publication preview discloses complete gallery, title and tags without sha
     assert.ok(preview.textContent.includes(card.title));assert.ok(preview.textContent.includes('#演唱会'));assert.equal(preview.querySelectorAll('img').length,2);
     assert.ok(!preview.textContent.includes('2025'));assert.ok(!preview.textContent.includes(card.life_time));
   });
+});
+
+test('public and private detail titles use the same card typography',async()=>{
+  const css=(await readFile(new URL('../src/fanCards.css',import.meta.url),'utf8'))+(await readFile(new URL('../src/designSync.css',import.meta.url),'utf8'));
+  const dom=new JSDOM(`<style>${css}</style><section class="public-detail"><article class="public-moment unified-story-card"><h1 class="moment-title">公开标题</h1></article></section><section class="memory-detail"><article class="unified-story-card"><h1 class="moment-title">我的标题</h1></article></section>`);
+  const [publicTitle,myTitle]=dom.window.document.querySelectorAll('.moment-title');
+  const actual=dom.window.getComputedStyle(myTitle).fontFamily,expected=dom.window.getComputedStyle(publicTitle).fontFamily;
+  dom.window.close();
+  assert.equal(actual,expected);
+});
+
+test('a public detail card contains only song name and artist in its song line',async()=>{
+  const story={...card,excerpt:card.story,author_name:'听友',is_demo_sample:false};
+  let songLineHasLink,hasSongAction,songLineText;
+  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async()=>{
+    const songLine=document.querySelector('.public-detail .unified-story-card .card-song-line');
+    songLineHasLink=Boolean(songLine.querySelector('a'));
+    songLineText=songLine.textContent;
+    hasSongAction=[...document.querySelectorAll('.public-detail a')].some(link=>link.textContent==='查看歌曲 →');
+  });
+  assert.equal(songLineHasLink,false);
+  assert.match(songLineText,/散场以后.*Demo Artist/);
+  assert.equal(hasSongAction,true,'song navigation remains outside the story card');
 });
 
 test('timeline shows dated groups and compact cards without repeating the full story',async()=>{
@@ -142,6 +211,49 @@ test('discovery connects current catalog concerts and excludes cancelled dates',
   });
 });
 
+test('the recommendation area shows other people’s stories, not the signed-in author’s own card',async()=>{
+  const mine={...card,excerpt:'我的公开内容',author_name:'我',is_demo_sample:false};
+  const other={...mine,id:89,owner_id:4,excerpt:'另一位听友的现场',author_name:'听友'};
+  await harness('/discover',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-04',artists:[],cities:[],events:[]});
+    throw new Error(url);
+  },async()=>{
+    const cards=[...document.querySelectorAll('.public-story-list .story-card')];
+    assert.equal(cards.length,1);
+    assert.ok(cards[0].querySelector('a.card-read').getAttribute('href').endsWith('/stories/89'));
+  },{stories:[mine,other]});
+});
+
+test('recommended cards alternate their vertical starting position for a staggered layout',async()=>{
+  const css=await readFile(new URL('../src/fanCards.css',import.meta.url),'utf8');
+  const stories=[89,90,91].map(id=>({...card,id,excerpt:`听友${id}的故事`,author_name:'听友',is_demo_sample:false}));
+  let topOffsets;
+  await harness('/discover',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-04',artists:[],cities:[],events:[]});
+    throw new Error(url);
+  },async()=>{
+    const style=document.createElement('style');style.textContent=css;document.head.append(style);
+    topOffsets=[...document.querySelectorAll('.public-story-list .story-card')].map(item=>parseFloat(window.getComputedStyle(item).paddingTop)||0);
+    style.remove();
+  },{stories});
+  assert.equal(topOffsets.length,3);
+  assert.ok(topOffsets[1]>topOffsets[0]);
+  assert.equal(topOffsets[2],topOffsets[0]);
+});
+
+test('public recommendations remain readable when private interests cannot load',async()=>{
+  const other={...card,id:89,excerpt:'听友的公开故事',author_name:'听友',is_demo_sample:false};
+  const mine={...card,excerpt:'自己的公开故事',author_name:'匿名听友',is_demo_sample:false,is_mine:true};
+  await harness('/discover',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-04',artists:[],cities:[],events:[]});
+    throw new Error(url);
+  },async({until})=>{
+    await until('.public-story-list .story-card');
+    assert.equal(document.querySelectorAll('.public-story-list .story-card').length,1);
+    assert.equal(document.querySelector('.public-story-list [role="alert"]'),null);
+  },{stories:[mine,other],memoriesError:true});
+});
+
 test('reading a searched story and returning restores the search; player keeps the entire clip',async()=>{
   const story={...card,excerpt:card.story,author_name:'听友',is_demo_sample:false};
   const searches=[];
@@ -166,7 +278,7 @@ test('reading a searched story and returning restores the search; player keeps t
   });
 });
 
-test('central creation opens the composer, selects music in place and returns to the filtered reading collection',async()=>{
+test('central creation opens a separate music search and returns without losing its draft',async()=>{
   await harness('/memories?song=1&view=cards',async url=>{if(url==='/api/songs')return Response.json([song,{...song,id:2,title:'另一首歌',artist:'另一位歌手'}]);throw new Error(url);},async({act,fill,location})=>{
     assert.equal(document.querySelector('.collection-page .round-action'),null,'reading has no competing add button');
     const create=document.querySelector('.bottom-nav a[aria-label="创建记忆"]');assert.ok(create);
@@ -174,9 +286,9 @@ test('central creation opens the composer, selects music in place and returns to
     await act(async()=>create.click());assert.equal(location().pathname,'/create');
     assert.ok(document.querySelector('form.memory-form'),'creation opens the writing page directly');
     await fill('memory-title','我的那个夏天');await fill('memory-story','已经写下的经历不能被选歌清空。');
-    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());assert.equal(location().pathname,'/song-search');
     await fill('create-song-query','Demo Artist');
-    assert.equal(document.querySelectorAll('.composer-song-results button').length,1);
+    assert.equal(document.querySelectorAll('.song-search-list button').length,1);
     await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());assert.equal(location().pathname,'/create');
     assert.equal(document.querySelector('#memory-title').value,'我的那个夏天');
     assert.equal(document.querySelector('#memory-story').value,'已经写下的经历不能被选歌清空。');
@@ -184,6 +296,51 @@ test('central creation opens the composer, selects music in place and returns to
     await act(async()=>document.querySelector('.memory-composer .back-link').click());
     assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
   });
+});
+
+test('music selection keeps the writing when temporary browser storage is unavailable',async()=>{
+  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill,location})=>{
+    await fill('memory-story','临时存储不能挡住这一段经历。');
+    Object.defineProperty(window,'sessionStorage',{configurable:true,get(){throw new Error('storage disabled');}});
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    assert.equal(location().pathname,'/song-search');
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    assert.equal(location().pathname,'/create');
+    assert.equal(document.querySelector('#memory-story').value,'临时存储不能挡住这一段经历。');
+    assert.equal(document.querySelector('.composer-song-trigger strong').textContent,song.title);
+  });
+});
+
+test('a saved local draft restores even when session storage is disabled',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act,go})=>{
+    window.localStorage.setItem('memory-draft:3',JSON.stringify({version:1,story:'已保存的本地草稿',song}));
+    Object.defineProperty(window,'sessionStorage',{configurable:true,get(){throw new Error('storage disabled');}});
+    await go('/memories');
+    await go('/create');
+    assert.equal(document.querySelector('#memory-story').value,'已保存的本地草稿');
+  });
+});
+
+test('too many inline hashtags are rejected instead of silently truncated',async()=>{
+  let submitted=false;
+  await harness('/songs/1/write',async(url,options)=>{if(url==='/api/memories'&&options.method==='POST'){submitted=true;return Response.json(card);}throw new Error(url);},async({act,fill,until})=>{
+    await until('.memory-form');
+    await fill('memory-story',Array.from({length:9},(_,index)=>`#标签${index+1}`).join(' '));
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.match(document.querySelector('.memory-composer .form-error').textContent,/最多.*8/);
+  });
+  assert.equal(submitted,false);
+});
+
+test('an overlong inline hashtag is rejected without silently shortening it',async()=>{
+  let submitted=false;
+  await harness('/songs/1/write',async(url,options)=>{if(url==='/api/memories'&&options.method==='POST'){submitted=true;return Response.json(card);}throw new Error(url);},async({act,fill,until})=>{
+    await until('.memory-form');
+    await fill('memory-story',`有一晚 #${'词'.repeat(25)}`);
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.match(document.querySelector('.memory-composer .form-error').textContent,/不超过24字/);
+  });
+  assert.equal(submitted,false);
 });
 
 test('writing first requires a chosen song before saving and changing music preserves the story and context',async()=>{
@@ -198,21 +355,20 @@ test('writing first requires a chosen song before saving and changing music pres
     await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
     await fill('create-song-query','Demo Artist');assert.equal(catalogs,1);
     await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
-    await fill('memory-tags','夏天');
+    await act(async()=>document.querySelector('.composer-recommendations button').click());
     assert.equal(document.querySelector('[aria-label="音乐里的位置"]'),null,'music-range entry was removed from the create page');
     await act(async()=>document.querySelector('[aria-label="更换配乐"]').click());
+    assert.equal(location().pathname,'/song-search');
     await fill('create-song-query','别人的歌手');
-    const enter=new window.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});
-    await act(async()=>document.querySelector('#create-song-query').dispatchEvent(enter));
-    assert.equal(enter.defaultPrevented,true,'searching with Enter must not implicitly save the draft with its old song');
+    assert.equal(document.querySelector('form.memory-form'),null,'search is its own page, not a form dropdown');
     assert.equal(sent,undefined);
     await act(async()=>document.querySelector('[aria-label="选用另一首歌"]').click());
     assert.equal(document.querySelector('[aria-label="音乐里的位置"]'),null,'changing songs does not reintroduce music-range entry');
-    assert.equal(document.querySelector('#memory-story').value,'先写经历，再决定用哪首歌。');
+    assert.equal(document.querySelector('#memory-story').value,'先写经历，再决定用哪首歌。#散场以后');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
     assert.equal(location().pathname,'/memories/88');
   });
-  assert.equal(sent.song_id,2);assert.equal(sent.offset_ms,null);assert.equal(sent.lyric_id,null);assert.equal(sent.theme_id,'summer');assert.deepEqual(sent.tags,['夏天']);
+  assert.equal(sent.song_id,2);assert.equal(sent.offset_ms,null);assert.equal(sent.lyric_id,null);assert.equal(sent.theme_id,'summer');assert.deepEqual(sent.tags,['散场以后']);
 });
 
 test('a locally saved creation draft restores its writing and selected song',async()=>{
@@ -246,7 +402,7 @@ test('creation visibility stays private by default and publishes only after the 
     assert.equal(writes,0,'choosing public must not publish an unfinished draft');
     assert.equal(document.querySelector('[aria-label="匿名发布"]').checked,true);
     assert.equal(document.querySelector('[aria-label="公开年份和时间"]').checked,false);
-    assert.equal(document.querySelector('[aria-label="匿名发布"]').closest('.composer-extra').open,false,'optional public settings do not take space in the writing area');
+    assert.equal(document.querySelector('[aria-label="匿名发布"]').closest('.composer-extra'),null,'removed extra-details block does not contain public settings');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
     assert.equal(location().pathname,'/memories/88');
   });
@@ -403,6 +559,15 @@ test('private memory tags retrieve personal experiences while public story tags 
   });
 });
 
+test('a hashtag written in the body is linked once, without a duplicate tag after the text',async()=>{
+  const story={...card,excerpt:'那一晚 #演唱会 结束了。',author_name:'听友'};
+  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async()=>{
+    const body=document.querySelector('.public-detail .original-story');
+    assert.equal(body.textContent.match(/#演唱会/g)?.length,1);
+    assert.equal(body.querySelectorAll('.story-tags a').length,2);
+  });
+});
+
 test('guest creation requests login for this exact creation entry',async()=>{
   await harness('/create?event=concert',async url=>{throw new Error(url);},async()=>{
     assert.equal(document.querySelector('form.memory-form'),null);
@@ -536,15 +701,17 @@ test('song without a recording retains a clearly disabled conventional player',a
   });
 });
 
-test('composer is concise while collapsed options preserve existing metadata on save',async()=>{
+test('composer keeps existing metadata on save without restoring the removed supplemental section',async()=>{
   let sent;
   await harness('/memories/88/edit',async(url,options)=>{if(url==='/api/memories/88'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);},async({act,fill})=>{
     const composer=document.querySelector('.memory-composer');assert.ok(composer);
     assert.equal(composer.querySelectorAll('details[open]').length,0);
     assert.ok(document.querySelector('#memory-story').closest('details')===null,'story stays immediately available');
     assert.ok(document.querySelector('#memory-title').closest('details')===null,'short title remains optional and visible');
-    for(const selector of ['#memory-tags','[aria-label="年份"]','[aria-label="音乐里的位置"]'])assert.ok(document.querySelector(selector).closest('details'),'optional controls are disclosed on demand');
-    await fill('memory-story','修改正文，折叠的时间与标签不丢失。');
+    assert.equal(document.querySelector('#memory-tags'),null);
+    assert.equal(document.querySelector('[aria-label="年份"]'),null);
+    assert.ok(document.querySelector('[aria-label="音乐里的位置"]').closest('details'),'music controls remain disclosed on demand');
+    await fill('memory-story','修改正文后，原有时间和标签不会丢失。');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   });
   assert.equal(sent.life_year,2025);assert.equal(sent.life_time,card.life_time);assert.deepEqual(sent.tags,card.tags);assert.equal(sent.offset_ms,10000);assert.equal(sent.end_ms,14000);

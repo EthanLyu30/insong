@@ -92,7 +92,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     install_accounts(app, get_db, serialize_user)
     install_memories(app, get_db, get_required_user)
     install_recall(app, get_db, get_required_user)
-    install_stories(app, get_db, get_required_user)
+    install_stories(app, get_db, get_required_user, get_optional_user)
     install_photos(app, get_db, get_required_user, get_optional_user)
     install_footprints(app, get_db, get_required_user)
     app.mount('/api/audio', StaticFiles(directory=str(AUDIO_ROOT), check_dir=False), name='audio')

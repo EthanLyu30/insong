@@ -3,7 +3,7 @@ import {Link, useParams, useSearchParams} from 'react-router';
 import {ArrowUpRight, MusicNote} from '@phosphor-icons/react';
 import {apiBaseUrl} from './api';
 import {AudioPlayer} from './AudioPlayer';
-import {apiRequest, formatPosition, type PublicStory, type PublicSearchResult, type Theme} from './memoryClient';
+import {apiRequest, formatPosition, type Memory, type PublicStory, type PublicSearchResult, type Theme} from './memoryClient';
 import {cardCover, cardPhotos, songCover} from './cardMedia';
 import {PhotoGallery} from './PhotoGallery';
 import {useData} from './useData';
@@ -11,10 +11,19 @@ import {EventNote} from './EventNote';
 import {chinaToday, dateLabel, phaseLabel, type AtlasCatalog} from './footprintAtlas';
 import {venuePhotograph} from './photoSources';
 import {BackLink} from './Navigation';
+import {useSession} from './SessionContext';
+import {extractHashtags,rankRecommendedStories} from './revisionBehavior';
 
-export function TagLinks({tags=[],scope='public'}:{tags?:string[];scope?:'public'|'mine'}) {
+export function TagLinks({tags=[],scope='public',inline=false}:{tags?:string[];scope?:'public'|'mine';inline?:boolean}) {
   const destination=scope==='mine'?'/memories':'/discover';
-  return tags.length?<div className="story-tags">{tags.map(tag=><Link key={tag} to={`${destination}?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>)}</div>:null;
+  const links=tags.map(tag=><Link key={tag} to={`${destination}?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>);
+  return tags.length?inline?<span className="story-tags inline-tags"> {links}</span>:<div className="story-tags">{links}</div>:null;
+}
+
+export function StoryBody({text,tags=[],scope='public'}:{text:string;tags?:string[];scope?:'public'|'mine'}){
+  const present=new Set(extractHashtags(text));
+  const destination=scope==='mine'?'/memories':'/discover';
+  return <p className="original-story">{text.split(/(#[\p{L}\p{N}_]+)/u).map((part,index)=>part.startsWith('#')?<span className="story-tags inline-tags" key={index}><Link to={`${destination}?tag=${encodeURIComponent(part.slice(1))}`}>{part}</Link></span>:part)}<TagLinks tags={tags.filter(tag=>!present.has(tag))} scope={scope} inline/></p>;
 }
 
 export function ThemeLinks() {
@@ -46,7 +55,10 @@ export function StoryEntry({story,matchLabel}:{story:PublicStory;matchLabel?:str
   useEffect(()=>{
     const element=body.current;if(!element)return;
     // Eight-pixel rows with a twelve-pixel gap keep the DOM in reading order.
-    const measure=()=>setRows(Math.ceil((element.getBoundingClientRect().height+12)/20));
+    const measure=()=>{
+      const offset=Number.parseFloat(window.getComputedStyle(element.parentElement!).paddingTop)||0;
+      setRows(Math.ceil((element.getBoundingClientRect().height+offset+12)/20));
+    };
     if(typeof ResizeObserver==='undefined'){
       measure();window.addEventListener('resize',measure);
       return()=>window.removeEventListener('resize',measure);
@@ -71,10 +83,20 @@ export function StoryGrid({stories}:{stories:PublicStory[]}) {return <div classN
 export function PublicStoryList({path,heading='同一首歌，不同的我们',excludeId,recommended=false}:{path:string;heading?:string|null;excludeId?:number;recommended?:boolean}) {
   const [version,setVersion]=useState(0);
   const {value,error}=useData<PublicStory[]>(path,version);
+  const {user}=useSession();
+  const [interests,setInterests]=useState<Memory[]|null>(null);
+  useEffect(()=>{
+    if(!recommended||!user){setInterests([]);return;}
+    setInterests(null);
+    const control=new AbortController();
+    void apiRequest<Memory[]>(apiBaseUrl,'/api/memories',{signal:control.signal}).then(cards=>{if(!control.signal.aborted)setInterests(cards);}).catch(()=>{if(!control.signal.aborted)setInterests([]);});
+    return()=>control.abort();
+  },[recommended,user?.id,version]);
   const hasFanSamples=value?.some(story=>story.is_demo_sample&&story.song.is_demo===false);
-  const stories=value?.filter(story=>story.id!==excludeId&&!(recommended&&hasFanSamples&&story.is_demo_sample&&story.song.is_demo===true));
-  if(recommended)stories?.sort((a,b)=>Number(b.song.title==='稻香')-Number(a.song.title==='稻香'));
-  return <section className="public-story-list">{heading&&<div className="list-heading"><h2>{heading}</h2>{stories&&<span>{stories.length} 张卡片</span>}</div>}{error?<div className="form-error" role="alert">{error}<button className="text-button" onClick={()=>setVersion(value=>value+1)}>重试</button></div>:!stories?<p role="status">正在翻开卡片…</p>:stories.length?<StoryGrid stories={stories}/>:<div className="empty-paper"><h3>这里，等一段愿意分享的故事。</h3><p>每一张音乐卡片都先为自己保存，公开由你决定。</p></div>}</section>;
+  const ownIds=new Set(interests?.map(card=>card.id)??[]);
+  const stories=value?.filter(story=>story.id!==excludeId&&!(recommended&&hasFanSamples&&story.is_demo_sample&&story.song.is_demo===true)&&!(recommended&&user&&(story.is_mine||ownIds.has(story.id))));
+  const ordered=stories&&interests!==null?recommended?rankRecommendedStories(stories,interests):stories:undefined;
+  return <section className="public-story-list">{heading&&<div className="list-heading"><h2>{heading}</h2>{!recommended&&stories&&<span>{stories.length} 张卡片</span>}</div>}{error?<div className="form-error" role="alert">{error}<button className="text-button" onClick={()=>setVersion(value=>value+1)}>重试</button></div>:!ordered?<p role="status">正在翻开卡片…</p>:ordered.length?<StoryGrid stories={ordered}/>:<div className="empty-paper"><h3>这里，等一段愿意分享的故事。</h3><p>每一张音乐卡片都先为自己保存，公开由你决定。</p></div>}</section>;
 }
 
 export function DiscoverPage({home=false}:{home?:boolean}) {
@@ -109,7 +131,7 @@ export function DiscoverPage({home=false}:{home?:boolean}) {
   return <section className={`journal-page discover-page${home?' fan-home':''}`}>
     {(song||lyric||tag)&&<BackLink fallback="/discover"/>}
     <header className="discover-intro"><div><span className="journal-eyebrow">追过的现场 · 爱过的歌</span><h1>{home?'把喜欢，听成生活。':'在歌里，遇见同路人。'}</h1></div><MusicNote className="discover-doodle" size={30} weight="light" aria-hidden="true"/></header>
-    <form className="recall-form public-search" onSubmit={search}><label className="sr-only" htmlFor="public-query">{mode==='keyword'?'找歌手、歌曲、演出或 #标签':'用一句经历，找一段共鸣'}</label><div className="recall-input"><input id="public-query" value={query} maxLength={200} onChange={event=>setQuery(event.target.value)} placeholder={mode==='keyword'?'歌手、歌曲、演出或 #标签':'第一次听完现场后，舍不得回家'}/><button disabled={busy||!query.trim()}>{busy?'寻找中…':'找共鸣'}</button></div><div className="recall-tools"><div className="segmented-control small"><button type="button" aria-pressed={mode==='keyword'} onClick={()=>setMode('keyword')}>歌曲 / 歌手 / 标签</button><button type="button" aria-pressed={mode==='semantic'} onClick={()=>setMode('semantic')}>AI 经历匹配</button></div><span className="resource-note">仅公开故事</span></div></form>
+    <form className="recall-form public-search" onSubmit={search}><label className="sr-only" htmlFor="public-query">{mode==='keyword'?'找歌手、歌曲、演出或 #标签':'用一句经历，找一段共鸣'}</label><div className="recall-input"><input id="public-query" value={query} maxLength={200} onChange={event=>setQuery(event.target.value)} placeholder={mode==='keyword'?'歌手、歌曲、演出或 #标签':'第一次听完现场后，舍不得回家'}/><button disabled={busy||!query.trim()}>{busy?'寻找中…':'找共鸣'}</button></div><div className="recall-tools"><div className="segmented-control small"><button type="button" aria-pressed={mode==='keyword'} onClick={()=>setMode('keyword')}>歌曲 / 歌手 / 标签</button><button type="button" aria-pressed={mode==='semantic'} onClick={()=>setMode('semantic')}>AI 经历匹配</button></div></div></form>
     {recommended&&<ThemeLinks/>}
     {(song||lyric||tag)&&<div className="active-filter"><span>{tag?`#${tag}`:lyric?'同一句词下的卡片':'同一首歌里的卡片'}</span><button className="text-button" onClick={()=>setParams({})}>看全部共鸣 ×</button></div>}
     {busy&&<p className="inline-status" role="status">正在公开卡片里寻找…</p>}{error&&<p className="form-error" role="alert">{error}<button className="text-button" onClick={()=>setRetry(value=>value+1)}>重试</button></p>}
@@ -124,7 +146,22 @@ export function StoryPage() {
   if(!story)return <section className="journal-page"><BackLink fallback="/discover"/>{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
   const playback=new URLSearchParams();if(story.offset_ms!==null)playback.set('at',String(story.offset_ms));if(story.end_ms!=null)playback.set('end',String(story.end_ms));
-  return <section className="journal-page public-detail"><BackLink fallback="/discover"/><article className="keepsake-paper public-moment"><div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>{(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}{story.title&&<h1 className="moment-title">{story.title}</h1>}<p className="original-story">{story.excerpt}</p><PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/><TagLinks tags={story.tags}/>{story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}</article><div className="record-heading"><img src={songCover(story.song)} alt=""/><div><span className="journal-eyebrow">这一刻的配乐</span><h2>{story.song.title}</h2><small>{story.song.artist}</small><Link className="text-button" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`}>查看歌曲 →</Link></div></div>{story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}<AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>{story.event_id&&<EventNote id={story.event_id}/>}<Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link></section>;
+  return <section className="journal-page public-detail"><BackLink fallback="/discover"/>
+    <article className="keepsake-paper public-moment unified-story-card">
+      <div className="story-byline"><span className="story-avatar">{story.author_name.slice(0,1)}</span><div><strong>{story.author_name}</strong><small>{story.is_demo_sample?'虚构样例故事':'听友的音乐卡片'}</small></div></div>
+      {(story.life_year||story.life_time)&&<p className="story-life">{[story.life_year,story.life_time].filter(Boolean).join(' · ')}</p>}
+      {story.title&&<h1 className="moment-title">{story.title}</h1>}
+      <div className="card-song-line"><strong>{story.song.title}</strong><span>{story.song.artist}</span></div>
+      <PhotoGallery photos={cardPhotos(story)} fallback={songCover(story.song)}/>
+      <StoryBody text={story.excerpt} tags={story.tags}/>
+      {story.lyric&&<blockquote className="lyric-quote">“{story.lyric.text}”<small>{story.song.is_demo?'原创示例词句 · ':''}{formatPosition(story.offset_ms)}</small></blockquote>}
+    </article>
+    <Link className="card-song-action" to={`/songs/${story.song_id}${playback.size?`?${playback}`:''}`}>查看歌曲 →</Link>
+    {story.offset_ms!==null&&<div className="favorite-clip"><strong>TA 留下的音乐片段</strong><span>{formatPosition(story.offset_ms)}{story.end_ms!=null?` — ${formatPosition(story.end_ms)}`:''}</span></div>}
+    <AudioPlayer song={story.song} anchor={story.offset_ms} end={story.end_ms}/>
+    {story.event_id&&<EventNote id={story.event_id}/>}
+    <Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link>
+  </section>;
 }
 
 export function ThemePage() {

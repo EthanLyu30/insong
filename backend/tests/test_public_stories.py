@@ -34,6 +34,10 @@ def test_private_to_public_snapshot_and_withdrawal(tmp_path):
         public = guest.get(path).json()
         assert public['excerpt'] == '散场后舍不得回家。'
         assert public['author_name'] == '匿名听友'
+        assert public['is_mine'] is False
+        assert owner.get(path).json()['is_mine'] is True
+        assert owner.get('/api/stories').json()[0]['is_mine'] is True
+        assert guest.get('/api/stories').json()[0]['is_mine'] is False
         assert public['life_time'] is None and public['life_year'] is None
         assert '后半段' not in str(public) and '私人时间' not in str(public)
         assert not {'story', 'reflections', 'owner_id', 'request_key'} & set(public)

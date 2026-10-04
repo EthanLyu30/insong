@@ -15,7 +15,7 @@ export type Memory = {
 export type PublicStory = { id: number; excerpt: string; song_id: number; song: Song; author_name: string; title?:string|null; tags?:string[]; photos?:Photo[];
   life_time: string | null; life_year: number | null; offset_ms: number | null; lyric: Lyric | null;
   lyric_id: string | null; theme_id: string | null; is_demo_sample: boolean; published_at: string;
-  photo_id?:string|null;photo_url?:string|null;end_ms?:number|null;event_id?:string|null };
+  photo_id?:string|null;photo_url?:string|null;end_ms?:number|null;event_id?:string|null;is_mine?:boolean };
 export type PublicSearchResult = { items: { story: PublicStory; evidence: string; match_label: string }[]; mode: 'keyword' | 'semantic'; notice: string };
 export type Theme = { id: string; title: string; prompt: string; description: string; image_url?:string };
 
