@@ -113,6 +113,13 @@ macOS/Linux 用 `python3` 创建环境，然后使用 `.venv/bin/python`、`.ven
 - 照片支持 JPEG、PNG、WebP，单张不超过 5 MiB；数据库内存储最长边不超过 2048px 的净化 JPEG。公开卡撤回后照片立即失去公共访问资格；删除记忆不自动清除未再引用的照片，当前没有用户照片库或孤立照片自动回收功能。
 - QQ 音乐实测与自发回访研究尚未完成，不宣称平台首创或已经验证长期需求。
 
+## 待处理问题（2026-10-05）
+
+按用户要求，以下两项先记录，暂停功能修改；本次仅备份目前进展，不自动修改已有记忆或公开记录。
+
+1. **地图来源文字的展示问题**：底图来源、照片作者与许可文字目前仍铺在地图上，遮挡地图和照片标记。后续需要整理展示位置，让主地图保持干净，同时保留必要、可访问的署名与许可信息。此次不改地图界面，也不把写入README视为已解决界面问题。参见 [OpenStreetMap署名规范](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Interactive_maps)与 [CC BY-SA4.0](https://creativecommons.org/licenses/by-sa/4.0/)；照片原始来源记录在 [mapMarkerPhotos.ts](frontend/src/mapMarkerPhotos.ts)。
+2. **公开保存使用完整原文**：用户已确定，后续选择公开并点击保存时，应公开编辑区中的完整原文，不再沿用旧的公开片段。此项暂不实施；当前代码仍保留已有公开片段，待恢复修改时落实并核对保存失败／重试、版本校验及私密撤回流程，不改变未提及的设置。
+
 ## 验证
 
 ```powershell

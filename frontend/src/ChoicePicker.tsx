@@ -4,16 +4,16 @@ import {CaretDown} from '@phosphor-icons/react';
 import './choicePicker.css';
 
 type Choice={value:string;label:string};
-type Props={label:string;value:string;options:Choice[];onChange:(value:string)=>void;disabled?:boolean;id?:string};
+type Props={label:string;value:string;options:Choice[];onChange:(value:string)=>void;disabled?:boolean;id?:string;selectedLabel?:string};
 
 /** Keep the list in the document, anchored to its control rather than an OS popup. */
-export function ChoicePicker({label,value,options,onChange,disabled=false,id}:Props){
+export function ChoicePicker({label,value,options,onChange,disabled=false,id,selectedLabel}:Props){
   const generatedId=useId(),listId=`${id??generatedId}-choices`;
   const trigger=useRef<HTMLButtonElement>(null),panel=useRef<HTMLDivElement>(null);
   const [open,setOpen]=useState(false),[active,setActive]=useState(0);
   const [position,setPosition]=useState({left:12,top:12,width:0,maxHeight:280});
   const selectedIndex=options.findIndex(option=>option.value===value);
-  const selected=options[selectedIndex]?.label??'已选条件';
+  const selected=options[selectedIndex]?.label??selectedLabel??'已选条件';
   function close(restore=false){setOpen(false);if(restore)trigger.current?.focus();}
   function show(){setActive(Math.max(0,selectedIndex));setOpen(true);}
   function choose(option:Choice){onChange(option.value);close(true);}

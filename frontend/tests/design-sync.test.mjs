@@ -1,12 +1,19 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {overviewFocus} from '../src/atlasCamera.ts';
-import {memoryCategory,memoryCity,filterMemories} from '../src/memoryPresentation.ts';
+import {memoryCategory,memoryCity,filterMemories,matchesMemoryTime} from '../src/memoryPresentation.ts';
 
 test('map defaults to the Yangtze Delta and uses a valid nearby position when available',()=>{
   assert.deepEqual(overviewFocus(null),[120.75,31.3]);
   assert.deepEqual(overviewFocus({longitude:121.47,latitude:31.23}),[121.47,31.23]);
   assert.deepEqual(overviewFocus({longitude:0,latitude:0}),[120.75,31.3]);
+});
+
+test('a year-only memory matches a month range only when its whole year is inside the range',()=>{
+  const card={life_year:2025,life_time:'夏天'};
+  assert.equal(matchesMemoryTime(card,{startYear:'2024',startMonth:'5',endYear:'2026',endMonth:'6'}),true);
+  assert.equal(matchesMemoryTime(card,{startYear:'2025',startMonth:'5',endYear:'2025',endMonth:'6'}),false);
+  assert.equal(matchesMemoryTime({life_year:null,life_time:'2025-05-03'},{startYear:'2025',startMonth:'',endYear:'2025',endMonth:''}),false,'only explicit life years define the timeline');
 });
 
 test('memory category and city filters use saved metadata without confusing unknown years for dates',()=>{
