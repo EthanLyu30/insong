@@ -68,19 +68,24 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     throw new Error('Unexpected request '+url);
   };
   const click=async label=>React.act(async()=>{const buttons=[...document.querySelectorAll('button,[role="button"]')];const button=buttons.find(el=>el.getAttribute('aria-label')===label||el.textContent.trim()===label)??buttons.find(el=>el.getAttribute('aria-label')?.includes(label)||el.textContent.includes(label));assert.ok(button,label);button.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));});
+  const search=async label=>{
+    await React.act(async()=>{const input=document.querySelector('.atlas-searchbar input');Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(input,label);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
+    await React.act(async()=>{const result=[...document.querySelectorAll('.atlas-search-results button')].find(button=>button.textContent.startsWith(label));assert.ok(result,label);result.click();});
+  };
   try{
     await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(AtlasWithNavigation))));
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
-    await click('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回上一页'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,6.4);
-    await click('邓紫棋'); assert.equal(writes,0);
+    await search('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回上一页'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,6.4);
+    await search('邓紫棋'); assert.equal(writes,0);
     assert.ok(!document.querySelector('.map-primary-action'),'the schedule row is the single approach action');
     assert.ok(document.querySelector('[aria-label="日程时期"]'));
     assert.equal([...document.querySelectorAll('.atlas-schedule-filters button')].find(button=>button.textContent==='往期').getAttribute('aria-pressed'),'true','history is the default');
     assert.ok(!document.body.textContent.includes('我关心'));
     assert.ok(!document.body.textContent.includes('标记想去'));
     await click('往期');assert.match(document.querySelector('.atlas-schedule-list').textContent,/大运体育场/);
+    assert.equal(document.querySelector('.atlas-schedule-row time small').textContent,'2026','single-day shows also display the year without time or night count');
     assert.ok(!document.querySelector('.atlas-schedule-list').textContent.includes('10.01'),'past filter excludes the next show');
-    await click('接下来');
+    await click('未来');
     await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
     assert.ok(document.querySelector('[data-scene="map"]'),'approaching an itinerary stops on the venue map before the exterior');
     assert.deepEqual(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).center,[114.2123,22.697]);
@@ -113,14 +118,14 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('我去过'); await click('保存中'); assert.equal(writes,1);
     await React.act(async()=>finishWrite());assert.match(document.body.textContent,/取消到场/);
     await click('取消到场'); await React.act(async()=>finishWrite());
-    await click('我去过'); await click('返回上一页');await click('返回上一页');await click('返回上一页'); await click('接下来'); await click('刘雨昕'); await React.act(async()=>finishWrite());
+    await click('我去过'); await click('返回上一页');await click('返回上一页');await click('返回上一页'); await click('未来'); await search('刘雨昕'); await React.act(async()=>finishWrite());
     assert.match(document.querySelector('.atlas-itinerary').textContent,/暂无待演/,'past-only artists should offer the past tab without promising a future stop');
     await click('往期');
     await React.act(async()=>document.querySelector('.atlas-month-filter button').click());
     await click('全部月份');
     assert.match(document.querySelector('.atlas-itinerary h2').textContent,/最近一站/);
     assert.ok(!document.body.textContent.includes('取消到场'));
-    await click('北京');await click('进入五棵松');await click('2025.09.20');assert.ok(!document.body.textContent.includes('取消到场'));
+    await search('北京');await click('进入五棵松');await click('2025.09.20');assert.ok(!document.body.textContent.includes('取消到场'));
     await React.act(async()=>{user=null;window.dispatchEvent(new window.StorageEvent('storage',{key:'memory-session-change'}));});
     assert.ok([...document.querySelectorAll('a')].some(a=>a.textContent.includes('登录') && decodeURIComponent(a.href).includes('liu-test')));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'event',initialEntries:['/footprints?event=gem-test']},React.createElement(AtlasWithNavigation))));
@@ -159,10 +164,11 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'all-map',initialEntries:['/footprints']},React.createElement(AtlasWithNavigation))));
     await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
     await click('返回上一页');
-    assert.equal([...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').getAttribute('aria-pressed'),'true','an approached event does not become an implicit artist filter');
+    assert.deepEqual(new Set([...document.querySelectorAll('.atlas-map-fallback button img')].map(photo=>photo.alt)),new Set(['邓紫棋','刘雨昕']),'an approached event does not become an implicit artist filter');
     catalog.events.push({...catalog.events[0],id:'gem-second-night',date:'2026-09-12'});
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'grouped',initialEntries:['/footprints?artist=gem&period=past']},React.createElement(AtlasWithNavigation))));
     assert.equal(document.querySelectorAll('.atlas-schedule-item').length,1,'a run should occupy one itinerary row');
+    assert.equal(document.querySelector('.atlas-schedule-row time small').textContent,'2026','a multi-night date has only its calendar year beneath it');
     assert.match(document.querySelector('.atlas-schedule-row').textContent,/09.11.*09.12/);
     await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());await click('进入大运体育场');
     assert.ok(!document.querySelector('.atlas-show-sheet .atlas-primary-action'),'the exterior sheet should not duplicate venue entry');

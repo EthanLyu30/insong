@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { apiBaseUrl } from './api';
 import { apiRequest, formatPosition, type Memory, type Theme } from './memoryClient';
@@ -7,6 +7,15 @@ import { useLivePage } from './useLivePage';
 import { EventNote } from './EventNote';
 import { useData } from './useData';
 import {cardPhotos, photoSource} from './cardMedia';
+
+// The editor uses the same consented snapshot presentation, never the private reflections.
+export function EditPublicationPreview({card,excerpt,anonymous,shareLife,onReady}:{card:Memory;excerpt:string;anonymous:boolean;shareLife:boolean;onReady:(ready:boolean)=>void}){
+  const {user}=useSession();
+  const {value:themes,error:themeError}=useData<Theme[]>('/api/themes');
+  const theme=themes?.find(item=>item.id===card.theme_id);
+  useEffect(()=>onReady(!card.theme_id||Boolean(theme)),[card.theme_id,theme,onReady]);
+  return <><article className="share-preview compact-preview" aria-label="公开卡片预览"><div className="preview-gallery">{cardPhotos(card).map(photo=><img key={photo.id} src={photoSource(photo.url)} alt="将随这段文字公开的照片"/>)}</div><div><small>{anonymous?'匿名听友':user?.display_name} · {card.song.title}</small>{card.title&&<h3>{card.title}</h3>}{shareLife&&<small>{[card.life_year,card.life_time].filter(Boolean).join(' · ')}</small>}<p>{excerpt}</p><div className="preview-tags">{card.tags.map(tag=><span key={tag}>#{tag}</span>)}</div>{card.lyric&&<p>“{card.lyric.text}”</p>}<small>{formatPosition(card.offset_ms)}{card.end_ms!=null?` — ${formatPosition(card.end_ms)}`:''}</small>{card.theme_id&&<small>{theme?`也会出现在「${theme.title}」主题`:themeError?'主题加载失败，请重新打开后再公开。':'正在读取关联主题…'}</small>}</div>{card.event_id&&<EventNote id={card.event_id}/>}</article><p className="resource-note">上面预览的标题、标签、{cardPhotos(card).length?`${cardPhotos(card).length}张照片与`:''}文字将公开，听友可搜索到这张卡。后来的补记仍仅自己可见。</p></>;
+}
 
 export function PublicationPanel({card,onChange}: {card:Memory;onChange:()=>void}) {
   const {user}=useSession(),live=useLivePage();

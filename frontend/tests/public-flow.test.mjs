@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {JSDOM} from 'jsdom';
 import {createServer} from 'vite';
 
-test('guest discovery and publication preview expose only consented fields', async () => {
+test('guest discovery and explicit editor save expose only the edited story and consented fields', async () => {
   const dom = new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   const originalFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;
@@ -12,7 +12,7 @@ test('guest discovery and publication preview expose only consented fields', asy
   const {MemoryRouter,useNavigate}=await import('react-router');
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');
-  let user=null,navigate,publicationBody;
+  let user=null,navigate,publicationBody,memoryBody;
   const song={id:1,title:'原创样例',recording_label:'器乐',audio_url:null,audio_available:false,duration_ms:null,lyrics:[]};
   const card={id:88,owner_id:3,song_id:1,song,story:'愿意分享的原文。不公开的细节。',life_time:'不分享的人生阶段',life_year:2021,life_precision:'year',offset_ms:null,theme_id:'graduation',revision:1,reflections:[],tags:[],created_at:'2026-01-01',updated_at:'2026-01-01'};
   const story={id:1,song_id:1,song,excerpt:'毕业那天，我们唱到最后。',author_name:'匿名听友',life_time:null,life_year:null,offset_ms:null,lyric:null,is_demo_sample:true};
@@ -22,7 +22,7 @@ test('guest discovery and publication preview expose only consented fields', asy
     if(url==='/api/themes')return Response.json([{id:'graduation',title:'毕业那年',description:'那个夏天',prompt:'哪首歌陪你毕业？'}]);
     if(url.startsWith('/api/stories?'))return Response.json([story]);
     if(url==='/api/stories/search')return Response.json({items:[{story,evidence:story.excerpt,match_label:'经历语义相近'}],mode:'semantic',notice:''});
-    if(url==='/api/memories/88')return Response.json(card);
+    if(url==='/api/memories/88'){if(options.method==='PATCH')memoryBody=JSON.parse(options.body);return Response.json(card);}
     if(url==='/api/memories/88/publication'){publicationBody=JSON.parse(options.body);return Response.json(card);}
     throw new Error('Unexpected URL '+url);
   };
@@ -42,21 +42,22 @@ test('guest discovery and publication preview expose only consented fields', asy
     await React.act(async()=>navigate('/memories/88'));
     assert.equal(document.querySelector('#public-excerpt'),null);
     assert.ok(!document.body.textContent.includes('今天的我，想补一句'));
-    await React.act(async()=>document.querySelector('.visibility-trigger').click());
-    await React.act(async()=>document.querySelector('.visibility-options button:last-child').click());
-    await fill('public-excerpt','愿意分享的原文。');
-    const preview=document.querySelector('[aria-label="公开卡片预览"]');
-    assert.ok(preview.textContent.includes('匿名听友'));
-    assert.ok(!preview.textContent.includes('不公开的细节'));
-    assert.ok(!preview.textContent.includes('不分享的人生阶段'));
-    assert.ok(!preview.textContent.includes('2021'));
-    assert.ok(preview.textContent.includes('毕业那年'),'preview discloses the theme that will receive this public story');
-    const submit=[...document.querySelectorAll('button')].find(el=>el.textContent==='确认公开这张卡');
+    await React.act(async()=>document.querySelector('.memory-edit-link').click());
+    await React.act(async()=>document.querySelector('.composer-setting-rows > button:last-child').click());
+    await React.act(async()=>document.querySelector('.composer-sheet-options button:first-child').click());
+    await fill('memory-story','愿意分享的原文。');
+    assert.equal(Boolean(document.querySelector('#public-excerpt')),false);
+    assert.equal(Boolean(document.querySelector('[aria-label="公开卡片预览"]')),false);
+    const submit=[...document.querySelectorAll('button')].find(el=>el.textContent==='保存');
     assert.equal(submit.disabled,false);
     assert.equal(publicationBody,undefined,'opening and editing preview does not publish');
-    await click('确认公开这张卡');
+    await click('保存');
     assert.equal(publicationBody.excerpt,'愿意分享的原文。');
     assert.equal(publicationBody.share_life_time,false);assert.equal(publicationBody.anonymous,true);assert.equal(publicationBody.confirmed,true);
+    assert.equal(memoryBody.theme_id,'graduation','removing duplicate controls does not remove the existing theme association');
+    assert.ok(!JSON.stringify(publicationBody).includes('不公开的细节'));
+    assert.ok(!JSON.stringify(publicationBody).includes('不分享的人生阶段'));
+    assert.ok(!JSON.stringify(publicationBody).includes('2021'));
   }finally{
     await React.act(async()=>root.unmount());await server.close();globalThis.fetch=originalFetch;globalThis.FormData=originalFormData;dom.window.close();
   }
