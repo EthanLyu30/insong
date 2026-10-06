@@ -3,10 +3,10 @@ import {createPortal} from 'react-dom';
 import {useBlocker,type Blocker} from 'react-router';
 import {lockPageScroll,trapDialogFocus} from './dialogScroll';
 
-export function useMemoryExitGuard(dirty:boolean){
+export function useMemoryExitGuard(dirty:boolean,safeReturn?:string){
   const permitted=useRef(false);
   const blocker=useBlocker(({currentLocation,nextLocation})=>
-    dirty&&!permitted.current&&currentLocation.pathname+currentLocation.search!==nextLocation.pathname+nextLocation.search);
+    dirty&&!permitted.current&&currentLocation.pathname+currentLocation.search!==nextLocation.pathname+nextLocation.search&&nextLocation.pathname+nextLocation.search!==safeReturn);
   useEffect(()=>{
     if(!dirty)return;
     const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue='';};
@@ -16,7 +16,7 @@ export function useMemoryExitGuard(dirty:boolean){
   return {blocker,permit:()=>{permitted.current=true;}};
 }
 
-export function MemoryExitDialog({blocker,save,busy,uploading,editing,error}:{blocker:Blocker;save?:()=>boolean;busy:boolean;uploading:boolean;editing:boolean;error:string}){
+export function MemoryExitDialog({blocker,save,busy,uploading,editing,error,onDiscard}:{blocker:Blocker;save?:()=>boolean;busy:boolean;uploading:boolean;editing:boolean;error:string;onDiscard?:()=>void}){
   const panel=useRef<HTMLDivElement>(null);
   const blocked=blocker.state==='blocked';
   useEffect(()=>{
@@ -34,6 +34,6 @@ export function MemoryExitDialog({blocker,save,busy,uploading,editing,error}:{bl
     {error&&<p role="alert" className="form-error">{error}</p>}
     <button type="button" className="primary-button unsaved-continue" onClick={()=>blocker.reset()}>继续编辑</button>
     {save&&<button type="button" className="soft-button unsaved-save" disabled={busy||uploading} onClick={()=>{if(save())blocker.proceed();}}>{busy?'保存中…':uploading?'照片上传中…':'存草稿并离开'}</button>}
-    <button type="button" className="text-button unsaved-discard" disabled={busy} onClick={()=>blocker.proceed()}>{editing?'放弃修改':'放弃并离开'}</button>
+    <button type="button" className="text-button unsaved-discard" disabled={busy} onClick={()=>{onDiscard?.();blocker.proceed();}}>{editing?'放弃修改':'放弃并离开'}</button>
   </div></div>,document.body);
 }

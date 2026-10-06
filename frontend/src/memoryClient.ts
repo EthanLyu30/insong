@@ -1,7 +1,7 @@
 import type { Song, Lyric } from './api';
 
 export type Photo = { id:string; url:string };
-export type EventSnapshot = {id:string;title:string;artist:string;date:string;city:string;venue:string};
+export type EventSnapshot = {id:string;title:string;artist:string;date:string;city:string;venue:string;manual?:boolean};
 export type Reflection = { id: string; text: string; created_at: string; mood?:string|null;photo_id?:string|null;photo_url?:string|null };
 export type Memory = {
   id: number; owner_id: number; song_id: number; song: Song; story: string; title?:string|null; photos?:Photo[];

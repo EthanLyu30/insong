@@ -1,5 +1,7 @@
 from pathlib import Path
 from .content import song_lyrics
+from sqlalchemy import select
+from .models import MemoryCard, PublicStory
 
 AUDIO_ROOT = Path(__file__).resolve().parents[1] / 'media'
 DURATION_MS = 48000
@@ -14,6 +16,17 @@ QQ_TRACKS = {
     ('倔强', '五月天'): '004HyLC74RYiBC',
 }
 
+def can_read_song(db, song, user):
+    if song is None:
+        return False
+    if song.owner_id is None or user is not None and song.owner_id == user.id:
+        return True
+    if user is not None and db.scalar(select(MemoryCard.id).where(
+            MemoryCard.song_id == song.id, MemoryCard.owner_id == user.id).limit(1)):
+        return True
+    return bool(db.scalar(select(MemoryCard.id).join(PublicStory).where(
+        MemoryCard.song_id == song.id, PublicStory.published.is_(True)).limit(1)))
+
 
 def song_audio(song):
     path = AUDIO_ROOT / f'song-{song.id}-v1.wav'
@@ -27,7 +40,7 @@ def song_audio(song):
 
 
 def serialize_song(song):
-    qq_mid = None if song.is_demo else QQ_TRACKS.get((song.title.lower(), song.artist))
+    qq_mid = None if song.is_demo or song.owner_id is not None else QQ_TRACKS.get((song.title.lower(), song.artist))
     return {key: getattr(song, key) for key in (
         'id', 'title', 'artist', 'version', 'source_label', 'is_demo', 'cover_url'
     )} | song_audio(song) | {'lyrics': song_lyrics(song),

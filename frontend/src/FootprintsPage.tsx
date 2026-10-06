@@ -5,7 +5,7 @@ import { apiBaseUrl } from './api';
 import { apiRequest } from './memoryClient';
 import { useSession } from './SessionContext';
 import { useData } from './useData';
-import { PublicStoryList } from './PublicPages';
+import {EventRecords} from './EventRecords';
 import {MonthFilter} from './MonthFilter';
 import { AtlasMap } from './AtlasMap';
 import { CinematicStage } from './CinematicStage';
@@ -148,6 +148,7 @@ export function FootprintsPage() {
   }
   function openEvent(value:AtlasEvent){const matchingCity=cities.find(item=>item.name===value.city);setParams(filters({...(artist?{artist:value.artist_id}:{}),...(matchingCity?{city:matchingCity.id}:{}),event:value.id,scene:'sky'}));setExpanded(false);setSearchOpen(false);}
   function back(){
+    if(stories){setStories(false);return;}
     setStories(false);
     setExpanded(false);
     // A city close stays inside the map even when a deep link came from My.
@@ -226,9 +227,9 @@ export function FootprintsPage() {
       {!linkedEvent.songs.length&&<p className="atlas-no-songs">曲目尚未收录。</p>}
       <CollectConcert event={linkedEvent} next={next} collection={{saved:savedPlaylists?.find(item=>item.event_id===linkedEvent.id)??null,checking:playlistLoading,unavailable:!!user&&savedPlaylists===null&&!playlistLoading,busy:!!savingEvent,refreshing:playlistUpdate.refreshing,error:saveError||playlistUpdate.error,onCollect:()=>void collectEvent(linkedEvent,{id:linkedEvent.id,events:[linkedEvent]}),onRemove:()=>void collectEvent(linkedEvent,{id:linkedEvent.id,events:[linkedEvent]}),onUpdate:()=>{const saved=savedPlaylists?.find(item=>item.event_id===linkedEvent.id);if(saved)refreshPlaylist(saved);},onRetry:retryPlaylists}}/>
       <div className="atlas-night-personal"><ScheduleFacts event={linkedEvent} catalog={catalog}/></div>
-      <div className="atlas-night-actions"><Link to={`/create?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><details><summary>同场记录</summary><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>同场故事</button></div></details></div>
+      <div className="atlas-night-actions"><Link to={`/create?event=${encodeURIComponent(linkedEvent.id)}`}>记下这一晚</Link><div className="atlas-extra-actions"><Attendance key={`${user?.id??'guest'}:${linkedEvent.id}`} event={linkedEvent} today={today} next={next}/><button ref={storyTrigger} type="button" onClick={()=>setStories(true)}>现场记录</button></div></div>
       </div>
     </section>}
-    {stories&&linkedEvent&&<section className="atlas-story-drawer" role="region" aria-label="这场的公开故事"><header><h2>同一晚，我们都在歌里</h2><button ref={storyClose} type="button" onClick={()=>setStories(false)} aria-label="收起同场故事">×</button></header><PublicStoryList path={`/api/stories?event_id=${encodeURIComponent(linkedEvent.id)}`} heading="愿意分享的回声"/></section>}
+    {stories&&linkedEvent&&<section className="atlas-story-drawer" role="region" aria-label="现场记录"><header><h2>现场记录</h2><button ref={storyClose} type="button" onClick={()=>setStories(false)} aria-label="关闭现场记录">×</button></header><EventRecords key={linkedEvent.id} eventId={linkedEvent.id}/></section>}
   </section>;
 }

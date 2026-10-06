@@ -8,6 +8,152 @@ const song={id:1,title:'散场以后',artist:'Demo Artist',is_demo:true,audio_av
 const photos=[{id:'a',url:'/api/photos/a'},{id:'b',url:'/api/photos/b'}];
 const card={id:88,owner_id:3,song_id:1,song,title:'把这一晚带回家',story:'第一行。\n最后一行也必须完整。',life_time:'散场的晚上',life_year:2025,revision:1,reflections:[],tags:['演唱会','散场'],photos,photo_id:'a',photo_url:'/api/photos/a',created_at:'2026-01-01',updated_at:'2026-01-01',offset_ms:10000,end_ms:14000};
 
+test('leaving song search protects the composer and saves its draft before leaving',async()=>{
+  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill,location})=>{
+    await fill('memory-story','选歌时也不能丢');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await act(async()=>document.querySelector('.bottom-nav a[href="/memories"]').click());
+    assert.equal(location().pathname,'/song-search');
+    assert.ok(document.querySelector('.unsaved-continue'));
+    await act(async()=>document.querySelector('.unsaved-continue').click());
+    await act(async()=>document.querySelector('.bottom-nav a[href="/memories"]').click());
+    await act(async()=>document.querySelector('.unsaved-save').click());
+    assert.equal(location().pathname,'/memories');
+    await act(async()=>document.querySelector('.collection-draft').click());
+    assert.equal(document.querySelector('#memory-story').value,'选歌时也不能丢');
+  });
+});
+test('discarded composer route state cannot revive its unsaved writing on browser back',async()=>{
+  await harness('/memories',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill,go})=>{
+    await act(async()=>document.querySelector('.collection-new').click());await fill('memory-story','已经决定放弃的正文');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    await act(async()=>document.querySelector('.bottom-nav a[href="/memories"]').click());await act(async()=>document.querySelector('.unsaved-discard').click());
+    await go(-1);assert.equal(document.querySelector('#memory-story').value,'');
+  });
+});
+test('unfinished manual song fields survive native back and draft recovery',async()=>{
+  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill,go})=>{
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await fill('create-song-query','还未确认的歌名');await act(async()=>document.querySelector('.song-manual-entry').click());
+    await fill('manual-song-artist','还未确认的歌手');await go(-1);
+    assert.ok(document.querySelector('[aria-label="继续填写配乐"]'));
+    await act(async()=>document.querySelector('.composer-draft').click());await go('/memories');
+    await act(async()=>document.querySelector('.collection-draft').click());
+    await act(async()=>document.querySelector('[aria-label="继续填写配乐"]').click());
+    assert.equal(document.querySelector('#manual-song-title').value,'还未确认的歌名');
+    assert.equal(document.querySelector('#manual-song-artist').value,'还未确认的歌手');
+  });
+});
+test('unfinished manual song fields are included in save-draft-and-leave from the picker',async()=>{
+  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([]);throw new Error(url);},async({act,fill})=>{
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await act(async()=>document.querySelector('.song-manual-entry').click());await fill('manual-song-title','一首还没有写完的歌');
+    await act(async()=>document.querySelector('.bottom-nav a[href="/memories"]').click());
+    await act(async()=>document.querySelector('.unsaved-save').click());
+    await act(async()=>document.querySelector('.collection-draft').click());
+    await act(async()=>document.querySelector('[aria-label="继续填写配乐"]').click());
+    assert.equal(document.querySelector('#manual-song-title').value,'一首还没有写完的歌');
+  });
+});
+test('unfinished concert fields are protected and can be recovered as a draft',async()=>{
+  await harness('/create',async url=>{if(url==='/api/footprints/catalog')return Response.json({artists:[],events:[],cities:[]});throw new Error(url);},async({act,fill,go,location})=>{
+    await act(async()=>document.querySelector('[aria-label="选择演出"]').click());await act(async()=>document.querySelector('.concert-manual-entry').click());
+    await fill('manual-event-artist','朴树');await fill('manual-event-city','深圳');
+    await go('/memories');assert.equal(location().pathname,'/create');assert.ok(document.querySelector('.unsaved-save'));
+    await act(async()=>document.querySelector('.unsaved-continue').click());assert.equal(document.querySelector('#manual-event-artist').value,'朴树');
+    await go('/memories');await act(async()=>document.querySelector('.unsaved-save').click());
+    await act(async()=>document.querySelector('.collection-draft').click());
+    await act(async()=>document.querySelector('[aria-label="选择演出"]').click());
+    assert.equal(document.querySelector('#manual-event-city').value,'深圳');
+  });
+});
+
+test('two independent drafts remain visible and resuming either does not erase the other',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill,go})=>{
+    await fill('memory-title','第一篇');await fill('memory-story','第一篇正文');
+    await act(async()=>document.querySelector('.composer-draft').click());
+    await go('/memories');await go('/create');
+    await fill('memory-title','第二篇');await fill('memory-story','第二篇正文');
+    await act(async()=>document.querySelector('.composer-draft').click());
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    assert.equal(document.querySelectorAll('.composer-draft-preview').length,2);
+    await act(async()=>[...document.querySelectorAll('.composer-draft-preview')].find(item=>item.textContent.includes('第一篇')).querySelector('.composer-draft-resume').click());
+    await act(async()=>document.querySelector('.composer-draft-replace').click());
+    assert.equal(document.querySelector('#memory-story').value,'第一篇正文');
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    assert.equal(document.querySelectorAll('.composer-draft-preview').length,2);
+  });
+});
+
+test('recording can bind the actual earlier night of a consecutive run',async()=>{
+  let sent;
+  const event={id:'night-5',artist_id:'gem',title:'同一巡演',date:'2026-10-05',city:'深圳',venue:'大运体育场'};
+  const catalog={artists:[{id:'gem',name:'邓紫棋'}],cities:[],events:[{...event,id:'night-4',date:'2026-10-04'},event]};
+  await harness('/songs/1/write?event=night-5',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(catalog);
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);
+  },async({act,fill})=>{
+    const choose=document.querySelector('[aria-label="选择演出"]');assert.ok(choose);
+    await act(async()=>choose.click());
+    await act(async()=>document.querySelector('[data-event-id="night-4"]').click());
+    await fill('memory-story','我参加的是四号这一晚');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(sent.event_id,'night-4');assert.equal(sent.life_time,'2026-10-04');
+  });
+});
+
+test('an unlisted song can be entered by name and artist then saved without fake playback',async()=>{
+  let sent;
+  await harness('/create',async(url,options)=>{
+    if(url==='/api/songs')return Response.json([song]);
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json({...card,song:{...song,id:106,title:'平凡之路',artist:'朴树',audio_available:false,audio_url:null}});}throw new Error(url);
+  },async({act,fill})=>{
+    await fill('memory-story','听着平凡之路回家');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());await fill('create-song-query','平凡之路');
+    const enter=document.querySelector('.song-manual-entry');assert.ok(enter);await act(async()=>enter.click());
+    await fill('manual-song-artist','朴树');
+    await act(async()=>document.querySelector('.song-manual-save').click());
+    assert.ok(!document.querySelector('audio'),'manual metadata cannot start a substitute recording');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.deepEqual(sent.song_input,{title:'平凡之路',artist:'朴树'});
+    assert.equal(sent.song_id,undefined);
+  });
+});
+
+test('an unlisted concert can be filled in without pretending it is a catalog event',async()=>{
+  let sent;
+  await harness('/songs/1/write',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json({artists:[],cities:[],events:[]});
+    if(url==='/api/memories'&&options.method==='POST'){sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);
+  },async({act,fill})=>{
+    const choose=document.querySelector('[aria-label="选择演出"]');assert.ok(choose);await act(async()=>choose.click());
+    await act(async()=>document.querySelector('.concert-manual-entry').click());
+    await fill('manual-event-artist','朴树');await fill('manual-event-city','深圳');await fill('manual-event-venue','我记下的场馆');await fill('manual-event-date','2026-09-25');
+    await act(async()=>document.querySelector('.concert-manual-save').click());await fill('memory-story','这场演出还没有收录');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(sent.event_id,null);assert.equal(sent.event_input.venue,'我记下的场馆');assert.equal(sent.life_time,'2026-09-25');
+  });
+});
+
+test('concert records separate private owner records from other listeners public stories',async()=>{
+  const event={...revisionCatalog.events[0],id:'records-night'};
+  await harness('/footprints?event=records-night&scene=sky',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({...revisionCatalog,events:[event]});
+    if(url==='/api/playlists')return Response.json([]);
+    if(url==='/api/memories?event_id=records-night')return Response.json([{...card,event_id:event.id,title:'我的这一晚'}]);
+    throw new Error(url);
+  },async({act,until})=>{
+    await until('.atlas-night-panel');
+    const button=[...document.querySelectorAll('.atlas-night-actions button')].find(item=>item.textContent==='现场记录');assert.ok(button);
+    await act(async()=>button.click());await until('.event-record-list');
+    assert.ok(document.querySelector('.atlas-story-drawer').textContent.includes('我的这一晚'));
+    await act(async()=>document.querySelector('[data-record-tab="public"]').click());
+    assert.ok(document.querySelector('.atlas-story-drawer').textContent.includes('听友分享的这一晚'));
+    assert.ok(!document.querySelector('.atlas-story-drawer').textContent.includes('只属于我的公开稿'));
+  },{stories:[{...card,id:7,excerpt:'公开原文',author_name:'听友',title:'听友分享的这一晚',is_mine:false},{...card,id:8,title:'只属于我的公开稿',excerpt:'原文',is_mine:true}]});
+});
+
 test('concert creation prefills the actual date and venue without enabling an untouched draft',async()=>{
   const event={id:'prefill-night',artist_id:'gem',title:'巡演',city:'深圳',venue:'大运体育场',date:'2026-10-01'};
   await harness('/create?event=prefill-night',async url=>{
@@ -20,7 +166,7 @@ test('concert creation prefills the actual date and venue without enabling an un
     assert.equal(document.querySelector('.composer-draft').disabled,true);
     await fill('memory-story','记住这一晚');
     await act(async()=>document.querySelector('.composer-draft').click());
-    const draft=JSON.parse(window.localStorage.getItem('memory-draft:3'));
+    const draft=JSON.parse(latestDraftRaw());
     assert.equal(draft.lifeTime,'2026-10-01');assert.equal(draft.lifeYear,'2026');
     assert.equal(draft.locationName,'深圳 · 大运体育场');
   });
@@ -38,7 +184,7 @@ test('unsaved creation blocks navigation, keeps writing, and can save a draft be
     await go('/memories');
     await act(async()=>document.querySelector('.unsaved-save').click());
     assert.equal(location().pathname,'/memories');
-    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'没有保存的这一晚');
+    assert.equal(JSON.parse(latestDraftRaw()).story,'没有保存的这一晚');
   });
 });
 
@@ -162,6 +308,10 @@ test('record details use saved concert information after live catalog removal',a
   },{memory:()=>({...card,event_id:'gone-night',event_snapshot:eventSnapshot})});
 });
 
+function latestDraftRaw(){
+  const keys=Object.keys(window.localStorage).filter(key=>key==='memory-draft:3'||key.startsWith('memory-draft:3:'));
+  return keys.map(key=>window.localStorage.getItem(key)).sort((a,b)=>(JSON.parse(b)._draftSavedAt??'').localeCompare(JSON.parse(a)._draftSavedAt??''))[0]??null;
+}
 async function harness(path,respond,work,fixtures={}){
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   const priorFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
@@ -1336,7 +1486,7 @@ test('central creation opens a separate music search and returns without losing 
     await fill('memory-title','我的那个夏天');await fill('memory-story','已经写下的经历不能被选歌清空。');
     await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());assert.equal(location().pathname,'/song-search');
     await fill('create-song-query','Demo Artist');
-    assert.equal(document.querySelectorAll('.song-search-list button').length,1);
+    assert.equal(document.querySelectorAll('.song-search-list button[aria-label^="选用"]').length,1);
     await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());assert.equal(location().pathname,'/create');
     assert.equal(document.querySelector('#memory-title').value,'我的那个夏天');
     assert.equal(document.querySelector('#memory-story').value,'已经写下的经历不能被选歌清空。');
@@ -1368,7 +1518,7 @@ test('direct new memory stays blank and preserves a saved draft even when sessio
     await go('/memories');
     await go('/create');
     assert.equal(document.querySelector('#memory-story').value,'');
-    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'已保存的本地草稿');
+    assert.equal(JSON.parse(latestDraftRaw()).story,'已保存的本地草稿');
   });
 });
 
@@ -1436,7 +1586,7 @@ test('saving a local draft does not populate a later direct new memory',async()=
     assert.equal(document.querySelector('#memory-title').value,'');
     assert.equal(document.querySelector('#memory-story').value,'');
     assert.ok(!document.querySelector('.composer-song-trigger strong'));
-    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'草稿中的正文仍在。');
+    assert.equal(JSON.parse(latestDraftRaw()).story,'草稿中的正文仍在。');
   });
 });
 
@@ -1455,7 +1605,7 @@ test('empty and whitespace-only composers cannot save a draft or replace an olde
     await fill('memory-title','明天继续写');
     assert.equal(document.querySelector('.composer-draft').disabled,false,'a title alone is enough to begin a draft');
     await act(async()=>document.querySelector('.composer-draft').click());
-    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).title,'明天继续写');
+    assert.equal(JSON.parse(latestDraftRaw()).title,'明天继续写');
     await fill('memory-title','');
     assert.equal(document.querySelector('.composer-draft').disabled,true);
     assert.equal(document.querySelector('.composer-draft').textContent,'存草稿','saved status must not misrepresent later edits');
@@ -1574,7 +1724,7 @@ test('My reopens a saved local draft without publishing it and saving removes on
     assert.equal(document.querySelector('#memory-story').value,'接着写完的一晚。','returning from music search must keep the resumed edits, not reload the older local draft');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
     assert.equal(location().pathname,'/memories/88');
-    assert.equal(window.localStorage.getItem('memory-draft:3'),null);
+    assert.deepEqual(JSON.parse(window.localStorage.getItem('memory-draft:3')),draft,'legacy raw is retained so an older tab cannot lose a newer write');
     await go('/memories');assert.equal(document.querySelector('.collection-draft'),null);
   },{localDraft:draft});
   assert.equal(writes,1);assert.equal(sent.story,'接着写完的一晚。');assert.equal(sent.song_id,1);
@@ -1674,7 +1824,7 @@ test('saving the current drafted composer after a song round-trip clears only it
   },async({act,fill})=>{
     await fill('memory-story','这一条草稿已经准备保存。');
     await act(async()=>document.querySelector('.composer-draft').click());
-    assert.ok(window.localStorage.getItem('memory-draft:3'));
+    assert.ok(latestDraftRaw());
     await act(async()=>document.querySelector('[aria-label="更换配乐"]').click());
     await fill('create-song-query','散场以后');
     await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());

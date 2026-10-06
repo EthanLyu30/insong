@@ -10,7 +10,7 @@ import { LyricPicker } from './LyricPicker';
 import { PublicStoryList } from './PublicPages';
 import {StoryCard} from './StoryCard';
 import { GalleryPicker } from './PhotoGallery';
-import { cardCover, cardPhotos, parseTags, photoSource, songCover } from './cardMedia';
+import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
 import { Plus, X, MagnifyingGlass, MapPin, CalendarBlank, LockSimple, CaretRight, Hash, At } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
@@ -26,6 +26,10 @@ import {filterMemories,memoryCategory,memoryCity} from './memoryPresentation';
 import {currentLocalMark,extractHashtags,insertAtCursor} from './revisionBehavior';
 import {recommendMemoryTags} from './tagRecommendations';
 import {MemoryExitDialog,useMemoryExitGuard} from './MemoryExitGuard';
+import {validDraftSong,validEventSnapshot,validManualSong,validManualEvent,validPending,hasDraftContent,readMemoryDrafts,saveMemoryDraft,removeMemoryDraft,type MemoryDraft,type ManualSong,type ManualEvent} from './memoryDrafts';
+import {DraftBox} from './DraftBox';
+import {ConcertPicker} from './ConcertPicker';
+import {readComposerTransition,writeComposerTransition,clearComposerTransition,composerDiscarded} from './composerTransition';
 
 export function LoginGate() {
   const location = useLocation();
@@ -54,9 +58,9 @@ export function SongPage() {
   function mark(ms:number,id:string|null=null){const next=new URLSearchParams(params);next.set('at',String(ms));if(id)next.set('lyric',id);else next.delete('lyric');if(next.has('end')&&Number(next.get('end'))<=ms)next.delete('end');setParams(next,{replace:true});}
   const { user } = useSession();
   if (!song) return <LoadingError error={error} retry={() => setRetry(x => x + 1)} />;
-  const safePosition=position!==null&&position<(song.duration_ms??0)?position:null;
+  const safePosition=position!==null&&position<(song?.duration_ms??0)?position:null;
   const requestedEnd=Number(params.get('end'));
-  const safeEnd=params.has('end')&&Number.isFinite(requestedEnd)&&safePosition!==null&&requestedEnd>safePosition&&requestedEnd<=(song.duration_ms??0)?requestedEnd:null;
+  const safeEnd=params.has('end')&&Number.isFinite(requestedEnd)&&safePosition!==null&&requestedEnd>safePosition&&requestedEnd<=(song?.duration_ms??0)?requestedEnd:null;
   const capture = new URLSearchParams(); for(const key of ['theme','event'])if(params.get(key))capture.set(key,params.get(key)!);if(safePosition!==null)capture.set('at',String(safePosition));if(safeEnd!==null)capture.set('end',String(safeEnd));if(lyricId)capture.set('lyric',lyricId);
   return <section className="journal-page song-journal listening-page">
     <BackLink/>
@@ -107,52 +111,18 @@ export function MemoryCollection() {
   return user ? <CollectionContent/> : <LoginGate/>;
 }
 
-function validDraftSong(value:unknown) {
-  if(!value||typeof value!=='object'||Array.isArray(value))return false;
-  const song=value as Record<string,unknown>;
-  return Number.isInteger(song.id)&&Number(song.id)>0&&typeof song.title==='string'&&typeof song.artist==='string'
-    &&['version','source_label','recording_label','cover_url','lyrics_note','qq_music_url','audio_url'].every(key=>song[key]==null||typeof song[key]==='string')
-    &&(song.duration_ms==null||(typeof song.duration_ms==='number'&&Number.isFinite(song.duration_ms)&&song.duration_ms>=0))
-    &&['is_demo','audio_available'].every(key=>song[key]===undefined||typeof song[key]==='boolean')
-    &&(song.lyrics===undefined||(Array.isArray(song.lyrics)&&song.lyrics.every(line=>line&&typeof line==='object'&&typeof line.id==='string'&&typeof line.text==='string'&&typeof line.start_ms==='number'&&Number.isFinite(line.start_ms)&&line.start_ms>=0)));
-}
-
-function hasDraftContent(data:Record<string,unknown>) {
-  const automatic=Array.isArray(data.autoEventFields)?data.autoEventFields:[];
-  return ['title','story','tagText','lifeTime','lifeYear','locationName'].some(key=>!automatic.includes(key)&&typeof data[key]==='string'&&data[key].trim())
-    ||Array.isArray(data.photos)&&data.photos.length>0;
-}
-
-function validEventSnapshot(value:unknown,eventId:unknown):value is EventSnapshot{
-  if(!value||typeof value!=='object'||Array.isArray(value))return false;
-  const record=value as Record<string,unknown>;
-  return record.id===eventId&&['id','title','artist','date','city','venue'].every(key=>typeof record[key]==='string');
-}
-
-function readLocalMemoryDraft(userId:number) {
-  try {
-    const serialized=window.localStorage.getItem(`memory-draft:${userId}`);
-    if(!serialized)return null;
-    const data=JSON.parse(serialized);
-    if(!data||typeof data!=='object'||Array.isArray(data)||data.version!==1||typeof data.story!=='string')return null;
-    if(data.song!=null&&!validDraftSong(data.song))return null;
-    if(data.eventSnapshot!=null&&!validEventSnapshot(data.eventSnapshot,data.eventId))return null;
-    if(data.photos!==undefined&&(!Array.isArray(data.photos)||data.photos.some((photo:Photo|null)=>!photo||typeof photo.id!=='string'||typeof photo.url!=='string')))return null;
-    if(!hasDraftContent(data))return null;
-    return {serialized,data};
-  } catch { return null; }
-}
+function readLocalMemoryDraft(userId:number,id?:string){return readMemoryDrafts(userId).find(item=>!id||id==='1'||item.id===id)??null;}
 
 function LocalDraftEntry() {
   const {user}=useSession();
-  const [available,setAvailable]=useState(()=>!!user&&!!readLocalMemoryDraft(user.id));
+  const [items,setItems]=useState(()=>user?readMemoryDrafts(user.id):[]);
   useEffect(()=>{
-    const refresh=()=>setAvailable(!!user&&!!readLocalMemoryDraft(user.id));
-    const changed=(event:StorageEvent)=>{if(event.key===null||event.key===`memory-draft:${user?.id}`)refresh();};
+    const refresh=()=>setItems(user?readMemoryDrafts(user.id):[]);
+    const changed=(event:StorageEvent)=>{if(event.key===null||event.key?.startsWith(`memory-draft:${user?.id}`))refresh();};
     refresh();window.addEventListener('storage',changed);window.addEventListener('focus',refresh);
     return()=>{window.removeEventListener('storage',changed);window.removeEventListener('focus',refresh);};
   },[user?.id]);
-  return available?<Link className="collection-draft" to="/create?draft=1">草稿</Link>:null;
+  return items.length?<Link className="collection-draft" to={items.length>1?'/create?drafts=1':`/create?draft=${items[0].id==='legacy'?'1':items[0].id}`}>草稿{items.length>1?` (${items.length})`:''}</Link>:null;
 }
 
 function CollectionContent() {
@@ -211,16 +181,21 @@ function CreateContent() {
   const { value: song, error } = useData<Song>(`/api/songs/${songId}`, retry);
   if (!song) return <LoadingError error={error} retry={() => setRetry(x => x + 1)}/>;
   const at = params.has('at') ? Number(params.get('at')) : null;
-  return <MemoryForm key={song.id} song={song} initialEvent={params.get('event')} initialLyric={params.get('lyric')} initialTheme={params.get('theme')} initialEnd={params.get('end')} initialPosition={at !== null && Number.isFinite(at) && at >= 0 && at < (song.duration_ms ?? 0) ? at : null}/>;
+  return <MemoryForm key={song.id} song={song} initialEvent={params.get('event')} initialLyric={params.get('lyric')} initialTheme={params.get('theme')} initialEnd={params.get('end')} initialPosition={at !== null && Number.isFinite(at) && at >= 0 && at < (song?.duration_ms ?? 0) ? at : null}/>;
 }
 
 export function MemoryForm({ song:initialSong=null, existing, initialPosition = null, initialLyric = null, initialTheme = null, initialEvent = null, initialEnd = null }: { song?: Song|null; existing?: Memory; initialPosition?: number | null; initialLyric?:string|null;initialTheme?:string|null;initialEvent?:string|null;initialEnd?:string|null }) {
   const [song,setSong]=useState<Song|null>(initialSong);
+  const [manualSong,setManualSong]=useState<ManualSong|null>(null);
+  const [pendingSong,setPendingSong]=useState<ManualSong|null>(null),[pendingEvent,setPendingEvent]=useState<ManualEvent|null>(null);
+  const resumeSheet=useRef<'event'|null>(null);
+  const [manualEvent,setManualEvent]=useState<ManualEvent|null>(existing?.event_snapshot?.manual?{title:existing.event_snapshot.title,artist:existing.event_snapshot.artist,date:existing.event_snapshot.date,city:existing.event_snapshot.city,venue:existing.event_snapshot.venue}:null);
   const {user}=useSession();
   const navigate = useNavigate();
   const location=useLocation();
   const navigationAction=useNavigationType();
-  const resumeLocalDraft=location.pathname==='/create'&&new URLSearchParams(location.search).get('draft')==='1';
+  const requestedDraft=new URLSearchParams(location.search).get('draft');
+  const resumeLocalDraft=location.pathname==='/create'&&!!requestedDraft;
   const fallback=existing?`/memories/${existing.id}`:initialSong?`/songs/${initialSong.id}${location.search}`:initialEvent?`/footprints?event=${encodeURIComponent(initialEvent)}&scene=sky`:'/memories';
   const {previous,back}=useBackNavigation(fallback);
   const musicOptions=useRef<HTMLDetailsElement>(null);
@@ -232,13 +207,14 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [lifeYear,setLifeYear] = useState(existing?.life_year?.toString() ?? '');
   const [locationName,setLocationName]=useState(existing?.location_name??'');
   const [locationQuery,setLocationQuery]=useState('');
-  const [sheet,setSheet]=useState<'place'|'time'|'visibility'|'drafts'|null>(null);
+  const [sheet,setSheet]=useState<'place'|'time'|'visibility'|'drafts'|'event'|null>(null);
   const [boxedDraft,setBoxedDraft]=useState<ReturnType<typeof readLocalMemoryDraft>>(null);
   const [confirmDraft,setConfirmDraft]=useState(false);
   const sheetPanel=useRef<HTMLDivElement>(null),sheetOrigin=useRef<HTMLElement|null>(null);
-  function openSheet(value:'place'|'time'|'visibility'){sheetOrigin.current=document.activeElement as HTMLElement|null;setSheet(value);}
+  function openSheet(value:'place'|'time'|'visibility'|'event'){sheetOrigin.current=document.activeElement as HTMLElement|null;setSheet(value);}
   const [savedDraftSnapshot,setSavedDraftSnapshot]=useState<string|null>(null);
-  const ownedLocalDraft=useRef<string|null>(null);
+  const ownedLocalDraft=useRef<string|null>(null),ownedDraftId=useRef<string|null>(null);
+  const [draftList,setDraftList]=useState<MemoryDraft[]>([]);
   const storyInput=useRef<HTMLTextAreaElement>(null);
   const [markedDate,setMarkedDate]=useState(/^\d{4}-\d{2}-\d{2}/.exec(existing?.life_time??'')?.[0]??'');
   const initialLine = initialSong?.lyrics?.find(line=>line.id===(existing?existing.lyric_id:initialLyric));
@@ -260,23 +236,26 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [error, setError] = useState('');const [busy, setBusy] = useState(false);
   const lock = useRef(false);const requestKey = useRef(crypto.randomUUID());
   useEffect(()=>{if(!sheet)return;const unlock=lockPageScroll();const release=sheetPanel.current?trapDialogFocus(sheetPanel.current,()=>setSheet(null),sheetOrigin.current):()=>{};return()=>{release();unlock();};},[sheet]);
+  useEffect(()=>{if(!existing&&user&&new URLSearchParams(location.search).get('drafts')==='1')openDraftBox();},[]);
   useEffect(()=>{
     if(existing||!user)return;
     try {
       const returnPath=location.pathname+location.search;
       const routed=location.state?.composerTransition;
       let stored=null;
-      if(navigationAction==='POP')try{stored=JSON.parse(window.sessionStorage.getItem(`composer-transition:${user.id}`)??'null');}catch{/* An explicit return still works without browser storage. */}
+      if(navigationAction==='POP')stored=readComposerTransition(user.id,returnPath,location.key);
       const transition=stored?.ownerId===user.id&&stored?.version===1&&stored?.originKey===location.key&&stored?.returnPath===returnPath?stored:routed?.ownerId===user.id&&routed?.version===1&&routed?.returnPath===returnPath?routed:null;
-      const saved=!transition&&resumeLocalDraft?readLocalMemoryDraft(user.id):null;
-      const draft=transition??saved?.data;
-      if(transition){try {window.sessionStorage.removeItem(`composer-transition:${user.id}`);} catch { /* Route state is enough. */ }}
+      const discarded=!!transition?.originKey&&composerDiscarded(user.id,returnPath,transition.originKey);
+      const saved=(!transition||discarded)&&resumeLocalDraft?readLocalMemoryDraft(user.id,requestedDraft??undefined):null;
+      const draft=discarded?saved?.data:transition??saved?.data;
+      if(transition?.originKey)clearComposerTransition(user.id,returnPath,transition.originKey);
       if(!draft){if(resumeLocalDraft)setError('未找到可读取的草稿，你可以新建记忆。');return;}
       if(draft.version!==1)return;
-      if(saved)ownedLocalDraft.current=saved.serialized;
+      if(saved){ownedLocalDraft.current=saved.serialized;ownedDraftId.current=saved.id;}
       const restored=restoreDraft(draft);
       if(transition)initialDraft.current=normalizeDraft(transition.exitBaseline??{});
       if(typeof draft.ownedLocalDraft==='string')ownedLocalDraft.current=draft.ownedLocalDraft;
+      if(typeof draft.ownedDraftId==='string')ownedDraftId.current=draft.ownedDraftId;
       if(ownedLocalDraft.current)try{setSavedDraftSnapshot(JSON.stringify(normalizeDraft(JSON.parse(ownedLocalDraft.current))));}catch{setSavedDraftSnapshot(JSON.stringify(restored));}
     } catch { /* A corrupt local draft must never prevent a new memory. */ }
   },[]);
@@ -285,70 +264,92 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const next=insertAtCursor(story,value,start,end);setStory(next.text);
     window.setTimeout(()=>{input?.focus();input?.setSelectionRange(next.cursor,next.cursor);},0);
   }
-  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,photos,cover,position,timeText,endText,lyricId,visibility,eventId,eventSnapshot,autoEventFields,themeId,anonymous,shareLife};}
+  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,manualSong,manualEvent,pendingSong,pendingEvent,photos,cover,position,timeText,endText,lyricId,visibility,eventId,eventSnapshot,autoEventFields,themeId,anonymous,shareLife};}
   const initialDraft=useRef(draftPayload());
-  const stableDraft=(value:ReturnType<typeof draftPayload>)=>JSON.stringify({...value,markedDate:''});
+  const stableDraft=(value:Partial<ReturnType<typeof draftPayload>>)=>JSON.stringify({...normalizeDraft(value),markedDate:''});
   const dirty=(!!existing||hasDraftContent(draftPayload()))&&stableDraft(draftPayload())!==(savedDraftSnapshot?stableDraft(normalizeDraft(JSON.parse(savedDraftSnapshot))):stableDraft(initialDraft.current));
   const exit=useMemoryExitGuard(dirty||uploading);
-  useEffect(()=>{if(exit.blocker.state==='blocked')setSheet(null);},[exit.blocker.state]);
-  function prefillEvent(value:EventSnapshot){
-    if(prefilled.current||existing||value.id!==eventId)return;
+  useEffect(()=>{if(exit.blocker.state==='blocked'){if(sheet==='event')resumeSheet.current='event';setSheet(null);}else if(exit.blocker.state==='unblocked'&&resumeSheet.current){setSheet(resumeSheet.current);resumeSheet.current=null;}},[exit.blocker.state]);
+  function prefillEvent(value:EventSnapshot,explicit=false){
+    if(!explicit&&(prefilled.current||existing||value.id!==eventId))return;
     prefilled.current=true;setEventSnapshot(value);
     const defaults:Partial<ReturnType<typeof draftPayload>>={eventSnapshot:value};
     const automatic:string[]=[];
-    if(!dateTouched.current&&!lifeTime){
+    if(!dateTouched.current&&(!lifeTime||autoEventFields.includes('lifeTime'))){
       defaults.lifeTime=value.date;defaults.lifeYear=value.date.slice(0,4);defaults.markedDate=value.date;
       setLifeTime(value.date);setLifeYear(value.date.slice(0,4));setMarkedDate(value.date);automatic.push('lifeTime','lifeYear');
     }
-    if(!placeTouched.current&&!locationName){
+    if(!placeTouched.current&&(!locationName||autoEventFields.includes('locationName'))){
       defaults.locationName=[value.city,value.venue].filter(Boolean).join(' · ').slice(0,160);
       setLocationName(defaults.locationName);automatic.push('locationName');
     }
     const fields=[...new Set([...autoEventFields,...automatic])];
     defaults.autoEventFields=fields;setAutoEventFields(fields);
-    initialDraft.current={...initialDraft.current,...defaults};
-    if(savedDraftSnapshot){const baseline=normalizeDraft(JSON.parse(savedDraftSnapshot));setSavedDraftSnapshot(JSON.stringify({...baseline,...defaults}));}
+    if(!explicit)initialDraft.current={...initialDraft.current,...defaults};
+    if(!explicit&&savedDraftSnapshot){const baseline=normalizeDraft(JSON.parse(savedDraftSnapshot));setSavedDraftSnapshot(JSON.stringify({...baseline,...defaults}));}
   }
   function normalizeDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
     return {version:1,story:typeof draft.story==='string'?draft.story:'',title:typeof draft.title==='string'?draft.title:'',tagText:typeof draft.tagText==='string'?draft.tagText:'',
       lifeTime:typeof draft.lifeTime==='string'?draft.lifeTime:'',lifeYear:typeof draft.lifeYear==='string'?draft.lifeYear:'',locationName:typeof draft.locationName==='string'?draft.locationName:'',markedDate:typeof draft.markedDate==='string'?draft.markedDate:'',
-      song:validDraftSong(draft.song)?draft.song!:null,photos:Array.isArray(draft.photos)?draft.photos:[],cover:typeof draft.cover==='string'?draft.cover:null,
+      manualSong:validManualSong(draft.manualSong)?draft.manualSong:null,manualEvent:validManualEvent(draft.manualEvent)?draft.manualEvent:null,pendingSong:validPending(draft.pendingSong,['title','artist'])?draft.pendingSong!:null,pendingEvent:validPending(draft.pendingEvent,['title','artist','date','city','venue'])?draft.pendingEvent!:null,song:validDraftSong(draft.song)?draft.song!:null,photos:Array.isArray(draft.photos)?draft.photos:[],cover:typeof draft.cover==='string'?draft.cover:null,
       position:typeof draft.position==='number'?draft.position:null,timeText:typeof draft.timeText==='string'?draft.timeText:'',endText:typeof draft.endText==='string'?draft.endText:'',lyricId:typeof draft.lyricId==='string'?draft.lyricId:null,
       visibility:draft.visibility==='public'?'public':'private',eventId:typeof draft.eventId==='string'?draft.eventId:null,eventSnapshot:validEventSnapshot(draft.eventSnapshot,draft.eventId)?draft.eventSnapshot:null,autoEventFields:Array.isArray(draft.autoEventFields)?draft.autoEventFields.filter(key=>['lifeTime','lifeYear','locationName'].includes(key)):[],themeId:typeof draft.themeId==='string'?draft.themeId:null,anonymous:draft.anonymous!==false,shareLife:draft.shareLife===true};
   }
   function restoreDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
     const value=normalizeDraft(draft);
     setStory(value.story);setTitle(value.title);setTagText(value.tagText);setLifeTime(value.lifeTime);setLifeYear(value.lifeYear);setLocationName(value.locationName);setMarkedDate(value.markedDate);
-    setSong(value.song);setPhotos(value.photos);setCover(value.cover);setPosition(value.position);setTimeText(value.timeText);setEndText(value.endText);setLyricId(value.lyricId);
+    setSong(value.song);setPendingSong(value.pendingSong);setPendingEvent(value.pendingEvent);setManualSong(value.manualSong);setManualEvent(value.manualEvent);setPhotos(value.photos);setCover(value.cover);setPosition(value.position);setTimeText(value.timeText);setEndText(value.endText);setLyricId(value.lyricId);
     setVisibility(value.visibility);setEventId(value.eventId);setThemeId(value.themeId);setAnonymous(value.anonymous);setShareLife(value.shareLife);
     setEventSnapshot(value.eventSnapshot);setAutoEventFields(value.autoEventFields);
-    prefilled.current=!!value.eventSnapshot;dateTouched.current=!!value.lifeTime;placeTouched.current=!!value.locationName;
+    prefilled.current=!!value.eventSnapshot;dateTouched.current=!!value.lifeTime&&!value.autoEventFields.includes('lifeTime');placeTouched.current=!!value.locationName&&!value.autoEventFields.includes('locationName');
     initialDraft.current=value;
     return value;
   }
   const canSaveDraft=hasDraftContent(draftPayload());
-  const draftSaved=savedDraftSnapshot===JSON.stringify(draftPayload());
-  function saveDraft(){if(!user||!canSaveDraft||busy||uploading)return false;try{const serialized=JSON.stringify(draftPayload());window.localStorage.setItem(`memory-draft:${user.id}`,serialized);ownedLocalDraft.current=serialized;setSavedDraftSnapshot(serialized);setError('');return true;}catch{setError('浏览器无法保存本地草稿，请先不要关闭此页面。');return false;}}
+  const draftSaved=!!savedDraftSnapshot&&stableDraft(draftPayload())===stableDraft(JSON.parse(savedDraftSnapshot));
+  function saveDraft(){
+    if(!user||!canSaveDraft||busy||uploading)return false;
+    try{
+      const owned=readMemoryDrafts(user.id).find(item=>item.id===ownedDraftId.current&&item.serialized===ownedLocalDraft.current)??null;
+      const saved=saveMemoryDraft(user.id,draftPayload(),owned);
+      ownedLocalDraft.current=saved.serialized;ownedDraftId.current=saved.id;
+      setSavedDraftSnapshot(JSON.stringify(draftPayload()));setError('');return true;
+    }catch{setError('浏览器无法保存本地草稿，请先不要关闭此页面。');return false;}
+  }
   function openDraftBox(){
     if(!user||busy||uploading)return;
     sheetOrigin.current=document.activeElement as HTMLElement|null;
-    setBoxedDraft(readLocalMemoryDraft(user.id));setConfirmDraft(false);setSheet('drafts');
+    setDraftList(readMemoryDrafts(user.id));setBoxedDraft(null);setConfirmDraft(false);setError('');setSheet('drafts');
   }
-  function resumeBoxedDraft(confirmed=false){
-    if(!boxedDraft||!user)return;
-    const same=JSON.stringify(draftPayload())===JSON.stringify(normalizeDraft(boxedDraft.data));
-    if(!confirmed&&canSaveDraft&&!same){setConfirmDraft(true);return;}
-    const restored=restoreDraft(boxedDraft.data);
-    ownedLocalDraft.current=boxedDraft.serialized;setSavedDraftSnapshot(JSON.stringify(restored));setError('');setSheet(null);
+  function resumeBoxedDraft(selected:MemoryDraft|null=boxedDraft,confirmed=false){
+    if(!selected||!user)return;
+    const same=JSON.stringify(draftPayload())===JSON.stringify(normalizeDraft(selected.data));
+    if(!confirmed&&canSaveDraft&&!same){setBoxedDraft(selected);setConfirmDraft(true);return;}
+    const restored=restoreDraft(selected.data);
+    ownedLocalDraft.current=selected.serialized;ownedDraftId.current=selected.id;setSavedDraftSnapshot(JSON.stringify(restored));setError('');setSheet(null);
+  }
+  function deleteStoredDraft(selected:MemoryDraft){
+    if(!user)return false;
+    try{
+      if(!removeMemoryDraft(user.id,selected)){setDraftList(readMemoryDrafts(user.id));setError('草稿已在其他页面更新，请重新选择。');return false;}
+      setDraftList(readMemoryDrafts(user.id));setError('');return true;
+    }catch{setError('没有删除成功，请重试。');return false;}
   }
   function openSongSearch(){
     if(!user)return;
     const returnPath=location.pathname+location.search;
-    const transition={...draftPayload(),exitBaseline:initialDraft.current,ownerId:user.id,returnPath,originKey:location.key,ownedLocalDraft:ownedLocalDraft.current};
-    try {window.sessionStorage.setItem(`composer-transition:${user.id}`,JSON.stringify(transition));} catch { /* Route state keeps the draft available. */ }
+    const transition={...draftPayload(),exitBaseline:initialDraft.current,ownerId:user.id,returnPath,originKey:location.key,unsaved:dirty,ownedDraftId:ownedDraftId.current,ownedLocalDraft:ownedLocalDraft.current};
+    writeComposerTransition(user.id,transition);
     // POP can recover only the history entry that opened this song picker.
     exit.permit();
     navigate(`/song-search?return=${encodeURIComponent(returnPath)}`,{state:{composerTransition:transition}});
+  }
+  function abandonEditing(){
+    if(!user)return;
+    const returnPath=location.pathname+location.search;
+    clearComposerTransition(user.id,returnPath,location.key,true);
+    const origin=location.state?.composerTransition;
+    if(origin?.ownerId===user.id&&origin.returnPath===returnPath&&origin.originKey)clearComposerTransition(user.id,returnPath,origin.originKey,true);
   }
   function openTimeSheet(){
     dateTouched.current=true;
@@ -359,14 +360,15 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   async function save(event: FormEvent) {
     event.preventDefault();if (lock.current||uploading) return;
     setError('');
-    if(!song){setError('请选择这一刻的配乐。');return;}
+    if(pendingSong||pendingEvent){setError('请先完成或取消正在填写的资料。');return;}
+    if(!song&&!manualSong){setError('请选择这一刻的配乐。');return;}
     let offset: number | null, end:number|null;
-    try {offset = parsePosition(timeText, song.duration_ms ?? 0);end=parsePosition(endText,song.duration_ms??0,true);if(end!==null&&(offset===null||end<=offset))throw new Error('播放区间需要起点，结束时间要晚于起点。');} catch (reason) {if(musicOptions.current)musicOptions.current.open=true;setError((reason as Error).message);return;}
+    try {offset = parsePosition(timeText, song?.duration_ms ?? 0);end=parsePosition(endText,song?.duration_ms??0,true);if(end!==null&&(offset===null||end<=offset))throw new Error('播放区间需要起点，结束时间要晚于起点。');} catch (reason) {if(musicOptions.current)musicOptions.current.open=true;setError((reason as Error).message);return;}
     if (!story.trim()) {setError('写一句想留住的线索吧。');return;}
     const tags=[...new Set([...parseTags(tagText),...extractHashtags(story)])];if(tags.length>8||tags.some(tag=>tag.length>24)){setError('最多添加8个标签，每个不超过24字。');return;}
     lock.current = true;setBusy(true);
     try {
-      const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,location_name:locationName.trim()||null,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:themeId,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : markedDate&&lifeTime===markedDate?'day':'unknown',offset_ms:offset,...(existing ? {revision:editRevision.current} : {song_id:song.id,request_key:requestKey.current,...(visibility==='public'?{publication:{confirmed:true,anonymous,share_life_time:shareLife}}:{})})};
+      const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,event_input:manualEvent,location_name:locationName.trim()||null,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:themeId,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : markedDate&&lifeTime===markedDate?'day':'unknown',offset_ms:offset,...(existing ? {revision:editRevision.current} : {...(manualSong?{song_input:manualSong}:{song_id:song!.id}),request_key:requestKey.current,...(visibility==='public'?{publication:{confirmed:true,anonymous,share_life_time:shareLife}}:{})})};
       let saved = await apiRequest<Memory>(apiBaseUrl, existing ? `/api/memories/${existing.id}` : '/api/memories', {method:existing ? 'PATCH' : 'POST',body:JSON.stringify(body)});
       // Finish an explicitly confirmed edit's visibility write even after route exit.
       // Liveness only guards the newer page's UI, navigation and local draft.
@@ -380,7 +382,10 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
         }catch(reason){throw new Error(`记忆内容已保存，但可见范围尚未确认。${reason instanceof Error?reason.message:'请重新打开编辑页确认最新状态。'}`);}
         if(!live.current)return;
       }
-      if(user&&!existing&&ownedLocalDraft.current)try{const key=`memory-draft:${user.id}`;if(window.localStorage.getItem(key)===ownedLocalDraft.current)window.localStorage.removeItem(key);}catch{ /* A saved card must remain successful even without local storage. */ }
+      if(user&&!existing&&ownedLocalDraft.current)try{
+        const owned=readMemoryDrafts(user.id).find(item=>item.id===(ownedDraftId.current??'legacy')&&item.serialized===ownedLocalDraft.current);
+        if(owned)removeMemoryDraft(user.id,owned);
+      }catch{ /* A saved card must remain successful even without local storage. */ }
       exit.permit();
       if(existing&&previous?.url.split('?')[0]===`/memories/${saved.id}`)back();
       else navigate(`/memories/${saved.id}`, {replace:true,state:{saved:true}});
@@ -391,9 +396,10 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'新建记忆'}</h1>{existing?<span>{visibility==='public'?'公开可见':'私密'}</span>:<button type="button" className="composer-draft-box" disabled={busy||uploading} onClick={openDraftBox}>草稿箱</button>}</header>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
-      {eventId&&<div className="composer-event-context"><EventNote key={eventId} id={eventId} snapshot={eventSnapshot} onResolved={prefillEvent} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>{setEventId(null);setEventSnapshot(null);}}><X size={16} aria-hidden="true"/></button></div>}
+      {(eventId||eventSnapshot)&&<div className="composer-event-context"><EventNote key={eventId??'manual'} id={eventId??''} snapshot={eventSnapshot} onResolved={prefillEvent} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>{setEventId(null);setEventSnapshot(null);setManualEvent(null);}}><X size={16} aria-hidden="true"/></button></div>}
+      <button type="button" className="composer-event-select" aria-label="选择演出" disabled={busy||uploading} onClick={()=>openSheet('event')}>{pendingEvent?'继续填写演出':eventId||manualEvent?'选择实际参加的场次':'＋ 关联演出（选填）'}</button>
       <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading} compact/>
-      {!existing&&<SongPicker song={song} onOpen={openSongSearch} disabled={busy||uploading}/>}
+      {!existing&&<SongPicker song={song} manual={manualSong} pending={pendingSong} onOpen={openSongSearch} disabled={busy||uploading}/>}
       <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="标题（选填）"/></label>
       <label className="composer-story" htmlFor="memory-story"><span className="sr-only">写下这一刻</span><textarea ref={storyInput} id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="写下这一刻的故事…"/></label><span className="character-count">{story.length} / 500</span>
       <div className="composer-recommendations" aria-label="推荐标签">{existing&&parseTags(tagText).map(value=><button className="composer-existing-tag" key={`saved-${value}`} type="button" aria-label={`移除标签${value}`} onClick={()=>setTagText(parseTags(tagText).filter(tag=>tag!==value).join('，'))}>#{value} ×</button>)}{recommendMemoryTags(title,story,song).filter(value=>!parseTags(tagText).includes(value)).map(value=><button key={value} type="button" onClick={()=>insertToken(`#${value}`)}>#{value}</button>)}</div>
@@ -405,18 +411,13 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       {existing&&<div className="music-range"><div className="range-title"><strong>音乐片段</strong><button className="text-button" type="button" onClick={()=>{setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}>用整首歌</button></div><div className="range-inputs"><label>起点<input aria-label="音乐里的位置" value={timeText} onChange={e=>{setTimeText(e.target.value);setLyricId(null);}} placeholder="00:00" disabled={!song.audio_available}/></label><span aria-hidden="true">—</span><label>终点<input aria-label="播放区间终点" value={endText} onChange={e=>setEndText(e.target.value)} placeholder={formatPosition(song.duration_ms)} disabled={!song.audio_available}/></label></div><small>填写起止时间，查看记忆时播放这一段。</small></div>}
       </div></details>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <div className="composer-save">{!existing&&<button type="button" className="composer-draft" disabled={!canSaveDraft||busy||uploading} onClick={saveDraft}>{draftSaved?'已存草稿':'存草稿'}</button>}<button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '保存中…' : uploading?'上传中…':existing ? visibility==='public'?'保存':'保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
+      <div className="composer-save">{!existing&&<button type="button" className="composer-draft" disabled={!canSaveDraft||busy||uploading} onClick={saveDraft}>{draftSaved?'已存草稿':'存草稿'}</button>}<button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || (!song&&!manualSong)||!!pendingSong||!!pendingEvent}>{busy ? '保存中…' : uploading?'上传中…':existing ? visibility==='public'?'保存':'保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
       </fieldset>
     </form>
-    {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div ref={sheetPanel} className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':'谁可以看到这段记忆'}</h2></header>{sheet==='drafts'?<div className="composer-draft-list">
-      {boxedDraft?confirmDraft?<div className="composer-draft-confirm"><p>读取这份草稿会替换当前内容。</p><div><button type="button" className="soft-button composer-draft-cancel" onClick={()=>setConfirmDraft(false)}>取消</button><button type="button" className="primary-button composer-draft-replace" onClick={()=>resumeBoxedDraft(true)}>读取草稿</button></div></div>:<>
-        <div className="composer-draft-preview">
-          {boxedDraft.data.photos?.length>0&&<img src={photoSource((boxedDraft.data.photos.find((photo:Photo)=>photo.id===boxedDraft.data.cover)??boxedDraft.data.photos[0]).url)} alt="草稿照片"/>}
-          <div><h3>{typeof boxedDraft.data.title==='string'&&boxedDraft.data.title.trim()||boxedDraft.data.song?.title||'未命名草稿'}</h3>{boxedDraft.data.story.trim()&&<p>{boxedDraft.data.story}</p>}{boxedDraft.data.photos?.length>0&&<small>{boxedDraft.data.photos.length} 张照片</small>}</div>
-        </div><button type="button" className="primary-button composer-draft-resume" onClick={()=>resumeBoxedDraft()}>继续编辑</button>
-      </>:<p className="composer-draft-empty">暂无草稿</p>}
-    </div>:sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{placeTouched.current=true;setAutoEventFields(fields=>fields.filter(key=>key!=='locationName'));setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');dateTouched.current=true;setAutoEventFields(fields=>fields.filter(key=>key!=='lifeTime'&&key!=='lifeYear'));setMarkedDate(date);setLifeYear(year);setLifeTime(date);setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
-    {!sheet&&<MemoryExitDialog blocker={exit.blocker} save={!existing&&canSaveDraft?saveDraft:undefined} busy={busy} uploading={uploading} editing={!!existing} error={error}/>}
+    {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':sheet==='event'?'关联演出':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div ref={sheetPanel} className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':sheet==='event'?'关联演出':'谁可以看到这段记忆'}</h2></header>{sheet==='drafts'?<div className="composer-draft-list">
+      {confirmDraft?<div className="composer-draft-confirm"><p>读取这份草稿会替换当前内容。</p><div><button type="button" className="soft-button composer-draft-cancel" onClick={()=>setConfirmDraft(false)}>取消</button><button type="button" className="primary-button composer-draft-replace" onClick={()=>resumeBoxedDraft(boxedDraft,true)}>读取草稿</button></div></div>:<DraftBox items={draftList} onResume={item=>resumeBoxedDraft(item)} onDelete={deleteStoredDraft} error={error}/>}
+    </div>:sheet==='event'?<ConcertPicker selected={eventId} manual={manualEvent} pending={pendingEvent} onDraft={setPendingEvent} onCancel={()=>{setPendingEvent(null);setSheet(null);}} onSelect={value=>{setPendingEvent(null);setEventId(value.id);setManualEvent(null);prefillEvent(value,true);setSheet(null);}} onManual={value=>{setPendingEvent(null);setEventId(null);setManualEvent(value);prefillEvent({...value,id:'',manual:true},true);setSheet(null);}}/>:sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{placeTouched.current=true;setAutoEventFields(fields=>fields.filter(key=>key!=='locationName'));setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');dateTouched.current=true;setAutoEventFields(fields=>fields.filter(key=>key!=='lifeTime'&&key!=='lifeYear'));setMarkedDate(date);setLifeYear(year);setLifeTime(date);setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
+    {!sheet&&<MemoryExitDialog blocker={exit.blocker} save={!existing&&canSaveDraft?saveDraft:undefined} busy={busy} uploading={uploading} editing={!!existing} error={error} onDiscard={abandonEditing}/>}
   </section>;
 }
 
@@ -436,7 +437,7 @@ function DetailContent({ edit }: { edit: boolean }) {
     {location.state?.saved && <p className="saved-notice" role="status">已保存。</p>}
     <StoryCard author={card.is_demo_sample?'虚构歌迷 · 演示故事':user.display_name} sample={card.is_demo_sample} title={card.title} year={card.life_year} time={card.life_time} song={card.song} photos={cardPhotos(card)} text={card.story} tags={card.tags} scope="mine" anchor={card.offset_ms} end={card.end_ms} lyric={card.lyric}/>
     <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
-    {card.event_id&&<EventNote id={card.event_id} snapshot={card.event_snapshot}/>}
+    {(card.event_id||card.event_snapshot)&&<EventNote id={card.event_id??''} snapshot={card.event_snapshot}/>}
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
   </section>;
 }

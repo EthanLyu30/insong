@@ -62,6 +62,8 @@ def initialize_database(engine: Engine) -> None:
                 connection.execute(text(f'ALTER TABLE memory_cards ADD COLUMN {name} {declaration}'))
         connection.execute(text('CREATE UNIQUE INDEX IF NOT EXISTS uq_memory_request ON memory_cards(owner_id, request_key)'))
         song_columns = {column['name'] for column in inspect(connection).get_columns('songs')}
+        if 'owner_id' not in song_columns:
+            connection.execute(text('ALTER TABLE songs ADD COLUMN owner_id INTEGER REFERENCES users(id)'))
         if 'cover_url' not in song_columns:
             connection.execute(text('ALTER TABLE songs ADD COLUMN cover_url VARCHAR(240)'))
         public_columns = {column['name'] for column in inspect(connection).get_columns('public_stories')}

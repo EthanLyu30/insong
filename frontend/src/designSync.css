@@ -25,6 +25,11 @@
 .composer-draft-preview small{display:block;margin-top:6px;font-size:11px;color:#9a8670}
 .composer-draft-list>.primary-button{width:100%;min-height:46px}
 .composer-draft-empty{margin:0;padding:20px 0 36px;text-align:center;color:#9a8670;font-size:14px}
+.draft-box-items{max-height:55dvh;overflow:auto;overscroll-behavior:contain}
+.draft-box-items .composer-draft-preview{margin-bottom:10px;align-items:center;gap:10px;padding:12px}
+.draft-item-actions{display:flex;flex-direction:column;gap:4px;flex:none}
+.draft-item-actions button{min-height:44px;padding:4px 8px;border:0;background:none;color:#8e7058;font:inherit;font-size:12px;white-space:nowrap}
+.draft-item-actions .draft-delete{color:#a16d59}
 .composer-draft-confirm p{margin:0 0 24px;font-size:14px;color:#786652;line-height:1.8}
 .composer-draft-confirm>div{display:flex;gap:12px}
 .composer-draft-confirm>div>button{flex:1;min-height:46px}

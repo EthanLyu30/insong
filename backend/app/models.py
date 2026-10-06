@@ -29,6 +29,7 @@ class Song(Base):
     __tablename__ = "songs"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     artist: Mapped[str] = mapped_column(String(160), nullable=False)
     version: Mapped[str] = mapped_column(String(100), nullable=False)

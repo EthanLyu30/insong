@@ -23,7 +23,7 @@ from .database import DEFAULT_DB_PATH, create_sqlite_engine, initialize_database
 from .models import MemoryCard, Song, User
 from .accounts import install_accounts
 from .memories import install_memories, serialize_memory
-from .media import AUDIO_ROOT, serialize_song
+from .media import AUDIO_ROOT, serialize_song, can_read_song
 from .recall import install_recall
 from .stories import install_stories
 from .photos import install_photos
@@ -134,16 +134,16 @@ def create_app(database_url: str | None = None) -> FastAPI:
         return {"status": "ok"}
 
     @app.get("/api/songs")
-    def list_songs(db: OrmSession = Depends(get_db)) -> list[dict]:
+    def list_songs(db: OrmSession = Depends(get_db), user: User | None = Depends(get_optional_user)) -> list[dict]:
         return [
             serialize_song(song)
-            for song in db.scalars(select(Song).order_by(Song.id)).all()
+            for song in db.scalars(select(Song).where((Song.owner_id.is_(None)) | (Song.owner_id == (user.id if user else None)) | (Song.id.in_(select(MemoryCard.song_id).where(MemoryCard.owner_id == (user.id if user else None))))).order_by(Song.id)).all()
         ]
 
     @app.get("/api/songs/{song_id}")
-    def get_song(song_id: int, db: OrmSession = Depends(get_db)) -> dict:
+    def get_song(song_id: int, db: OrmSession = Depends(get_db), user: User | None = Depends(get_optional_user)) -> dict:
         song = db.get(Song, song_id) if -(2**63) <= song_id < 2**63 else None
-        if song is None:
+        if not can_read_song(db, song, user):
             raise HTTPException(status_code=404, detail="找不到这首演示歌曲")
         return serialize_song(song)
 

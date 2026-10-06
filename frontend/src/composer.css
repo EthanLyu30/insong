@@ -73,3 +73,15 @@
 .memory-exit-dialog p{margin:0 0 18px;font-size:13px;line-height:1.7;color:#8b7966;}
 .memory-exit-dialog>button{width:100%;min-height:44px;margin-top:8px;font:inherit;font-size:14px;}
 .memory-exit-dialog .unsaved-discard{color:#a36952;}
+.composer-event-select{display:block;min-height:44px;margin:5px 0 8px;padding:5px 0;border:0;background:none;color:#9a7054;font:inherit;font-size:13px;text-align:left}
+.concert-picker-list{max-height:45dvh;overflow:auto;overscroll-behavior:contain}
+.concert-picker h3{font-size:14px;font-weight:500;margin:16px 0 8px}
+.concert-picker-list>button{display:flex;gap:12px;align-items:center;width:100%;min-height:64px;padding:12px 0;border:0;border-bottom:1px solid #e8dfd2;background:none;text-align:left;color:#66513e;font:inherit;font-size:13px}
+.concert-picker-list>button>span{min-width:0;flex:1}.concert-picker-list strong,.concert-picker-list small{display:block;overflow-wrap:anywhere}.concert-picker-list small{font-size:11px;margin-top:5px;color:#968471}.concert-picker-list button[aria-pressed=true]{color:#a8663e}
+.song-manual-fields,.concert-manual-fields{display:grid;gap:16px;padding:16px 0}
+.song-manual-fields label,.concert-manual-fields label{display:grid;gap:8px;color:#897660;font-size:13px}
+.song-manual-fields input,.concert-manual-fields input{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #e3d7c8;border-radius:9px;background:#fffdf8;font:inherit;color:#63503c}
+.song-manual-fields>div{display:flex;justify-content:space-between;gap:16px}.song-manual-fields .primary-button{min-height:44px}
+.song-manual-fields>div>.text-button{flex:none;min-width:64px;min-height:44px;white-space:nowrap}
+.song-manual-fields .primary-button{flex:1;min-width:0;max-width:none;width:auto}
+.song-manual-entry,.concert-manual-entry{min-height:44px;margin-top:12px}

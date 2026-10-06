@@ -8,7 +8,7 @@ export function EventNote(props:Props) {
   return props.snapshot?<Note {...props} event={props.snapshot}/>:<LiveEventNote {...props}/>;
 }
 function Note({id,label='这张卡里的现场',linked=true,event,error='',loaded=false,onRetry}:{id:string;label?:string;linked?:boolean;event?:EventSnapshot;error?:string;loaded?:boolean;onRetry?:()=>void}){
-  return <aside className="event-note"><span aria-hidden="true">♬</span><div><small>{label}</small><strong role={!event?(error||loaded?'alert':'status'):undefined}>{event?`${event.title} · ${event.city}`:error?'场次信息暂时无法加载':loaded?'找不到这场演出':'正在打开场次…'}</strong>{event&&<span>{event.date} · {event.venue}</span>}{error&&<button type="button" className="text-button" aria-label="重新加载场次信息" onClick={onRetry}>重试</button>}</div>{linked&&<Link to={`/footprints?event=${encodeURIComponent(id)}`}>足迹 ↗</Link>}</aside>;
+  return <aside className="event-note"><span aria-hidden="true">♬</span><div><small>{label}</small><strong role={!event?(error||loaded?'alert':'status'):undefined}>{event?`${event.title} · ${event.city}`:error?'场次信息暂时无法加载':loaded?'找不到这场演出':'正在打开场次…'}</strong>{event&&<span>{event.date} · {event.venue}</span>}{error&&<button type="button" className="text-button" aria-label="重新加载场次信息" onClick={onRetry}>重试</button>}</div>{linked&&id&&<Link to={`/footprints?event=${encodeURIComponent(id)}`}>足迹 ↗</Link>}</aside>;
 }
 function LiveEventNote({id,onResolved,...props}:Props) {
   const [retry,setRetry]=useState(0);
