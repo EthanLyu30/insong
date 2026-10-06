@@ -12,7 +12,7 @@ test('late save/delete responses cannot replace drafts after route or identity c
   window.scrollTo = () => {};
   const React = await import('react');
   const { createRoot } = await import('react-dom/client');
-  const { MemoryRouter, useNavigate, useLocation } = await import('react-router');
+  const { createMemoryRouter, RouterProvider, useNavigate, useLocation } = await import('react-router');
   const server = await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const { default: App } = await server.ssrLoadModule('/src/App.tsx');
   let navigate, currentPath, finishSave, finishDelete;
@@ -37,13 +37,18 @@ test('late save/delete responses cannot replace drafts after route or identity c
     el.dispatchEvent(new window.Event('input',{bubbles:true}));
   });
   try {
-    await React.act(async () => {root.render(React.createElement(MemoryRouter,{initialEntries:['/songs/1/write']},React.createElement(App),React.createElement(Controls)));});
+    const router=createMemoryRouter([{path:'*',element:React.createElement(React.Fragment,null,React.createElement(App),React.createElement(Controls))}],{initialEntries:['/songs/1/write']});
+    await React.act(async () => {root.render(React.createElement(RouterProvider,{router}));});
     await input('第一张记忆');
     await React.act(async () => {document.querySelector('form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));});
     assert.equal(typeof finishSave,'function');
     await React.act(async () => {navigate('/songs/2/write');});
-    await input('刚写下的新草稿');
+    assert.equal(currentPath,'/songs/1/write','pending writes cannot silently discard the composer');
+    await React.act(async () => {document.querySelector('.unsaved-continue').click();});
     await React.act(async () => {finishSave();});
+    assert.equal(currentPath,'/memories/99');
+    await React.act(async () => {navigate('/songs/2/write');});
+    await input('刚写下的新草稿');
     assert.equal(currentPath,'/songs/2/write');
     assert.equal(document.getElementById('memory-story').value,'刚写下的新草稿');
     // A response from the previous identity must also be inert on the same URL.
@@ -57,6 +62,7 @@ test('late save/delete responses cannot replace drafts after route or identity c
     assert.equal(currentPath,'/songs/2/write');
     assert.equal(document.getElementById('memory-story').value,'另一个账号的草稿');
     await React.act(async () => {navigate('/memories/88');});
+    await React.act(async () => {document.querySelector('.unsaved-discard').click();});
     const click = async label => React.act(async () => {
       const button = [...document.querySelectorAll('button')].find(el => el.textContent === label);
       assert.ok(button);button.dispatchEvent(new window.MouseEvent('click',{bubbles:true}));

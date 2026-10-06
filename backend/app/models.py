@@ -29,6 +29,7 @@ class Song(Base):
     __tablename__ = "songs"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     artist: Mapped[str] = mapped_column(String(160), nullable=False)
     version: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -64,6 +65,7 @@ class MemoryCard(Base):
     end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     photo_id: Mapped[str | None] = mapped_column(ForeignKey('photos.id'), nullable=True)
     event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    event_snapshot_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     life_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
@@ -111,6 +113,7 @@ class PublicStory(Base):
     end_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     photo_id: Mapped[str | None] = mapped_column(ForeignKey('photos.id'), nullable=True)
     event_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    event_snapshot_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     lyric_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     theme_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)

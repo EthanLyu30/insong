@@ -1,0 +1,21 @@
+.map-source-entry{position:absolute;z-index:12;left:12px;bottom:calc(var(--atlas-sheet-height,285px) + 80px);display:flex;align-items:center;gap:5px;max-width:calc(100% - 82px)}
+.map-source-entry>button{display:grid;place-items:center;flex:none;width:40px;height:40px;padding:0;border:1px solid #e4d7c5;border-radius:50%;background:#fffaf0ed;color:#685644;box-shadow:0 2px 7px #403d3220;cursor:pointer}
+.map-source-brief{padding:6px 8px;border-radius:8px;background:#fffaf0ed;color:#685644;font:11px/1.5 "Microsoft YaHei",sans-serif;white-space:nowrap}
+.map-source-brief a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.map-credits-overlay{position:fixed;inset:0;z-index:160;display:flex;align-items:flex-end;justify-content:center;isolation:isolate;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#514431}
+.map-credits-scrim{position:absolute;inset:0;z-index:-1;border:0;background:#232d2c66;cursor:pointer}
+.map-credits-panel{width:min(100%,520px);max-height:80dvh;display:flex;flex-direction:column;padding:16px 20px max(20px,env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:#faf6ec;box-shadow:0 -8px 40px #28302726}
+.map-credits-panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none}
+.map-credits-panel h2{margin:0;font:600 19px/1.5 "Microsoft YaHei",sans-serif}
+.map-credits-panel header button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#efe7d9;color:#685644;cursor:pointer}
+.map-credits-content{overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-width:thin}
+.map-credits-content section{padding:14px 0;border-top:1px solid #e6dccb;margin-top:10px}
+.map-credits-content h3{margin:0 0 8px;font:600 14px/1.6 "Microsoft YaHei",sans-serif}
+.map-credits-content ul{list-style:none;margin:0;padding:0}
+.map-credits-content li{padding:8px 0;font-size:12px;line-height:1.8;overflow-wrap:anywhere}
+.map-credits-content a{color:#8b5835;text-decoration:underline;text-underline-offset:3px}
+.map-credits-content li>strong,.map-credits-content li>span{display:block}
+.map-credits-content li>span,.map-credits-content p{color:#807262;font-size:11px;line-height:1.8;margin:0}
+.map-credits-content li>div{display:flex;flex-wrap:wrap;gap:4px 14px}
+.map-credits-overlay :is(a,button):focus-visible{outline:2px solid #ac7452;outline-offset:3px}
+@media(max-height:680px){.map-credits-panel{max-height:88dvh}}

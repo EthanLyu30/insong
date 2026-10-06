@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Link} from 'react-router';
-import {Heart,BookmarkSimple,Check} from '@phosphor-icons/react';
+import {Plus,BookmarkSimple,Check} from '@phosphor-icons/react';
 import {useSession} from './SessionContext';
 import {apiBaseUrl} from './api';
 import {apiRequest} from './memoryClient';
@@ -38,8 +38,8 @@ export function InterestsError({data}:{data:InterestsState}){
 }
 export function FollowArtist({artist,next,data}:{artist:AtlasArtist;next:string;data:InterestsState}){
   const followed=!!data.value?.artist_ids.includes(artist.id),label=followed?'已关注':'关注';
-  if(data.needsLogin)return <Link className="atlas-follow-button" aria-label={`登录关注${artist.name}`} to={`/account?next=${encodeURIComponent(next)}`}><Heart size={14}/><span>关注</span></Link>;
-  return <button type="button" className="atlas-follow-button" aria-label={`${label}${artist.name}`} aria-pressed={followed} disabled={!!data.busy||!data.value} onClick={()=>void data.toggleArtist(artist.id)}><Heart size={14} weight={followed?'fill':'regular'}/><span>{data.busy==='artist:'+artist.id?'保存中':label}</span></button>;
+  if(data.needsLogin)return <Link className="atlas-follow-button" aria-label={`登录关注${artist.name}`} to={`/account?next=${encodeURIComponent(next)}`}><Plus size={14}/><span>关注歌手</span></Link>;
+  return <button type="button" className="atlas-follow-button" aria-label={`${label}${artist.name}`} aria-pressed={followed} disabled={!!data.busy||!data.value} onClick={()=>void data.toggleArtist(artist.id)}>{followed?<Check size={14}/>:<Plus size={14}/>}<span>{data.busy==='artist:'+artist.id?'保存中…':followed?'已关注':'关注歌手'}</span></button>;
 }
 export function WishEvent({event,today,next,data}:{event:AtlasEvent;today:string;next:string;data:InterestsState}){
   const wanted=!!data.value?.wish_event_ids.includes(event.id),eligible=event.date>=today&&event.event_status!=='cancelled';

@@ -10,12 +10,13 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
-from .media import serialize_song, song_audio
+from .media import serialize_song, song_audio, can_read_song
 from .models import MemoryCard, MemoryCardTag, MemoryReceipt, PublicStory, Song, User, utc_now
 from .content import selected_lyric, THEME_IDS
 from .photos import photo_url, validate_owned_photo
-from .footprints import validate_event
+from .event_snapshots import capture_event, event_snapshot, snapshot_json
 from .card_metadata import gallery_ids, memory_tags, normalize_tags, serialize_photos, set_memory_tags
+from .manual_recording import ManualSong, ManualEvent
 
 
 class Coordinates(BaseModel):
@@ -29,6 +30,13 @@ class Coordinates(BaseModel):
     photo_id: str | None = Field(default=None, min_length=1, max_length=36)
     event_id: str | None = Field(default=None, min_length=1, max_length=100)
     location_name: str | None = Field(default=None, max_length=160)
+    event_input: ManualEvent | None = None
+
+    @model_validator(mode='after')
+    def exclusive_event(self):
+        if self.event_id is not None and self.event_input is not None:
+            raise ValueError('请选择已收录场次或手动填写演出，不能同时关联两种资料')
+        return self
 
     @field_validator('title', mode='before')
     @classmethod
@@ -83,13 +91,20 @@ class PublicationConsent(BaseModel):
 
 class CreateMemory(Coordinates):
     model_config = ConfigDict(extra='forbid')
-    song_id: int = Field(gt=0, lt=2**63, strict=True)
+    song_id: int | None = Field(default=None, gt=0, lt=2**63, strict=True)
+    song_input: ManualSong | None = None
     story: str = Field(min_length=1, max_length=500)
     offset_ms: StrictInt | None = Field(default=None, ge=0)
     life_time: str | None = Field(default=None, max_length=80)
     life_precision: str = 'unknown'
     request_key: str = Field(min_length=10, max_length=80)
     publication: PublicationConsent | None = None
+
+    @model_validator(mode='after')
+    def one_song(self):
+        if (self.song_id is None) == (self.song_input is None):
+            raise ValueError('请选择歌曲或填写歌名与歌手')
+        return self
 
     @field_validator('story')
     @classmethod
@@ -158,6 +173,7 @@ def serialize_memory(card):
         'revision', 'lyric_id', 'life_year', 'theme_id', 'title', 'location_name',
     )} | {
         'owner_display_name': card.owner.display_name,
+        'event_snapshot': event_snapshot(card),
         'tags': memory_tags(card), 'photos': serialize_photos(card),
         'created_at': card.created_at.isoformat(), 'updated_at': card.updated_at.isoformat(),
         'photo_url': photo_url(card.photo_id),
@@ -170,6 +186,7 @@ def serialize_memory(card):
             'photo_id': card.publication.photo_id, 'photo_url': photo_url(card.publication.photo_id),
             'offset_ms': card.publication.offset_ms, 'end_ms': card.publication.end_ms,
             'event_id': card.publication.event_id,
+            'event_snapshot': event_snapshot(card.publication),
             'title': card.publication.title, 'tags': json.loads(card.publication.tags_json),
             'photos': serialize_photos(card.publication),
         },
@@ -261,16 +278,21 @@ def set_publication_snapshot(card, excerpt, consent, user):
     public.author_name = '匿名听友' if consent.anonymous else user.display_name
     public.offset_ms, public.lyric_id, public.theme_id = card.offset_ms, card.lyric_id, card.theme_id
     public.photo_id, public.end_ms, public.event_id = card.photo_id, card.end_ms, card.event_id
+    public.event_snapshot_json = card.event_snapshot_json
     public.published, public.published_at = True, utc_now()
     public.version += 1
 
 
 def install_memories(app, get_db, get_user):
     def retry_result(existing, data):
-        fields = ('song_id', 'story', 'offset_ms', 'end_ms', 'event_id', 'title',
+        fields = ('story', 'offset_ms', 'end_ms', 'event_id', 'title',
                   'life_time', 'life_precision', 'lyric_id', 'life_year', 'theme_id', 'location_name')
         ids, cover = resolve_gallery(data)
-        if (any(getattr(existing, key) != getattr(data, key) for key in fields)
+        song_matches = (existing.song_id == data.song_id if data.song_input is None else
+                        existing.song.owner_id == existing.owner_id and existing.song.title == data.song_input.title and existing.song.artist == data.song_input.artist)
+        saved_event = event_snapshot(existing)
+        manual_matches = (saved_event == data.event_input.snapshot() if data.event_input else not saved_event or not saved_event.get('manual'))
+        if (not song_matches or not manual_matches or any(getattr(existing, key) != getattr(data, key) for key in fields)
                 or existing.photo_id != cover or gallery_ids(existing) != ids or memory_tags(existing) != data.tags):
             raise HTTPException(409, '先前提交的内容已经保存。请先到“我的记忆”确认，再在那张卡上继续修改；这里的文字仍保留着。')
         public = existing.publication
@@ -310,20 +332,31 @@ def install_memories(app, get_db, get_user):
         previous = prior_request(db, data, user)
         if previous is not None:
             return previous
-        song = db.get(Song, data.song_id)
-        if song is None:
+        song = db.get(Song, data.song_id) if data.song_id is not None else db.scalar(select(Song).where(
+            Song.owner_id == user.id, Song.title == data.song_input.title, Song.artist == data.song_input.artist))
+        if data.song_id is not None and not can_read_song(db, song, user):
             raise HTTPException(404, '找不到这首歌。')
-        validate_anchor(song, data.offset_ms, data.end_ms)
-        validate_lyric(song, data.lyric_id, data.offset_ms)
+        if song is not None:
+            validate_anchor(song, data.offset_ms, data.end_ms)
+            validate_lyric(song, data.lyric_id, data.offset_ms)
+        elif data.offset_ms is not None or data.end_ms is not None or data.lyric_id is not None:
+            raise HTTPException(422, '手动填写的歌曲没有可用音源或歌词位置。')
         ids, cover = resolve_gallery(data)
         validate_gallery(db, ids, user)
-        validate_event(data.event_id)
+        captured_event = data.event_input.snapshot() if data.event_input else capture_event(data.event_id)
         try:
             receipt = MemoryReceipt(owner_id=user.id, request_key=data.request_key)
             db.add(receipt)
             db.flush()
-            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id', 'publication'})
+            if song is None:
+                song = Song(title=data.song_input.title, artist=data.song_input.artist, owner_id=user.id,
+                            version='手动填写', source_label='', is_demo=False, audio_available=False)
+                db.add(song)
+                db.flush()
+            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id', 'publication', 'song_input', 'event_input'})
+            values['song_id'] = song.id
             card = MemoryCard(id=receipt.id, **values, photo_id=cover, photo_ids_json=json.dumps(ids),
+                              event_snapshot_json=snapshot_json(captured_event),
                               owner_id=user.id, visibility='private', is_demo_sample=user.is_demo)
             db.add(card)
             set_memory_tags(db, card, data.tags)
@@ -341,7 +374,7 @@ def install_memories(app, get_db, get_user):
     @app.patch('/api/memories/{memory_id}')
     def edit_memory(memory_id: int, data: EditMemory, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
         card = owner_card(db, memory_id, user)
-        values = data.model_dump(exclude_unset=True, exclude={'revision', 'tags', 'photo_ids'})
+        values = data.model_dump(exclude_unset=True, exclude={'revision', 'tags', 'photo_ids', 'event_input'})
         if 'offset_ms' in values:
             if 'lyric_id' not in values and values['offset_ms'] != card.offset_ms:
                 values['lyric_id'] = None
@@ -351,8 +384,11 @@ def install_memories(app, get_db, get_user):
             ids, cover = resolve_gallery(data, card)
             validate_gallery(db, ids, user)
             values.update(photo_id=cover, photo_ids_json=json.dumps(ids))
-        if 'event_id' in values:
-            validate_event(values['event_id'])
+        if data.event_input is not None:
+            values.update(event_id=None, event_snapshot_json=snapshot_json(data.event_input.snapshot()))
+        elif ('event_id' in values and values['event_id'] != card.event_id
+              or 'event_input' in data.model_fields_set and event_snapshot(card) and event_snapshot(card).get('manual')):
+            values['event_snapshot_json'] = snapshot_json(capture_event(values.get('event_id')))
         changed = any(getattr(card, key) != value for key, value in values.items())
         if 'tags' in data.model_fields_set:
             changed = changed or memory_tags(card) != data.tags
