@@ -4,6 +4,7 @@ import base64
 from io import BytesIO
 import json
 import os
+import threading
 import time
 
 import httpx
@@ -48,17 +49,36 @@ def main():
         # The allowed maximum decoded pixel count, with a compact generated JPEG.
         Image.new('RGB', (5000, 4000), '#b78664').save(data, format='JPEG')
         encoded = base64.b64encode(data.getvalue()).decode()
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            upload = pool.submit(client.post, '/api/photos', json={'data': encoded})
-            search = pool.submit(client.post, '/api/stories/search', json={'query': query, 'mode': 'semantic'})
-            photo_response, search_response = upload.result(), search.result()
-        photo_response.raise_for_status()
+        start = threading.Barrier(4)
+        def upload_photo():
+            start.wait()
+            return client.post('/api/photos', json={'data': encoded})
+        def search_stories():
+            start.wait()
+            return client.post('/api/stories/search', json={'query': query, 'mode': 'semantic'})
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            uploads = [pool.submit(upload_photo) for _ in range(3)]
+            search = pool.submit(search_stories)
+            responses = [upload.result() for upload in uploads]
+            search_response = search.result()
+        assert all(response.status_code in (201, 503) for response in responses)
+        busy = [response for response in responses if response.status_code == 503]
+        assert busy, 'Overlapping large uploads must use bounded admission'
+        assert all(response.headers.get('retry-after') == '1' for response in busy)
+        accepted = [response for response in responses if response.status_code == 201]
+        assert accepted
+        # A rejected upload remains retryable once the active one finishes.
+        retry = client.post('/api/photos', json={'data': encoded})
+        retry.raise_for_status()
         search_response.raise_for_status()
-        photo = photo_response.json()
+        assert search_response.json()['mode'] == 'semantic'
+        photo = accepted[0].json()
         assert client.get(photo['url']).status_code == 200
         assert client.get('/api/health').status_code == 200
         print(json.dumps({'health': 'pass', 'model': 'semantic', 'items': len(matches['items']),
-                          'max_pixel_upload': 'pass', 'concurrent_search_mode': search_response.json()['mode']}))
+                          'max_pixel_upload': 'pass', 'concurrent_uploads': 'bounded',
+                          'busy_uploads': len(busy), 'upload_retry': 'pass',
+                          'concurrent_search_mode': search_response.json()['mode']}))
 
 
 if __name__ == '__main__':

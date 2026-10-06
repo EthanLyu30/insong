@@ -1,7 +1,9 @@
 """Bounded image ingestion and access through active publication snapshots."""
 import base64
 import binascii
+from contextlib import contextmanager
 import io
+import threading
 import warnings
 from uuid import uuid4
 
@@ -18,6 +20,19 @@ from .database_compat import json_array_contains
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 MAX_PHOTO_BYTES = 5 * 1024 * 1024
 MAX_PIXELS = 20_000_000
+_upload_slot = threading.BoundedSemaphore(1)
+
+
+@contextmanager
+def admitted_upload():
+    # Reject before reading the request: queued bodies and decoded images would
+    # otherwise accumulate alongside E5 within the 512 MB process budget.
+    if not _upload_slot.acquire(blocking=False):
+        raise HTTPException(503, '正在处理其他照片，请稍后重试。', headers={'Retry-After': '1'})
+    try:
+        yield
+    finally:
+        _upload_slot.release()
 
 
 class PhotoInput(BaseModel):
@@ -77,26 +92,27 @@ def sanitize_photo(data):
 def install_photos(app, get_db, get_user, get_optional_user):
     @app.post('/api/photos', status_code=201)
     async def upload(request: Request, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
-        try:
-            declared_length = int(request.headers.get('content-length', '0'))
-        except ValueError:
-            raise HTTPException(400, '请求长度无效。') from None
-        if declared_length > MAX_REQUEST_BYTES:
-            raise HTTPException(413, '照片上传请求过大。')
-        body = bytearray()
-        async for chunk in request.stream():
-            if len(body) + len(chunk) > MAX_REQUEST_BYTES:
+        with admitted_upload():
+            try:
+                declared_length = int(request.headers.get('content-length', '0'))
+            except ValueError:
+                raise HTTPException(400, '请求长度无效。') from None
+            if declared_length > MAX_REQUEST_BYTES:
                 raise HTTPException(413, '照片上传请求过大。')
-            body.extend(chunk)
-        try:
-            data = PhotoInput.model_validate_json(body)
-        except ValidationError:
-            raise HTTPException(422, '请提供有效的照片数据。') from None
-        content = await run_in_threadpool(sanitize_photo, data.data)
-        photo = Photo(id=str(uuid4()), owner_id=user.id, content=content)
-        db.add(photo)
-        db.commit()
-        return {'id': photo.id, 'url': photo_url(photo.id)}
+            body = bytearray()
+            async for chunk in request.stream():
+                if len(body) + len(chunk) > MAX_REQUEST_BYTES:
+                    raise HTTPException(413, '照片上传请求过大。')
+                body.extend(chunk)
+            try:
+                data = PhotoInput.model_validate_json(body)
+            except ValidationError:
+                raise HTTPException(422, '请提供有效的照片数据。') from None
+            content = await run_in_threadpool(sanitize_photo, data.data)
+            photo = Photo(id=str(uuid4()), owner_id=user.id, content=content)
+            db.add(photo)
+            db.commit()
+            return {'id': photo.id, 'url': photo_url(photo.id)}
 
     @app.get('/api/photos/{photo_id}')
     def get_photo(photo_id: str, db: OrmSession = Depends(get_db), user: User | None = Depends(get_optional_user)):

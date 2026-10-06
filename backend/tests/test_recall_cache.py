@@ -38,6 +38,17 @@ def test_edited_passage_cannot_reuse_old_embedding(recall):
     assert recall.scores('散场', ['高铁上']) == [0.]
 
 
+@pytest.mark.parametrize('warm_cache', [False, True])
+def test_corpus_larger_than_cache_scores_all_candidates(recall, warm_cache):
+    texts = [('散场 ' if index % 3 == 0 else '高铁 ') + str(index) for index in range(700)]
+    if warm_cache:
+        recall.scores('散场', texts[300:])
+    expected = [1. if index % 3 == 0 else 0. for index in range(700)]
+    assert recall.scores('散场', texts) == expected
+    assert recall.scores('散场', list(reversed(texts))) == list(reversed(expected))
+    assert len(recall._vectors) <= 512
+
+
 def test_large_corpus_can_make_progress_across_bounded_calls(recall, monkeypatch):
     original = recall._encode
     clock = [0.]

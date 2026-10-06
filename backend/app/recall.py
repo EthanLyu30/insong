@@ -88,21 +88,34 @@ class LocalRecall:
                 self._remember(query_text, vector)
             # The cache contains vectors only; candidates still come from the
             # current authorized DB query and are rechecked after inference.
-            chunks = [(i, 'passage: ' + text[start:start + 260]) for i, text in enumerate(texts)
-                      for start in range(0, len(text), 230)]
-            missing = list(dict.fromkeys(text for _, text in chunks if self._key(text) not in self._vectors))
+            chunks = {}
+            for index, text in enumerate(texts):
+                for start in range(0, len(text), 230):
+                    content = 'passage: ' + text[start:start + 260]
+                    chunks.setdefault(content, []).append(index)
+            scores = [0.] * len(texts)
+
+            def consume(content, embedding):
+                score = float(np.dot(embedding, vector))
+                for index in chunks[content]:
+                    scores[index] = max(scores[index], score)
+
+            missing = []
+            # Score cache hits before new batches can evict them. Scores belong
+            # to this request, so corpus size is independent of cache capacity.
+            for content in chunks:
+                embedding = self._vectors.get(self._key(content))
+                if embedding is None:
+                    missing.append(content)
+                else:
+                    consume(content, embedding)
             for start in range(0, len(missing), 2):
                 if time.monotonic() > deadline:
                     raise TimeoutError('local inference time budget')
                 batch = missing[start:start + 2]
                 for content, embedding in zip(batch, self._encode(batch)):
+                    consume(content, embedding)
                     self._remember(content, embedding)
-            scores = [0.] * len(texts)
-            for index, content in chunks:
-                embedding = self._vectors.get(self._key(content))
-                if embedding is None:
-                    raise TimeoutError('local inference cache capacity')
-                scores[index] = max(scores[index], float(np.dot(embedding, vector)))
             return scores
         finally:
             self._slot.release()
