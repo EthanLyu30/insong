@@ -14,6 +14,7 @@ from .recall import SearchInput, keyword_score
 from .photos import photo_url
 from .card_metadata import gallery_ids, normalize_tag, serialize_photos
 from .footprints import load_catalog
+from .event_snapshots import event_snapshot
 
 
 class PublishInput(PublicationConsent):
@@ -42,6 +43,7 @@ def serialize_story(public, viewer: User | None = None):
         'life_year': public.life_year, 'offset_ms': public.offset_ms,
         'end_ms': public.end_ms, 'photo_id': public.photo_id, 'photo_url': photo_url(public.photo_id),
         'event_id': public.event_id,
+        'event_snapshot': event_snapshot(public),
         'lyric': selected_lyric(card.song, public.lyric_id), 'lyric_id': public.lyric_id,
         'theme_id': public.theme_id, 'is_demo_sample': card.is_demo_sample,
         'published_at': public.published_at.isoformat(),
@@ -71,10 +73,10 @@ def public_search_text(public, catalog):
     aliases = [alias for artist in catalog['artists']
                if artist['name'] == song.artist or song.artist in artist.get('aliases', [])
                for alias in artist.get('aliases', [])]
-    event = next((item for item in catalog['events'] if item['id'] == public.event_id), {})
+    event = event_snapshot(public) or next((item for item in catalog['events'] if item['id'] == public.event_id), {})
     fields = [public.excerpt, public.title or '', public.life_time or '', song.title, song.artist,
               *json.loads(public.tags_json or '[]'), *aliases,
-              *(str(event.get(key) or '') for key in ('title', 'city', 'venue', 'date'))]
+              *(str(event.get(key) or '') for key in ('title', 'artist', 'city', 'venue', 'date'))]
     # The GEM spelling is a documented alias even when an imported catalog omits it.
     if song.artist == '邓紫棋':
         fields.extend(['G.E.M.', 'GEM', '鄧紫棋'])

@@ -9,7 +9,7 @@ test('guest discovery and explicit editor save expose only the edited story and 
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;
   globalThis.IS_REACT_ACT_ENVIRONMENT=true;window.scrollTo=()=>{};
   const React=await import('react');const {createRoot}=await import('react-dom/client');
-  const {MemoryRouter,useNavigate}=await import('react-router');
+  const {createMemoryRouter,RouterProvider,useNavigate}=await import('react-router');
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');
   let user=null,navigate,publicationBody,memoryBody;
@@ -31,7 +31,8 @@ test('guest discovery and explicit editor save expose only the edited story and 
   const click=async(label)=>React.act(async()=>{const button=[...document.querySelectorAll('button')].find(el=>el.textContent===label);assert.ok(button,label);button.click();});
   const fill=async(id,text)=>React.act(async()=>{const el=document.getElementById(id);const proto=el.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(el,text);el.dispatchEvent(new window.Event('input',{bubbles:true}));});
   try{
-    await React.act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:['/discover']},React.createElement(App),React.createElement(Controls))));
+    const router=createMemoryRouter([{path:'*',element:React.createElement(React.Fragment,null,React.createElement(App),React.createElement(Controls))}],{initialEntries:['/discover']});
+    await React.act(async()=>root.render(React.createElement(RouterProvider,{router})));
     assert.ok(document.body.textContent.includes(story.excerpt));
     assert.equal(document.querySelector('a[href="/stories/1"]')!==null,true);
     await fill('public-query','毕业的那晚');await click('找共鸣');

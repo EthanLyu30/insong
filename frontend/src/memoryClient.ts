@@ -1,6 +1,7 @@
 import type { Song, Lyric } from './api';
 
 export type Photo = { id:string; url:string };
+export type EventSnapshot = {id:string;title:string;artist:string;date:string;city:string;venue:string};
 export type Reflection = { id: string; text: string; created_at: string; mood?:string|null;photo_id?:string|null;photo_url?:string|null };
 export type Memory = {
   id: number; owner_id: number; song_id: number; song: Song; story: string; title?:string|null; photos?:Photo[];
@@ -10,12 +11,13 @@ export type Memory = {
   life_year?: number | null; lyric_id?: string | null; lyric?: Lyric | null; theme_id?: string | null;
   photo_id?:string|null; photo_url?:string|null; end_ms?:number|null; event_id?:string|null;
   location_name?:string|null;
+  event_snapshot?:EventSnapshot|null;
   publication?: { published: boolean; excerpt: string; share_life_time: boolean; anonymous: boolean } | null;
 };
 export type PublicStory = { id: number; excerpt: string; song_id: number; song: Song; author_name: string; title?:string|null; tags?:string[]; photos?:Photo[];
   life_time: string | null; life_year: number | null; offset_ms: number | null; lyric: Lyric | null;
   lyric_id: string | null; theme_id: string | null; is_demo_sample: boolean; published_at: string;
-  photo_id?:string|null;photo_url?:string|null;end_ms?:number|null;event_id?:string|null;is_mine?:boolean };
+  photo_id?:string|null;photo_url?:string|null;end_ms?:number|null;event_id?:string|null;event_snapshot?:EventSnapshot|null;is_mine?:boolean };
 export type PublicSearchResult = { items: { story: PublicStory; evidence: string; match_label: string }[]; mode: 'keyword' | 'semantic'; notice: string };
 export type Theme = { id: string; title: string; prompt: string; description: string; image_url?:string };
 

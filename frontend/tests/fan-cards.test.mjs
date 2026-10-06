@@ -8,6 +8,160 @@ const song={id:1,title:'散场以后',artist:'Demo Artist',is_demo:true,audio_av
 const photos=[{id:'a',url:'/api/photos/a'},{id:'b',url:'/api/photos/b'}];
 const card={id:88,owner_id:3,song_id:1,song,title:'把这一晚带回家',story:'第一行。\n最后一行也必须完整。',life_time:'散场的晚上',life_year:2025,revision:1,reflections:[],tags:['演唱会','散场'],photos,photo_id:'a',photo_url:'/api/photos/a',created_at:'2026-01-01',updated_at:'2026-01-01',offset_ms:10000,end_ms:14000};
 
+test('concert creation prefills the actual date and venue without enabling an untouched draft',async()=>{
+  const event={id:'prefill-night',artist_id:'gem',title:'巡演',city:'深圳',venue:'大运体育场',date:'2026-10-01'};
+  await harness('/create?event=prefill-night',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json({artists:[{id:'gem',name:'邓紫棋'}],events:[event]});
+    throw new Error(url);
+  },async({until,act,fill})=>{
+    await until('.composer-event-context strong');
+    assert.ok(document.body.textContent.includes('深圳 · 大运体育场'));
+    assert.ok(document.querySelector('.composer-setting-rows>button').textContent.includes('2026-10-01'));
+    assert.equal(document.querySelector('.composer-draft').disabled,true);
+    await fill('memory-story','记住这一晚');
+    await act(async()=>document.querySelector('.composer-draft').click());
+    const draft=JSON.parse(window.localStorage.getItem('memory-draft:3'));
+    assert.equal(draft.lifeTime,'2026-10-01');assert.equal(draft.lifeYear,'2026');
+    assert.equal(draft.locationName,'深圳 · 大运体育场');
+  });
+});
+
+test('unsaved creation blocks navigation, keeps writing, and can save a draft before leaving',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill,go,location,until})=>{
+    await fill('memory-story','没有保存的这一晚');
+    const unload=new window.Event('beforeunload',{cancelable:true});window.dispatchEvent(unload);
+    assert.equal(unload.defaultPrevented,true);
+    await go('/memories');await until('[aria-label="未保存的内容"]');
+    assert.equal(location().pathname,'/create');
+    await act(async()=>document.querySelector('.unsaved-continue').click());
+    assert.equal(document.getElementById('memory-story').value,'没有保存的这一晚');
+    await go('/memories');
+    await act(async()=>document.querySelector('.unsaved-save').click());
+    assert.equal(location().pathname,'/memories');
+    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'没有保存的这一晚');
+  });
+});
+
+test('browser back from a dirty editor stays put until the user discards changes',async()=>{
+  await harness('/memories/88',async url=>{throw new Error(url);},async({act,fill,go,location,until})=>{
+    await until('.memory-edit-link');await act(async()=>document.querySelector('.memory-edit-link').click());
+    await fill('memory-story','新的修改');await go(-1);await until('.unsaved-discard');
+    assert.equal(location().pathname,'/memories/88/edit');
+    assert.equal(document.querySelector('.unsaved-save'),null);
+    await act(async()=>document.querySelector('.unsaved-discard').click());
+    assert.equal(location().pathname,'/memories/88');
+  });
+});
+
+test('unsaved writing stays protected after a music-selection round trip',async()=>{
+  await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill,go,location,until})=>{
+    await fill('memory-story','选歌前写下的内容');
+    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await go(-1);await go('/memories');await until('.unsaved-continue');
+    assert.equal(location().pathname,'/create');
+    await act(async()=>document.querySelector('.unsaved-continue').click());
+    assert.equal(document.getElementById('memory-story').value,'选歌前写下的内容');
+  });
+});
+
+test('resuming an existing draft preserves its chosen date and place',async()=>{
+  const event={id:'prefill-night',artist_id:'gem',title:'巡演',city:'深圳',venue:'新场馆',date:'2026-10-03'};
+  await harness('/create?draft=1',async url=>{if(url==='/api/footprints/catalog')return Response.json({artists:[],events:[event]});throw new Error(url);},async({until})=>{
+    await until('.composer-event-context');
+    assert.ok(document.querySelector('.composer-setting-rows>button').textContent.includes('2026-09-25'));
+    assert.ok(document.querySelector('.composer-place-row').textContent.includes('我记下的地点'));
+    assert.equal(document.getElementById('memory-story').value,'原来的记录');
+  },{localDraft:{version:1,eventId:'prefill-night',story:'原来的记录',lifeTime:'2026-09-25',lifeYear:'2026',markedDate:'2026-09-25',locationName:'我记下的地点'}});
+});
+
+test('pending save navigation is blocked and a failed save keeps the writing',async()=>{
+  let finish;
+  await harness('/songs/1/write',async(url,options)=>{
+    if(url==='/api/memories'&&options.method==='POST')return new Promise(resolve=>{finish=()=>resolve(Response.json({detail:'暂时无法保存'},{status:503}));});
+    throw new Error(url);
+  },async({act,fill,go,location})=>{
+    await fill('memory-story','正在保存的内容不能丢');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    await go('/memories');
+    assert.equal(location().pathname,'/songs/1/write');
+    assert.equal(document.querySelector('.unsaved-discard').disabled,true);
+    await act(async()=>finish());
+    assert.equal(document.querySelector('#memory-story').value,'正在保存的内容不能丢');
+    await act(async()=>document.querySelector('.unsaved-continue').click());
+    assert.ok(document.querySelector('.form-error').textContent.includes('暂时无法保存'));
+  });
+});
+
+test('exit protection closes an open sheet without leaving the document scroll locked',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill,go})=>{
+    await fill('memory-story','还在写');
+    await act(async()=>document.querySelector('.composer-setting-rows>button:last-child').click());
+    await go('/memories');
+    assert.equal(window.document.body.style.overflow,'hidden');
+    await act(async()=>document.querySelector('.unsaved-continue').click());
+    assert.equal(window.document.body.style.overflow,'');
+    assert.equal(document.querySelector('#memory-story').value,'还在写');
+  });
+});
+
+test('the first pending photo upload is protected before a photo has reached the draft',async()=>{
+  const previousReader=globalThis.FileReader;
+  try{
+    await harness('/create',async(url,options)=>{
+      if(url==='/api/photos'&&options.method==='POST')return new Promise(()=>{});
+      throw new Error(url);
+    },async({act,go,location,until})=>{
+      globalThis.FileReader=window.FileReader;
+      await act(async()=>{
+        const input=document.querySelector('input[type="file"]');
+        Object.defineProperty(input,'files',{value:[new window.File(['photo'],'photo.jpg',{type:'image/jpeg'})]});
+        input.dispatchEvent(new window.Event('change',{bubbles:true}));
+      });
+      await go('/memories');await until('.unsaved-discard');
+      assert.equal(location().pathname,'/create');
+      assert.equal(document.querySelector('.unsaved-save'),null,'unfinished upload must not create an empty draft');
+      await act(async()=>document.querySelector('.unsaved-continue').click());
+      assert.ok(document.querySelector('input[type="file"]').disabled);
+      await go('/memories');await act(async()=>document.querySelector('.unsaved-discard').click());
+      assert.equal(location().pathname,'/memories');
+      assert.equal(window.localStorage.getItem('memory-draft:3'),null);
+    });
+  }finally{globalThis.FileReader=previousReader;}
+});
+
+test('late concert metadata does not overwrite manually chosen date and place',async()=>{
+  let resolveCatalog,reads=0;
+  const event={id:'late-night',artist_id:'gem',title:'巡演',city:'深圳',venue:'大运体育场',date:'2026-10-01'};
+  const catalog={artists:[],cities:[{id:'shenzhen',name:'深圳'},{id:'shanghai',name:'上海'}],events:[event,{...event,id:'other',city:'上海',venue:'上海体育场'}]};
+  await harness('/create?event=late-night',async url=>{
+    if(url==='/api/footprints/catalog')return ++reads===1?new Promise(resolve=>{resolveCatalog=()=>resolve(Response.json(catalog));}):Response.json(catalog);
+    throw new Error(url);
+  },async({act,fill,until})=>{
+    await act(async()=>document.querySelector('.composer-setting-rows>button').click());
+    for(const [label,value] of [['年','2025'],['月','9'],['日','25']])await act(async()=>{
+      const input=document.querySelector(`input[aria-label="${label}"]`);
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(input,value);
+      input.dispatchEvent(new window.Event('input',{bubbles:true}));
+    });
+    await act(async()=>document.querySelector('.composer-time-sheet .primary-button').click());
+    await act(async()=>document.querySelector('.composer-place-row button').click());
+    await fill('composer-location-query','上海');await until('.place-option-name');
+    await act(async()=>[...document.querySelectorAll('.composer-sheet-options button')].find(button=>button.textContent.includes('上海体育场')).click());
+    await act(async()=>resolveCatalog());
+    assert.ok(document.querySelector('.composer-setting-rows>button').textContent.includes('2025-09-25'));
+    assert.ok(document.querySelector('.composer-place-row').textContent.includes('上海体育场'));
+  });
+});
+
+test('record details use saved concert information after live catalog removal',async()=>{
+  const eventSnapshot={id:'gone-night',title:'当时的巡演',artist:'邓紫棋',date:'2026-09-25',city:'深圳',venue:'原来的体育场'};
+  await harness('/memories/88',async url=>{if(url==='/api/footprints/catalog')return Response.json({artists:[],events:[]});throw new Error(url);},async({until})=>{
+    await until('.event-note');assert.ok(document.body.textContent.includes('原来的体育场'));
+    assert.ok(document.body.textContent.includes('2026-09-25'));
+    assert.ok(!document.body.textContent.includes('找不到这场演出'));
+  },{memory:()=>({...card,event_id:'gone-night',event_snapshot:eventSnapshot})});
+});
+
 async function harness(path,respond,work,fixtures={}){
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   const priorFormData=globalThis.FormData;globalThis.FormData=dom.window.FormData;
@@ -20,7 +174,7 @@ async function harness(path,respond,work,fixtures={}){
   window.HTMLMediaElement.prototype.play=async function(){this.dispatchEvent(new window.Event('play'));};
   window.HTMLMediaElement.prototype.pause=function(){this.dispatchEvent(new window.Event('pause'));};
   window.HTMLMediaElement.prototype.load=function(){};
-  const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter,useNavigate,useLocation}=await import('react-router');
+  const React=await import('react'),{createRoot}=await import('react-dom/client'),{createMemoryRouter,RouterProvider,useNavigate,useLocation}=await import('react-router');
   let navigate,current;function Probe(){navigate=useNavigate();current=useLocation();return null;}
   const server=await createServer({define:fixtures.apiBase?{'import.meta.env.VITE_API_BASE_URL':JSON.stringify(fixtures.apiBase)}:{},server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');const prior=globalThis.fetch;
@@ -39,7 +193,8 @@ async function harness(path,respond,work,fixtures={}){
   const act=React.act;
   const until=async selector=>{const deadline=Date.now()+15000;while(!document.querySelector(selector)&&Date.now()<deadline)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});assert.ok(document.querySelector(selector),selector);};
   const fill=async(id,text)=>act(async()=>{const input=document.getElementById(id);assert.ok(input,`missing ${id}`);const proto=input.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,text);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
-  try{await act(async()=>root.render(React.createElement(MemoryRouter,{initialEntries:[path]},React.createElement(App),React.createElement(Probe))));await work({act,fill,until,go:async to=>act(async()=>navigate(to)),location:()=>current});}
+  const router=createMemoryRouter([{path:'*',element:React.createElement(React.Fragment,null,React.createElement(App),React.createElement(Probe))}],{initialEntries:[path]});
+  try{await act(async()=>root.render(React.createElement(RouterProvider,{router})));await work({act,fill,until,go:async to=>act(async()=>navigate(to)),location:()=>current});}
   finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;globalThis.FormData=priorFormData;delete globalThis.ResizeObserver;dom.window.close();}
 }
 
@@ -746,7 +901,7 @@ test('editor can revoke an unchanged public memory without exposing new content'
   },{memory:()=>({...card,publication})});
 });
 
-test('editor completes confirmed private visibility after leaving during its pending save',async()=>{
+test('editor protects a pending private save and exits only after visibility completes',async()=>{
   const publication={published:true,excerpt:'第一行。',anonymous:false,share_life_time:false};let finishPatch,revoked=false;
   await harness('/memories/88/edit',async(url,options)=>{
     if(url==='/api/memories/88'&&options.method==='PATCH')return new Promise(resolve=>{finishPatch=()=>resolve(Response.json({...card,revision:2,publication}));});
@@ -758,9 +913,10 @@ test('editor completes confirmed private visibility after leaving during its pen
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
     assert.ok(finishPatch,'the content write is pending');
     await go('/memories');
+    assert.equal(location().pathname,'/memories/88/edit');
     await act(async()=>finishPatch());
     assert.equal(revoked,true,'the confirmed private save must revoke the existing public snapshot');
-    assert.equal(location().pathname,'/memories','a late completion cannot redirect the newer page');
+    assert.equal(location().pathname,'/memories/88','successful save opens the saved card');
   },{memory:()=>({...card,publication})});
 });
 
@@ -1186,6 +1342,8 @@ test('central creation opens a separate music search and returns without losing 
     assert.equal(document.querySelector('#memory-story').value,'已经写下的经历不能被选歌清空。');
     assert.equal(document.querySelector('.composer-song-trigger strong').textContent,song.title);
     await act(async()=>document.querySelector('.memory-composer .back-link').click());
+    assert.equal(location().pathname,'/create','returning after song selection still protects unsaved writing');
+    await act(async()=>document.querySelector('.unsaved-discard').click());
     assert.equal(location().pathname,'/memories');assert.equal(location().search,'?song=1&view=cards');
   });
 });
@@ -1489,7 +1647,7 @@ test('account changes during song selection or after returning never restore the
 });
 
 test('nested-corrupt drafts cannot crash the composer and their raw data is preserved',async()=>{
-  for(const extra of [{photos:[null]},{song:{...song,lyrics:{broken:true}}}]){
+  for(const extra of [{photos:[null]},{song:{...song,lyrics:{broken:true}}},{eventId:'broken',eventSnapshot:{id:'broken',title:'演出',artist:'歌手',date:{broken:true},city:'深圳',venue:'场馆'}}]){
     const draft={version:1,story:'格式损坏但仍保留的草稿。',...extra};
     await harness('/memories',async url=>{throw new Error(url);},async({go})=>{
       assert.ok(!document.querySelector('.collection-draft'),'invalid nested draft must not be offered for restoration');
@@ -1544,7 +1702,7 @@ test('browser back from song selection restores only that in-progress composer',
     await go(-1);
     assert.equal(document.querySelector('#memory-title').value,'正在写的标题');
     assert.equal(document.querySelector('#memory-story').value,'选歌前没有保存的正文。');
-    await go('/memories');await go('/create');
+    await go('/memories');await act(async()=>document.querySelector('.unsaved-discard').click());await go('/create');
     assert.equal(document.querySelector('#memory-story').value,'','a new direct composer does not restore the cancelled transition');
   });
 });
@@ -1569,6 +1727,7 @@ test('returning from song selection keeps the filtered My page as the composer b
     await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
     await go(-1);
     await act(async()=>document.querySelector('.composer-heading .back-link').click());
+    await act(async()=>document.querySelector('.unsaved-discard').click());
     assert.equal(location().pathname,'/memories');
     assert.equal(location().search,'?tag=旅行&q=旅行');
   });

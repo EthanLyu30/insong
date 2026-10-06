@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router';
 import { apiBaseUrl, type Song } from './api';
 import { AudioPlayer } from './AudioPlayer';
-import { apiRequest, dayLabel, formatPosition, parsePosition, timelineGroups, type Memory, type Photo } from './memoryClient';
+import { apiRequest, dayLabel, formatPosition, parsePosition, timelineGroups, type Memory, type Photo, type EventSnapshot } from './memoryClient';
 import { useSession } from './SessionContext';
 import { useLivePage } from './useLivePage';
 import { useData } from './useData';
@@ -25,6 +25,7 @@ import './composer.css';
 import {filterMemories,memoryCategory,memoryCity} from './memoryPresentation';
 import {currentLocalMark,extractHashtags,insertAtCursor} from './revisionBehavior';
 import {recommendMemoryTags} from './tagRecommendations';
+import {MemoryExitDialog,useMemoryExitGuard} from './MemoryExitGuard';
 
 export function LoginGate() {
   const location = useLocation();
@@ -117,8 +118,15 @@ function validDraftSong(value:unknown) {
 }
 
 function hasDraftContent(data:Record<string,unknown>) {
-  return ['title','story','tagText','lifeTime','lifeYear','locationName'].some(key=>typeof data[key]==='string'&&data[key].trim())
+  const automatic=Array.isArray(data.autoEventFields)?data.autoEventFields:[];
+  return ['title','story','tagText','lifeTime','lifeYear','locationName'].some(key=>!automatic.includes(key)&&typeof data[key]==='string'&&data[key].trim())
     ||Array.isArray(data.photos)&&data.photos.length>0;
+}
+
+function validEventSnapshot(value:unknown,eventId:unknown):value is EventSnapshot{
+  if(!value||typeof value!=='object'||Array.isArray(value))return false;
+  const record=value as Record<string,unknown>;
+  return record.id===eventId&&['id','title','artist','date','city','venue'].every(key=>typeof record[key]==='string');
 }
 
 function readLocalMemoryDraft(userId:number) {
@@ -128,6 +136,7 @@ function readLocalMemoryDraft(userId:number) {
     const data=JSON.parse(serialized);
     if(!data||typeof data!=='object'||Array.isArray(data)||data.version!==1||typeof data.story!=='string')return null;
     if(data.song!=null&&!validDraftSong(data.song))return null;
+    if(data.eventSnapshot!=null&&!validEventSnapshot(data.eventSnapshot,data.eventId))return null;
     if(data.photos!==undefined&&(!Array.isArray(data.photos)||data.photos.some((photo:Photo|null)=>!photo||typeof photo.id!=='string'||typeof photo.url!=='string')))return null;
     if(!hasDraftContent(data))return null;
     return {serialized,data};
@@ -242,6 +251,9 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [cover,setCover]=useState<string|null>(existing?.photo_id??null);
   const [uploading,setUploading]=useState(false);
   const [eventId,setEventId]=useState(existing?existing.event_id??null:initialEvent);
+  const [eventSnapshot,setEventSnapshot]=useState<EventSnapshot|null>(existing?.event_snapshot??null);
+  const [autoEventFields,setAutoEventFields]=useState<string[]>([]);
+  const prefilled=useRef(!!existing),dateTouched=useRef(false),placeTouched=useRef(false);
   const [visibility,setVisibility]=useState(existing?.publication?.published?'public':'private');
   const [anonymous,setAnonymous]=useState(existing?.publication?.anonymous??true),[shareLife,setShareLife]=useState(existing?.publication?.share_life_time??false);
   const editRevision=useRef(existing?.revision??1);
@@ -263,6 +275,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       if(draft.version!==1)return;
       if(saved)ownedLocalDraft.current=saved.serialized;
       const restored=restoreDraft(draft);
+      if(transition)initialDraft.current=normalizeDraft(transition.exitBaseline??{});
       if(typeof draft.ownedLocalDraft==='string')ownedLocalDraft.current=draft.ownedLocalDraft;
       if(ownedLocalDraft.current)try{setSavedDraftSnapshot(JSON.stringify(normalizeDraft(JSON.parse(ownedLocalDraft.current))));}catch{setSavedDraftSnapshot(JSON.stringify(restored));}
     } catch { /* A corrupt local draft must never prevent a new memory. */ }
@@ -272,24 +285,50 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const next=insertAtCursor(story,value,start,end);setStory(next.text);
     window.setTimeout(()=>{input?.focus();input?.setSelectionRange(next.cursor,next.cursor);},0);
   }
-  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,photos,cover,position,timeText,endText,lyricId,visibility,eventId,themeId,anonymous,shareLife};}
+  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,photos,cover,position,timeText,endText,lyricId,visibility,eventId,eventSnapshot,autoEventFields,themeId,anonymous,shareLife};}
+  const initialDraft=useRef(draftPayload());
+  const stableDraft=(value:ReturnType<typeof draftPayload>)=>JSON.stringify({...value,markedDate:''});
+  const dirty=(!!existing||hasDraftContent(draftPayload()))&&stableDraft(draftPayload())!==(savedDraftSnapshot?stableDraft(normalizeDraft(JSON.parse(savedDraftSnapshot))):stableDraft(initialDraft.current));
+  const exit=useMemoryExitGuard(dirty||uploading);
+  useEffect(()=>{if(exit.blocker.state==='blocked')setSheet(null);},[exit.blocker.state]);
+  function prefillEvent(value:EventSnapshot){
+    if(prefilled.current||existing||value.id!==eventId)return;
+    prefilled.current=true;setEventSnapshot(value);
+    const defaults:Partial<ReturnType<typeof draftPayload>>={eventSnapshot:value};
+    const automatic:string[]=[];
+    if(!dateTouched.current&&!lifeTime){
+      defaults.lifeTime=value.date;defaults.lifeYear=value.date.slice(0,4);defaults.markedDate=value.date;
+      setLifeTime(value.date);setLifeYear(value.date.slice(0,4));setMarkedDate(value.date);automatic.push('lifeTime','lifeYear');
+    }
+    if(!placeTouched.current&&!locationName){
+      defaults.locationName=[value.city,value.venue].filter(Boolean).join(' · ').slice(0,160);
+      setLocationName(defaults.locationName);automatic.push('locationName');
+    }
+    const fields=[...new Set([...autoEventFields,...automatic])];
+    defaults.autoEventFields=fields;setAutoEventFields(fields);
+    initialDraft.current={...initialDraft.current,...defaults};
+    if(savedDraftSnapshot){const baseline=normalizeDraft(JSON.parse(savedDraftSnapshot));setSavedDraftSnapshot(JSON.stringify({...baseline,...defaults}));}
+  }
   function normalizeDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
     return {version:1,story:typeof draft.story==='string'?draft.story:'',title:typeof draft.title==='string'?draft.title:'',tagText:typeof draft.tagText==='string'?draft.tagText:'',
       lifeTime:typeof draft.lifeTime==='string'?draft.lifeTime:'',lifeYear:typeof draft.lifeYear==='string'?draft.lifeYear:'',locationName:typeof draft.locationName==='string'?draft.locationName:'',markedDate:typeof draft.markedDate==='string'?draft.markedDate:'',
       song:validDraftSong(draft.song)?draft.song!:null,photos:Array.isArray(draft.photos)?draft.photos:[],cover:typeof draft.cover==='string'?draft.cover:null,
       position:typeof draft.position==='number'?draft.position:null,timeText:typeof draft.timeText==='string'?draft.timeText:'',endText:typeof draft.endText==='string'?draft.endText:'',lyricId:typeof draft.lyricId==='string'?draft.lyricId:null,
-      visibility:draft.visibility==='public'?'public':'private',eventId:typeof draft.eventId==='string'?draft.eventId:null,themeId:typeof draft.themeId==='string'?draft.themeId:null,anonymous:draft.anonymous!==false,shareLife:draft.shareLife===true};
+      visibility:draft.visibility==='public'?'public':'private',eventId:typeof draft.eventId==='string'?draft.eventId:null,eventSnapshot:validEventSnapshot(draft.eventSnapshot,draft.eventId)?draft.eventSnapshot:null,autoEventFields:Array.isArray(draft.autoEventFields)?draft.autoEventFields.filter(key=>['lifeTime','lifeYear','locationName'].includes(key)):[],themeId:typeof draft.themeId==='string'?draft.themeId:null,anonymous:draft.anonymous!==false,shareLife:draft.shareLife===true};
   }
   function restoreDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
     const value=normalizeDraft(draft);
     setStory(value.story);setTitle(value.title);setTagText(value.tagText);setLifeTime(value.lifeTime);setLifeYear(value.lifeYear);setLocationName(value.locationName);setMarkedDate(value.markedDate);
     setSong(value.song);setPhotos(value.photos);setCover(value.cover);setPosition(value.position);setTimeText(value.timeText);setEndText(value.endText);setLyricId(value.lyricId);
     setVisibility(value.visibility);setEventId(value.eventId);setThemeId(value.themeId);setAnonymous(value.anonymous);setShareLife(value.shareLife);
+    setEventSnapshot(value.eventSnapshot);setAutoEventFields(value.autoEventFields);
+    prefilled.current=!!value.eventSnapshot;dateTouched.current=!!value.lifeTime;placeTouched.current=!!value.locationName;
+    initialDraft.current=value;
     return value;
   }
   const canSaveDraft=hasDraftContent(draftPayload());
   const draftSaved=savedDraftSnapshot===JSON.stringify(draftPayload());
-  function saveDraft(){if(!user||!canSaveDraft||busy||uploading)return;try{const serialized=JSON.stringify(draftPayload());window.localStorage.setItem(`memory-draft:${user.id}`,serialized);ownedLocalDraft.current=serialized;setSavedDraftSnapshot(serialized);setError('');}catch{setError('浏览器无法保存本地草稿，请先不要关闭此页面。');}}
+  function saveDraft(){if(!user||!canSaveDraft||busy||uploading)return false;try{const serialized=JSON.stringify(draftPayload());window.localStorage.setItem(`memory-draft:${user.id}`,serialized);ownedLocalDraft.current=serialized;setSavedDraftSnapshot(serialized);setError('');return true;}catch{setError('浏览器无法保存本地草稿，请先不要关闭此页面。');return false;}}
   function openDraftBox(){
     if(!user||busy||uploading)return;
     sheetOrigin.current=document.activeElement as HTMLElement|null;
@@ -305,12 +344,14 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   function openSongSearch(){
     if(!user)return;
     const returnPath=location.pathname+location.search;
-    const transition={...draftPayload(),ownerId:user.id,returnPath,originKey:location.key,ownedLocalDraft:ownedLocalDraft.current};
+    const transition={...draftPayload(),exitBaseline:initialDraft.current,ownerId:user.id,returnPath,originKey:location.key,ownedLocalDraft:ownedLocalDraft.current};
     try {window.sessionStorage.setItem(`composer-transition:${user.id}`,JSON.stringify(transition));} catch { /* Route state keeps the draft available. */ }
     // POP can recover only the history entry that opened this song picker.
+    exit.permit();
     navigate(`/song-search?return=${encodeURIComponent(returnPath)}`,{state:{composerTransition:transition}});
   }
   function openTimeSheet(){
+    dateTouched.current=true;
     const now=currentLocalMark(new Date());
     if(!markedDate)setMarkedDate(now.date);
     openSheet('time');
@@ -340,6 +381,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
         if(!live.current)return;
       }
       if(user&&!existing&&ownedLocalDraft.current)try{const key=`memory-draft:${user.id}`;if(window.localStorage.getItem(key)===ownedLocalDraft.current)window.localStorage.removeItem(key);}catch{ /* A saved card must remain successful even without local storage. */ }
+      exit.permit();
       if(existing&&previous?.url.split('?')[0]===`/memories/${saved.id}`)back();
       else navigate(`/memories/${saved.id}`, {replace:true,state:{saved:true}});
     } catch (reason) {if(live.current)setError(reason instanceof Error ? reason.message : '没有保存成功，请重试。');}
@@ -349,7 +391,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'新建记忆'}</h1>{existing?<span>{visibility==='public'?'公开可见':'私密'}</span>:<button type="button" className="composer-draft-box" disabled={busy||uploading} onClick={openDraftBox}>草稿箱</button>}</header>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
-      {eventId&&<div className="composer-event-context"><EventNote key={eventId} id={eventId} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>setEventId(null)}><X size={16} aria-hidden="true"/></button></div>}
+      {eventId&&<div className="composer-event-context"><EventNote key={eventId} id={eventId} snapshot={eventSnapshot} onResolved={prefillEvent} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>{setEventId(null);setEventSnapshot(null);}}><X size={16} aria-hidden="true"/></button></div>}
       <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading} compact/>
       {!existing&&<SongPicker song={song} onOpen={openSongSearch} disabled={busy||uploading}/>}
       <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="标题（选填）"/></label>
@@ -373,7 +415,8 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
           <div><h3>{typeof boxedDraft.data.title==='string'&&boxedDraft.data.title.trim()||boxedDraft.data.song?.title||'未命名草稿'}</h3>{boxedDraft.data.story.trim()&&<p>{boxedDraft.data.story}</p>}{boxedDraft.data.photos?.length>0&&<small>{boxedDraft.data.photos.length} 张照片</small>}</div>
         </div><button type="button" className="primary-button composer-draft-resume" onClick={()=>resumeBoxedDraft()}>继续编辑</button>
       </>:<p className="composer-draft-empty">暂无草稿</p>}
-    </div>:sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');setMarkedDate(date);setLifeYear(year);setLifeTime(date);setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
+    </div>:sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{placeTouched.current=true;setAutoEventFields(fields=>fields.filter(key=>key!=='locationName'));setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');dateTouched.current=true;setAutoEventFields(fields=>fields.filter(key=>key!=='lifeTime'&&key!=='lifeYear'));setMarkedDate(date);setLifeYear(year);setLifeTime(date);setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
+    {!sheet&&<MemoryExitDialog blocker={exit.blocker} save={!existing&&canSaveDraft?saveDraft:undefined} busy={busy} uploading={uploading} editing={!!existing} error={error}/>}
   </section>;
 }
 
@@ -393,7 +436,7 @@ function DetailContent({ edit }: { edit: boolean }) {
     {location.state?.saved && <p className="saved-notice" role="status">已保存。</p>}
     <StoryCard author={card.is_demo_sample?'虚构歌迷 · 演示故事':user.display_name} sample={card.is_demo_sample} title={card.title} year={card.life_year} time={card.life_time} song={card.song} photos={cardPhotos(card)} text={card.story} tags={card.tags} scope="mine" anchor={card.offset_ms} end={card.end_ms} lyric={card.lyric}/>
     <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
-    {card.event_id&&<EventNote id={card.event_id}/>}
+    {card.event_id&&<EventNote id={card.event_id} snapshot={card.event_snapshot}/>}
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>
   </section>;
 }

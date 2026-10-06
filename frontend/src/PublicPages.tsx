@@ -136,7 +136,7 @@ export function StoryPage() {
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
   return <section className="journal-page public-detail"><BackLink fallback="/discover"/>
     <StoryCard author={story.author_name} sample={story.is_demo_sample} title={story.title} year={story.life_year} time={story.life_time} song={story.song} photos={cardPhotos(story)} text={story.excerpt} tags={story.tags} anchor={story.offset_ms} end={story.end_ms} lyric={story.lyric}/>
-    {story.event_id&&<EventNote id={story.event_id}/>}
+    {story.event_id&&<EventNote id={story.event_id} snapshot={story.event_snapshot}/>}
     <Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link>
   </section>;
 }

@@ -10,6 +10,8 @@ from sqlalchemy.pool import StaticPool
 from .models import Base, MemoryCard, PublicStory
 from .seed import seed_demo_data, seed_fandom_showcase, refresh_showcase_photos, refresh_recent_showcase_photos
 from .sample_media import refresh_generated_covers, seed_sample_galleries
+from .event_snapshots import capture_event, snapshot_json
+from . import footprints
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
 
@@ -51,6 +53,7 @@ def initialize_database(engine: Engine) -> None:
         'photo_id': 'VARCHAR(36) REFERENCES photos(id)', 'end_ms': 'INTEGER', 'event_id': 'VARCHAR(100)',
         'title': 'VARCHAR(80)', 'tags_json': 'TEXT',
         'location_name': 'VARCHAR(160)',
+        'event_snapshot_json': 'TEXT',
         'photo_ids_json': "TEXT NOT NULL DEFAULT '[]'",
     }
     with engine.begin() as connection:
@@ -62,7 +65,7 @@ def initialize_database(engine: Engine) -> None:
         if 'cover_url' not in song_columns:
             connection.execute(text('ALTER TABLE songs ADD COLUMN cover_url VARCHAR(240)'))
         public_columns = {column['name'] for column in inspect(connection).get_columns('public_stories')}
-        for name in ('photo_id', 'end_ms', 'event_id', 'title', 'tags_json', 'photo_ids_json'):
+        for name in ('photo_id', 'end_ms', 'event_id', 'title', 'tags_json', 'photo_ids_json', 'event_snapshot_json'):
             if name not in public_columns:
                 declaration = "TEXT NOT NULL DEFAULT '[]'" if name == 'tags_json' else additions[name]
                 connection.execute(text(f'ALTER TABLE public_stories ADD COLUMN {name} {declaration}'))
@@ -87,3 +90,9 @@ def initialize_database(engine: Engine) -> None:
         refresh_recent_showcase_photos(db)
         refresh_generated_covers(db)
         seed_sample_galleries(db)
+        # Legacy records get one best-effort snapshot from surviving catalog data.
+        # A stored snapshot is never refreshed by startup or catalog updates.
+        catalog = footprints.load_catalog()
+        for model in (MemoryCard, PublicStory):
+            for record in db.scalars(select(model).where(model.event_id.is_not(None), model.event_snapshot_json.is_(None))):
+                record.event_snapshot_json = snapshot_json(capture_event(record.event_id, catalog, required=False))

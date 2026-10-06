@@ -14,7 +14,7 @@ from .media import serialize_song, song_audio
 from .models import MemoryCard, MemoryCardTag, MemoryReceipt, PublicStory, Song, User, utc_now
 from .content import selected_lyric, THEME_IDS
 from .photos import photo_url, validate_owned_photo
-from .footprints import validate_event
+from .event_snapshots import capture_event, event_snapshot, snapshot_json
 from .card_metadata import gallery_ids, memory_tags, normalize_tags, serialize_photos, set_memory_tags
 
 
@@ -158,6 +158,7 @@ def serialize_memory(card):
         'revision', 'lyric_id', 'life_year', 'theme_id', 'title', 'location_name',
     )} | {
         'owner_display_name': card.owner.display_name,
+        'event_snapshot': event_snapshot(card),
         'tags': memory_tags(card), 'photos': serialize_photos(card),
         'created_at': card.created_at.isoformat(), 'updated_at': card.updated_at.isoformat(),
         'photo_url': photo_url(card.photo_id),
@@ -170,6 +171,7 @@ def serialize_memory(card):
             'photo_id': card.publication.photo_id, 'photo_url': photo_url(card.publication.photo_id),
             'offset_ms': card.publication.offset_ms, 'end_ms': card.publication.end_ms,
             'event_id': card.publication.event_id,
+            'event_snapshot': event_snapshot(card.publication),
             'title': card.publication.title, 'tags': json.loads(card.publication.tags_json),
             'photos': serialize_photos(card.publication),
         },
@@ -261,6 +263,7 @@ def set_publication_snapshot(card, excerpt, consent, user):
     public.author_name = '匿名听友' if consent.anonymous else user.display_name
     public.offset_ms, public.lyric_id, public.theme_id = card.offset_ms, card.lyric_id, card.theme_id
     public.photo_id, public.end_ms, public.event_id = card.photo_id, card.end_ms, card.event_id
+    public.event_snapshot_json = card.event_snapshot_json
     public.published, public.published_at = True, utc_now()
     public.version += 1
 
@@ -317,13 +320,14 @@ def install_memories(app, get_db, get_user):
         validate_lyric(song, data.lyric_id, data.offset_ms)
         ids, cover = resolve_gallery(data)
         validate_gallery(db, ids, user)
-        validate_event(data.event_id)
+        captured_event = capture_event(data.event_id)
         try:
             receipt = MemoryReceipt(owner_id=user.id, request_key=data.request_key)
             db.add(receipt)
             db.flush()
             values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id', 'publication'})
             card = MemoryCard(id=receipt.id, **values, photo_id=cover, photo_ids_json=json.dumps(ids),
+                              event_snapshot_json=snapshot_json(captured_event),
                               owner_id=user.id, visibility='private', is_demo_sample=user.is_demo)
             db.add(card)
             set_memory_tags(db, card, data.tags)
@@ -351,8 +355,8 @@ def install_memories(app, get_db, get_user):
             ids, cover = resolve_gallery(data, card)
             validate_gallery(db, ids, user)
             values.update(photo_id=cover, photo_ids_json=json.dumps(ids))
-        if 'event_id' in values:
-            validate_event(values['event_id'])
+        if 'event_id' in values and values['event_id'] != card.event_id:
+            values['event_snapshot_json'] = snapshot_json(capture_event(values['event_id']))
         changed = any(getattr(card, key) != value for key, value in values.items())
         if 'tags' in data.model_fields_set:
             changed = changed or memory_tags(card) != data.tags
