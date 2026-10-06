@@ -129,7 +129,8 @@
 .atlas-map .atlas-legend{display:none}
 .atlas-map .atlas-searchbar{padding:28px 20px 14px;background:linear-gradient(#faf7f0ee,#faf7f0bb 75%,transparent)}
 .atlas-map .atlas-searchbar.has-mine-return{padding-top:12px}
-.atlas-return-mine{display:inline-flex;align-items:center;gap:5px;min-height:28px;margin-bottom:5px;color:#8d705b;font-size:14px;text-decoration:none}
+.atlas-return-mine,.atlas-return-map{display:inline-flex;align-items:center;gap:5px;min-height:28px;margin-bottom:5px;color:#8d705b;font-size:14px;text-decoration:none}
+.atlas-return-map{padding:0;border:0;background:none}
 .atlas-map .atlas-wordmark>div>span{font:500 28px/1.3 'Noto Serif SC','Songti SC',serif;color:#514431}
 .atlas-map .atlas-wordmark small{font-size:18px;color:#bd7d59;text-shadow:none}
 .atlas-map .atlas-artist-pills button{min-height:33px;padding:6px 12px}

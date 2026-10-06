@@ -150,7 +150,8 @@ export function FootprintsPage() {
   function back(){
     setStories(false);
     setExpanded(false);
-    if(navigation.previous){navigation.back();return;}
+    // A city close stays inside the map even when a deep link came from My.
+    if(navigation.previous&&(scene==='sky'||navigation.previous.url.split('?')[0]==='/footprints')){navigation.back();return;}
     if(scene==='sky'&&city&&linkedEvent){setParams(filters({artist:linkedEvent.artist_id,city:city.id,event:linkedEvent.id,scene:'map'}),{replace:true});}
     else{setParams(filters(artist?{artist:artist.id}:{}),{replace:true});}
   }
@@ -191,9 +192,9 @@ export function FootprintsPage() {
       <AtlasMap cities={cities} events={mapEvents} artists={catalog.artists} today={today} focusPoint={focusPoint??undefined} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} onVenue={openEvent} onNation={()=>{setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
       <CinematicStage scene={scene} controller={sceneController} event={stageEvent} venueName={linkedEvent?.venue} city={city?.name} artistName={catalog.artists.find(item=>item.id===stageEvent?.artist_id)?.name} selected={selectedSong} playing={player.state.phase==='playing'?player.state.song?.title:undefined} onSong={playSong}/>
     </div>
-    {scene==='map'?<header className={`atlas-searchbar${returnToMine?' has-mine-return':''}`}>
-      {returnToMine&&<Link className="atlas-return-mine" to={returnToMine}><ArrowLeft size={14} aria-hidden="true"/>返回我的</Link>}
-      <div className="atlas-wordmark"><div><span>音乐足迹</span><small>听见城市，走过山海。</small></div><Link to="/playlists" aria-label="我的现场歌单"><BookmarkSimple size={23} weight="light"/></Link></div>
+    {scene==='map'?<header className="atlas-searchbar has-mine-return">
+      {city?<button type="button" className="atlas-return-map" onClick={back}><ArrowLeft size={14} aria-hidden="true"/>返回地图</button>:<Link className="atlas-return-mine" to={returnToMine??'/memories'}><ArrowLeft size={14} aria-hidden="true"/>返回我的</Link>}
+      <div className="atlas-wordmark"><div><span>音乐足迹</span><small>听见城市，走过山海。</small></div><Link to="/playlists" state={{footprintReturn:next}} aria-label="我的现场歌单"><BookmarkSimple size={23} weight="light"/></Link></div>
       <div className="atlas-search-input"><MagnifyingGlass size={23} weight="light"/><input aria-label="搜索歌手或城市" placeholder="搜索喜欢的歌手或城市" value={query} onFocus={()=>setSearchOpen(true)} onChange={event=>{setQuery(event.target.value);setSearchOpen(true);}} onKeyDown={event=>{if(event.key==='Escape')setSearchOpen(false);if(event.key==='Enter'&&matchingArtists.length===1)chooseArtist(matchingArtists[0].id);}}/>{(query||searchOpen)&&<button type="button" aria-label="收起搜索" onClick={()=>{setSearchOpen(false);setQuery('');}}><X size={20}/></button>}</div>
       {searchOpen?<div className="atlas-search-results"><span>{query?'搜索结果':'从一位喜欢的歌手开始'}</span>{matchingArtists.map(item=><button key={item.id} type="button" onClick={()=>chooseArtist(item.id)}>{item.name}<small>查看行程 <CaretRight size={16}/></small></button>)}{matchingCities.map(item=><button key={item.id} type="button" onClick={()=>chooseCity(item)}>{item.name}<small>看看这里的现场 <CaretRight size={16}/></small></button>)}{!matchingArtists.length&&!matchingCities.length&&<p>暂未收录这位歌手，试试邓紫棋或刘雨昕。</p>}</div>:<div className="atlas-artist-pills"><button type="button" aria-pressed={!scope} onClick={()=>chooseScope('all')}>全部</button><button type="button" aria-pressed={scope==='saved'} onClick={()=>chooseScope('saved')}>我的收藏</button><button type="button" aria-pressed={scope==='followed'} onClick={()=>chooseScope('followed')}>我的歌手</button></div>}
       {(artist||scope==='followed')&&<InterestsError data={interests}/>}

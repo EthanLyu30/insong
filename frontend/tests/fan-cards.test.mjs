@@ -118,6 +118,90 @@ test('the music scene still returns to My when its map data cannot load',async()
   assert.equal(backHref,'/memories?view=cards');
 });
 
+test('an empty playlist returns to its original map and keeps the My entry filters',async()=>{
+  await harness('/memories?tag=散场&view=cards',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([]);throw new Error(url);
+  },async({act,until,location})=>{
+    await act(async()=>document.querySelector('.timeline-toggle button:last-child').click());
+    await until('.atlas-itinerary');
+    const mapPath=location().pathname+location().search;
+    await act(async()=>document.querySelector('[aria-label="我的现场歌单"]').click());
+    await until('.empty-playlists .primary-button');
+    assert.equal(document.querySelector('.empty-playlists .primary-button').getAttribute('href'),mapPath,'map action retains its exact entry context');
+    await act(async()=>document.querySelector('.empty-playlists .primary-button').click());
+    await until('.atlas-itinerary');
+    assert.equal(location().pathname+location().search,mapPath);
+    assert.ok(document.querySelector('.atlas-return-mine'));
+    await act(async()=>document.querySelector('.atlas-return-mine').click());
+    assert.equal(location().pathname+location().search,'/memories?tag=散场&view=cards');
+  });
+});
+
+test('a city portrait exposes a top map return and preserves its original overview before My',async()=>{
+  await harness('/memories?view=cards',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([]);throw new Error(url);
+  },async({act,until,location})=>{
+    await act(async()=>document.querySelector('.timeline-toggle button:last-child').click());
+    await until('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');
+    const overview=location().pathname+location().search;
+    await act(async()=>document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]').click());
+    const back=document.querySelector('.atlas-return-map');assert.ok(back,'top back must target the map level');
+    assert.ok(!document.querySelector('.atlas-return-mine'),'city does not show an exit-to-My as its top back');
+    await act(async()=>back.click());
+    assert.equal(location().pathname+location().search,overview);
+    assert.ok(document.querySelector('.atlas-itinerary'));
+    await act(async()=>document.querySelector('.atlas-return-mine').click());
+    assert.equal(location().pathname+location().search,'/memories?view=cards');
+  });
+});
+
+test('saved playlist details and their night link retain the original map and My context',async()=>{
+  const saved={id:7,event_id:'sh',artist:'邓紫棋',city:'上海',venue:'上海体育场',date:'2026-10-02',songs:revisionCatalog.events[0].songs};
+  await harness('/memories?view=cards&tag=散场',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([saved]);throw new Error(url);
+  },async({act,until,location})=>{
+    await act(async()=>document.querySelector('.timeline-toggle button:last-child').click());
+    await until('.atlas-itinerary');
+    await act(async()=>document.querySelector('[aria-label="我的现场歌单"]').click());
+    await until('.saved-playlist-card');
+    await act(async()=>document.querySelector('.saved-playlist-card').click());
+    await until('.saved-playlist-detail');
+    await act(async()=>document.querySelector('.saved-playlist-detail .text-button').click());
+    await until('.saved-playlist-card');
+    await act(async()=>document.querySelector('.saved-playlist-card').click());
+    await until('.saved-playlist-detail');
+    const night=document.querySelector('.saved-playlist-detail .soft-button');
+    const query=new URLSearchParams(night.getAttribute('href').split('?')[1]);
+    assert.equal(query.get('from'),'mine');
+    assert.equal(query.get('return'),'/memories?view=cards&tag=散场');
+    assert.equal(query.get('event'),'sh');
+    await act(async()=>night.click());
+    await until('.atlas-night-panel');
+    await act(async()=>document.querySelector('[aria-label="返回全国地图"]').click());
+    assert.ok(document.querySelector('.atlas-return-mine'));
+    await act(async()=>document.querySelector('.atlas-return-mine').click());
+    assert.equal(location().pathname+location().search,'/memories?view=cards&tag=散场');
+  });
+});
+
+test('a direct city entry from My returns to the overview before leaving footprints',async()=>{
+  await harness('/memories?view=cards',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([]);throw new Error(url);
+  },async({act,go,until,location})=>{
+    await go('/footprints?from=mine&return=%2Fmemories%3Fview%3Dcards&artist=gem&city=shanghai&month=all');
+    await until('.atlas-city-sheet');
+    await act(async()=>document.querySelector('.atlas-city-sheet [aria-label="返回上一页"]').click());
+    assert.equal(location().pathname,'/footprints','closing a city must not jump across the overview into My');
+    assert.equal(new URLSearchParams(location().search).get('city'),null);
+    assert.ok(document.querySelector('.atlas-itinerary'));
+    assert.ok(document.querySelector('.atlas-return-mine'));
+  });
+});
+
 test('footprints returns to the active My search together with its filters',async()=>{
   await harness('/memories?tag=散场&startYear=2025',async url=>{
     if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-04',artists:[],cities:[],events:[]});
