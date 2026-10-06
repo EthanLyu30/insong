@@ -1,7 +1,7 @@
 /* Footprints: warm earth, sunset arrival, blue-hour concert. */
-.site-shell.atlas-shell{width:100%;max-width:none;border:0;background:#f5f0e7}
+.site-shell.atlas-shell{--atlas-nav-height:calc(70px + env(safe-area-inset-bottom));width:100%;max-width:none;border:0;background:#f5f0e7}
 .atlas-shell .main-content{max-width:none;width:100%;padding:0;margin:0}
-.atlas-shell .bottom-nav{height:64px;z-index:30;background:#f9f5edef;border-top:1px solid #e5ddd366;backdrop-filter:blur(18px)}
+.atlas-shell .bottom-nav{height:var(--atlas-nav-height);z-index:30;background:#f9f5edef;border-top:1px solid #e5ddd366;backdrop-filter:blur(18px)}
 .atlas-shell .nav-item{gap:5px;font-size:11px;color:#665e55}
 .atlas-shell .nav-item.active{color:#a15a32}
 .atlas-page{--ivory:#f7f2e9;--ink:#302e2b;--copper:#a3663f;position:relative;width:100%;height:100dvh;min-height:0;overflow:hidden;background:var(--ivory);color:var(--ink);isolation:isolate;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
@@ -32,7 +32,7 @@
 .atlas-map-controls button,.atlas-scene-toolbar>button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #ffffffb0;border-radius:50%;background:#f8f3e9f5;color:#302e2b;box-shadow:0 2px 7px #3b2a2317}
 .atlas-map-controls button:hover,.atlas-scene-toolbar>button:hover{background:#fffcf6}
 .atlas-map-controls{bottom:310px}
-.atlas-searchbar{position:absolute;z-index:8;top:0;left:0;right:0;padding:max(22px,env(safe-area-inset-top)) max(24px,calc((100vw - 712px)/2)) 16px;background:linear-gradient(#f7f3e9ef 20%,#f7f3e9bd 76%,#f7f3e900);pointer-events:none}
+.atlas-searchbar{position:absolute;z-index:8;top:0;left:0;right:0;padding:max(22px,env(safe-area-inset-top)) max(24px,calc((100% - 712px)/2)) 16px;background:linear-gradient(#f7f3e9ef 20%,#f7f3e9bd 76%,#f7f3e900);pointer-events:none}
 .atlas-searchbar input,.atlas-searchbar button,.atlas-searchbar a,.atlas-search-results{pointer-events:auto}
 .atlas-wordmark{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 .atlas-wordmark>div>span{font-size:25px;font-weight:650;letter-spacing:.04em;display:block}
@@ -54,7 +54,7 @@
 .atlas-legend span{display:flex;gap:6px;align-items:center}
 .atlas-legend i{width:6px;height:6px;border-radius:50%;background:#99a189}
 .atlas-legend i.future{background:#b77647}
-.atlas-panel{position:absolute;z-index:7;bottom:64px;left:max(0px,calc((100vw - 760px)/2));right:max(0px,calc((100vw - 760px)/2));border:1px solid #ffffff86;border-bottom:0;border-radius:26px 26px 0 0;padding:17px 24px 14px;background:#f8f3e9f2;backdrop-filter:blur(22px);box-shadow:0 -4px 25px #4933230b;color:var(--ink);max-height:52vh;overflow:auto;scrollbar-width:thin}
+.atlas-panel{position:absolute;z-index:7;bottom:var(--atlas-nav-height);left:max(0px,calc((100% - 760px)/2));right:max(0px,calc((100% - 760px)/2));border:1px solid #ffffff86;border-bottom:0;border-radius:26px 26px 0 0;padding:17px 24px 14px;background:#f8f3e9f2;backdrop-filter:blur(22px);box-shadow:0 -4px 25px #4933230b;color:var(--ink);max-height:52vh;overflow:auto;scrollbar-width:thin}
 .atlas-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .atlas-panel h2{margin:0;font-size:19px;font-weight:600;line-height:1.5}
 .atlas-panel header small{display:block;font-size:12px;color:#8a7661;margin-bottom:3px}
@@ -88,12 +88,12 @@
 .atlas-empty-city{font-size:14px;line-height:1.8}
 .atlas-empty-city a,.atlas-empty-city button{color:#9b7048;font-size:13px}
 .atlas-empty-city button{display:block;min-height:44px;margin-top:8px;border:0;background:none;padding:0}
-.atlas-scene-toolbar{position:absolute;left:max(24px,calc((100vw - 712px)/2));right:max(24px,calc((100vw - 712px)/2));top:max(24px,env(safe-area-inset-top));z-index:9;display:flex;align-items:center;justify-content:space-between;color:#342e26;font-size:14px}
+.atlas-scene-toolbar{position:absolute;left:max(24px,calc((100% - 712px)/2));right:max(24px,calc((100% - 712px)/2));top:max(24px,env(safe-area-inset-top));z-index:9;display:flex;align-items:center;justify-content:space-between;color:#342e26;font-size:14px}
 .atlas-scene-toolbar>span{font-size:16px}
 .cinematic-stage{opacity:1;pointer-events:auto;touch-action:none;user-select:none}
 .cinematic-stage.is-hidden{opacity:0;pointer-events:none}
 .cinematic-stage:not(.is-hidden):not(.is-night){background:linear-gradient(#f7efdfd9 0%,#f7efdfa6 18%,#f7efdf00 32%)}
-.cinematic-location{position:absolute;top:97px;left:max(24px,calc((100vw - 712px)/2));right:max(24px,calc((100vw - 712px)/2));pointer-events:none;color:#2d291f;text-shadow:0 1px 10px #fff5e5;}
+.cinematic-location{position:absolute;top:97px;left:max(24px,calc((100% - 712px)/2));right:max(24px,calc((100% - 712px)/2));pointer-events:none;color:#2d291f;text-shadow:0 1px 10px #fff5e5;}
 .cinematic-location h1{font-size:31px;font-weight:650;line-height:1.4;letter-spacing:.005em;margin:0;max-width:310px;text-wrap:balance}
 .cinematic-location p{font-size:14px;color:#776a51;margin:9px 0 0}
 .cinematic-enter{position:absolute;top:38%;height:33%;left:0;right:0;width:100%;background:transparent;border:0;color:#544734;touch-action:none}
@@ -102,11 +102,11 @@
 .cinematic-loading{position:absolute;top:45%;left:20px;right:20px;text-align:center;font-size:14px;color:#675943;pointer-events:none}
 .cinematic-demo-label{position:absolute;left:24px;bottom:262px;font-size:10px;color:#fff9e9;text-shadow:0 1px 5px #38291e;pointer-events:none}
 .is-night .cinematic-demo-label{bottom:337px;}
-.cinematic-night-title{position:absolute;left:max(24px,calc((100vw - 712px)/2));right:24px;top:94px;pointer-events:none;color:#fff6e9}
+.cinematic-night-title{position:absolute;left:max(24px,calc((100% - 712px)/2));right:24px;top:94px;pointer-events:none;color:#fff6e9}
 .cinematic-night-title h1{margin:0;font:700 31px/1.4 'Songti SC','SimSun',serif;letter-spacing:.015em}
 .cinematic-night-title p{font:400 13px/1.5 'Songti SC','SimSun',serif;color:#e4d7c9;margin:6px 0 8px}
 .cinematic-night-title>span{font:400 21px/1.4 'Wanwei Handwriting',sans-serif;letter-spacing:.02em;color:#ffe2bd}
-.atlas-star-field{position:absolute;top:219px;left:max(17px,calc((100vw - 640px)/2));right:max(17px,calc((100vw - 640px)/2));height:300px;pointer-events:none}
+.atlas-star-field{position:absolute;top:219px;left:max(17px,calc((100% - 640px)/2));right:max(17px,calc((100% - 640px)/2));height:300px;pointer-events:none}
 .atlas-song-stars{position:absolute;inset:0;overflow:auto;pointer-events:auto;scrollbar-width:none;touch-action:pan-y;overscroll-behavior:contain}
 .atlas-song-stars::-webkit-scrollbar{display:none}
 .atlas-star-space{position:relative;width:100%;pointer-events:none}
@@ -158,13 +158,7 @@
 .atlas-map-fallback p{position:absolute;bottom:0;margin:7px;font-size:11px}
 .saved-playlists{max-width:760px;margin:auto}.saved-playlists h1{font-size:32px}.saved-playlists .journal-title-row{margin-top:25px}.saved-playlists .journal-title-row>span{font-size:11px;color:#829689}.saved-playlist-grid{display:grid;gap:13px;margin-top:30px}.saved-playlist-card{display:flex;align-items:center;gap:16px;background:#f5f4eb;border:1px solid #d5ddd0;border-radius:16px;padding:18px;color:#3d5649}.saved-playlist-card>div{flex:1}.saved-playlist-card h2{font:500 16px Inter,"Microsoft YaHei",sans-serif;margin:0}.saved-playlist-card p{font-size:11px;color:#7c8d81}.saved-playlist-card small{font-size:9px;color:#91a294}.playlist-record{display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:repeating-radial-gradient(#3c4b47 0 2px,#293633 3px 4px);color:#e5cdb0;font-size:31px;flex:none;border:1px solid #82958a66;box-shadow:0 7px 14px #1b352329}.saved-playlist-detail{margin-top:25px}.saved-playlist-detail header{display:flex;align-items:center;flex-direction:column;margin:20px 0 35px}.saved-playlist-detail header .playlist-record{width:110px;height:110px;font-size:50px;margin:18px}.saved-playlist-detail header h2{font:500 24px Inter,"Microsoft YaHei",sans-serif}.saved-playlist-detail header p{font-size:11px;color:#869185}.saved-playlist-detail header>span:last-child{font-size:11px;color:#8b9e8d}.saved-playlists .concert-song-list{max-height:none;margin-bottom:28px;color:#435d4d}.saved-playlists .concert-song-list button{padding:16px 0;border-top-color:#a9b8a633}.saved-playlists .concert-song-list strong{font:400 14px Inter,"Microsoft YaHei",sans-serif}.saved-playlists .concert-song-list small{color:#889d8b}.empty-playlists{margin:35px 0;font-size:14px;line-height:1.9}.memory-playlist-link{display:inline-block;margin:0 0 24px;font-size:12px;color:#6e896d}
 
-@media(min-width:800px){
-  .atlas-scene-toolbar,.cinematic-location,.cinematic-night-title{left:calc(50% - 330px);right:calc(50% - 330px)}
-  .cinematic-location h1{max-width:450px;font-size:36px}
-  .atlas-star-field{left:calc(50% - 300px);right:auto;width:600px;height:300px}
-  .atlas-night-panel{max-width:620px;left:calc(50% - 310px);right:auto;width:620px}
-  .atlas-panel{padding-left:28px;padding-right:28px}
-}
+/* Overlay positions follow the H5 container, including inside a wide browser. */
 @media(max-height:720px){
   .atlas-searchbar{padding-top:14px;padding-bottom:11px}
   .atlas-wordmark{margin-bottom:11px}.atlas-wordmark>div>span{font-size:24px}.atlas-wordmark small{font-size:16px}
@@ -248,7 +242,7 @@
 .atlas-night-panel .concert-collect{margin:6px 0 2px}
 .atlas-night-actions summary{padding:4px 0}
 .atlas-night-actions{margin-top:2px}
-.atlas-star-field{height:min(340px,calc(100dvh - 64px - var(--concert-sheet-height,226px) - 231px))}
+.atlas-star-field{height:min(340px,calc(100% - var(--atlas-nav-height) - var(--concert-sheet-height,226px) - 231px))}
 
 
 .cinematic-enter>span{font-size:11px;bottom:-14px;opacity:.88}
@@ -272,7 +266,7 @@
 @keyframes concert-spin{to{transform:rotate(360deg)}}
 @keyframes concert-star-breathe{50%{opacity:.65;filter:drop-shadow(0 0 10px #ffe4ae)}}
 @media(prefers-reduced-motion:reduce){.atlas-song-star.is-playing svg,.concert-loading{animation:none}}
-@media(max-height:720px){.cinematic-enter>span{bottom:0}.concert-player{padding:3px 0 6px}.atlas-star-field{height:calc(100dvh - 64px - var(--concert-sheet-height,226px) - 189px)}}
+@media(max-height:720px){.cinematic-enter>span{bottom:0}.concert-player{padding:3px 0 6px}.atlas-star-field{height:calc(100% - var(--atlas-nav-height) - var(--concert-sheet-height,226px) - 189px)}}
 
 .cinematic-stage{touch-action:auto}
 .cinematic-gesture-surface{position:absolute;inset:0;touch-action:none}

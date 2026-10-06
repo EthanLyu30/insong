@@ -147,7 +147,7 @@
 .atlas-map .atlas-panel header .atlas-follow-button[aria-pressed=true]{background:#f1eddf;color:#516943;border-color:#b7c4a6}
 .atlas-page.atlas-map .atlas-map-controls{right:17px;bottom:calc(var(--atlas-sheet-height,285px) + 82px)}
 .atlas-map .atlas-map-controls button{width:40px;height:40px;background:#fefdf9ed}
-.atlas-map .atlas-panel{left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom));padding:13px 20px 11px;border-radius:24px 24px 0 0;background:#faf7f0f2}
+.atlas-map .atlas-panel{left:0;right:0;bottom:var(--atlas-nav-height);padding:13px 20px 11px;border-radius:24px 24px 0 0;background:#faf7f0f2}
 .atlas-map .atlas-itinerary::before{content:'';display:block;width:36px;height:4px;margin:0 auto 12px;border-radius:3px;background:#c5b7a4}
 .atlas-map .atlas-itinerary h2{font:500 22px/1.4 'Noto Serif SC','Songti SC',serif;color:#514431}
 .atlas-map .atlas-itinerary .atlas-schedule-list{max-height:130px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
