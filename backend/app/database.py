@@ -13,6 +13,7 @@ from .sample_media import refresh_generated_covers, seed_sample_galleries
 from .event_snapshots import capture_event, snapshot_json
 from .event_record_samples import seed_event_record_samples
 from . import footprints
+from .settings import validate_schema
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
 
@@ -39,6 +40,41 @@ def create_sqlite_engine(database_url: str) -> Engine:
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
+    return engine
+
+
+def create_database_engine(database_url: str, schema: str = 'insong') -> Engine:
+    """Connect to a supported database without falling back after errors."""
+    try:
+        url = make_url(database_url)
+        if url.drivername == 'postgres':
+            url = url.set(drivername='postgresql')
+        backend = url.get_backend_name()
+    except Exception:
+        raise ValueError('数据库连接配置无效。') from None
+    if backend == 'sqlite':
+        return create_sqlite_engine(database_url)
+    if backend != 'postgresql':
+        raise ValueError('数据库只支持 SQLite 或 PostgreSQL。')
+    schema = validate_schema(schema)
+    engine = create_engine(url.set(drivername='postgresql+psycopg'), pool_pre_ping=True,
+                           pool_size=2, max_overflow=1, pool_timeout=10,
+                           connect_args={'connect_timeout': 10})
+
+    @event.listens_for(engine, 'connect')
+    def set_private_schema(dbapi_connection, connection_record):
+        # SET must survive SQLAlchemy's rollback on a newly pooled connection.
+        previous = dbapi_connection.autocommit
+        dbapi_connection.autocommit = True
+        try:
+            with dbapi_connection.cursor() as cursor:
+                cursor.execute(f'SET search_path TO "{schema}"')
+        finally:
+            dbapi_connection.autocommit = previous
+
+    with engine.begin() as connection:
+        connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema}"'))
+    engine.dialect.default_schema_name = schema
     return engine
 
 

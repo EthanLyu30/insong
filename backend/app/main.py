@@ -19,7 +19,8 @@ from .auth import (
     resolve_user,
     revoke_session,
 )
-from .database import DEFAULT_DB_PATH, create_sqlite_engine, initialize_database
+from .database import create_database_engine, initialize_database
+from .settings import load_settings
 from .models import MemoryCard, Song, User
 from .accounts import install_accounts
 from .memories import install_memories, serialize_memory
@@ -45,11 +46,12 @@ def serialize_user(user: User | None) -> dict:
 
 
 def create_app(database_url: str | None = None) -> FastAPI:
-    db_url = database_url or f"sqlite:///{DEFAULT_DB_PATH}"
+    settings = load_settings()
+    db_url = database_url or settings.database_url
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        engine = create_sqlite_engine(db_url)
+        engine = create_database_engine(db_url, settings.database_schema)
         try:
             initialize_database(engine)
             app.state.session_factory = sessionmaker(engine, expire_on_commit=False)
@@ -58,6 +60,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             engine.dispose()
 
     app = FastAPI(title="歌里有我 Demo", lifespan=lifespan)
+    app.state.settings = settings
     @app.middleware('http')
     async def private_responses(request, call_next):
         origin = request.headers.get('origin')
