@@ -22,9 +22,10 @@ async function harness(path,respond,work,fixtures={}){
   window.HTMLMediaElement.prototype.load=function(){};
   const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter,useNavigate,useLocation}=await import('react-router');
   let navigate,current;function Probe(){navigate=useNavigate();current=useLocation();return null;}
-  const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
+  const server=await createServer({define:fixtures.apiBase?{'import.meta.env.VITE_API_BASE_URL':JSON.stringify(fixtures.apiBase)}:{},server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');const prior=globalThis.fetch;
   globalThis.fetch=async(url,options={})=>{
+    if(fixtures.apiBase&&url.startsWith(fixtures.apiBase))url=url.slice(fixtures.apiBase.length);
     if(url==='/api/me')return Response.json({user:fixtures.identity?fixtures.identity():fixtures.guest?null:{id:3,display_name:'我',is_demo:false}});
     if(url==='/api/themes')return fixtures.themesError?Response.json({detail:'主题服务不可用'},{status:503}):Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
@@ -1129,6 +1130,114 @@ test('saving a local draft does not populate a later direct new memory',async()=
     assert.equal(document.querySelector('#memory-story').value,'');
     assert.ok(!document.querySelector('.composer-song-trigger strong'));
     assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'草稿中的正文仍在。');
+  });
+});
+
+test('empty and whitespace-only composers cannot save a draft or replace an older draft',async()=>{
+  const older={version:1,title:'昨天的草稿',story:'需要保留的内容。',song};
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill})=>{
+    const raw=window.localStorage.getItem('memory-draft:3');
+    assert.equal(document.querySelector('.composer-draft').disabled,true);
+    await fill('memory-title','   ');await fill('memory-story',' \n ');
+    assert.equal(document.querySelector('.composer-draft').disabled,true);
+    await act(async()=>document.querySelector('.composer-draft').click());
+    assert.equal(window.localStorage.getItem('memory-draft:3'),raw);
+    await act(async()=>[...document.querySelectorAll('.composer-setting-rows button')].find(button=>button.textContent.includes('可见范围')).click());
+    await act(async()=>[...document.querySelectorAll('.composer-sheet-options button')].find(button=>button.textContent.includes('公开可见')).click());
+    assert.equal(document.querySelector('.composer-draft').disabled,true,'visibility alone is not draft content');
+    await fill('memory-title','明天继续写');
+    assert.equal(document.querySelector('.composer-draft').disabled,false,'a title alone is enough to begin a draft');
+    await act(async()=>document.querySelector('.composer-draft').click());
+    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).title,'明天继续写');
+    await fill('memory-title','');
+    assert.equal(document.querySelector('.composer-draft').disabled,true);
+    assert.equal(document.querySelector('.composer-draft').textContent,'存草稿','saved status must not misrepresent later edits');
+  },{localDraft:older});
+});
+
+test('creation header opens an empty draft box without navigating or losing the current writing',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill,location})=>{
+    const entry=document.querySelector('.composer-heading .composer-draft-box');assert.ok(entry);
+    assert.equal(entry.textContent,'草稿箱');
+    await fill('memory-story','正在写，还没存。');
+    await act(async()=>{entry.focus();entry.click();});
+    assert.equal(document.querySelector('[role="dialog"]').getAttribute('aria-label'),'草稿箱');
+    assert.match(document.querySelector('.composer-draft-empty').textContent,/暂无草稿/);
+    assert.equal(document.body.style.overflow,'hidden');
+    assert.equal(location().pathname,'/create');
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true})));
+    assert.ok(!document.querySelector('[role="dialog"]'));
+    assert.equal(document.querySelector('#memory-story').value,'正在写，还没存。');
+    assert.ok(document.activeElement===entry,'closing returns focus to the draft box entry');
+    assert.equal(window.localStorage.getItem('memory-draft:3'),null);
+  });
+});
+
+test('a song preselected by a creation link cannot turn blank writing into a savable draft',async()=>{
+  await harness('/songs/1/write',async url=>{throw new Error(url);},async({act,fill})=>{
+    const raw=window.localStorage.getItem('memory-draft:3');
+    await fill('memory-title',' ');await fill('memory-story',' \n ');
+    assert.equal(document.querySelector('.composer-draft').disabled,true);
+    await act(async()=>document.querySelector('.composer-draft').click());
+    assert.equal(window.localStorage.getItem('memory-draft:3'),raw);
+  },{localDraft:{version:1,story:'另一份非空草稿。',song}});
+});
+
+test('draft box explicitly restores photos music and privacy without publishing or deleting the draft',async()=>{
+  const draft={version:1,title:'未完成的一晚',story:'散场后的两张照片。',song,photos,cover:'b',locationName:'深圳',lifeTime:'2026-10-02',visibility:'public',anonymous:false};
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill})=>{
+    const raw=window.localStorage.getItem('memory-draft:3');
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    assert.match(document.querySelector('.composer-draft-preview').textContent,/未完成的一晚/);
+    await act(async()=>document.querySelector('.composer-draft-resume').click());
+    assert.ok(!document.querySelector('[role="dialog"]'));
+    assert.equal(document.querySelector('#memory-title').value,draft.title);
+    assert.equal(document.querySelector('#memory-story').value,draft.story);
+    assert.equal(document.querySelectorAll('.gallery-edit-grid>div').length,2);
+    assert.equal(document.querySelector('.composer-song-trigger strong').textContent,song.title);
+    assert.match(document.querySelector('.composer-setting-rows').textContent,/公开可见/);
+    assert.equal(window.localStorage.getItem('memory-draft:3'),raw);
+    await fill('memory-story','继续编辑，还未保存。');
+    assert.equal(document.querySelector('.composer-draft').textContent,'存草稿');
+  },{localDraft:draft});
+});
+
+test('opening a stored draft asks before replacing different unsaved writing',async()=>{
+  const draft={version:1,title:'旧稿',story:'已存内容。',song};
+  await harness('/create',async url=>{throw new Error(url);},async({act,fill})=>{
+    await fill('memory-story','当前尚未保存的内容。');
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    await act(async()=>document.querySelector('.composer-draft-resume').click());
+    assert.ok(document.querySelector('.composer-draft-confirm'));
+    assert.equal(document.querySelector('#memory-story').value,'当前尚未保存的内容。');
+    await act(async()=>document.querySelector('.composer-draft-cancel').click());
+    assert.equal(document.querySelector('#memory-story').value,'当前尚未保存的内容。');
+    await act(async()=>document.querySelector('.composer-draft-resume').click());
+    await act(async()=>document.querySelector('.composer-draft-replace').click());
+    assert.equal(document.querySelector('#memory-story').value,draft.story);
+    assert.ok(!document.querySelector('[role="dialog"]'));
+  },{localDraft:draft});
+});
+
+test('draft box photo preview uses the configured backend photo address',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act})=>{
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    assert.equal(document.querySelector('.composer-draft-preview>img').getAttribute('src'),'https://api.example.test/api/photos/b');
+  },{apiBase:'https://api.example.test',localDraft:{version:1,story:'照片草稿。',photos,cover:'b'}});
+});
+
+test('legacy empty drafts are excluded while photo-only drafts can be resumed and saved',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act})=>{
+    window.localStorage.setItem('memory-draft:3',JSON.stringify({version:1,story:'   ',visibility:'public',photos:[],song:null}));
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    assert.ok(document.querySelector('.composer-draft-empty'));
+    await act(async()=>document.querySelector('.composer-sheet header button').click());
+    window.localStorage.setItem('memory-draft:3',JSON.stringify({version:1,story:'',photos,cover:'b',song:null}));
+    await act(async()=>document.querySelector('.composer-draft-box').click());
+    await act(async()=>document.querySelector('.composer-draft-resume').click());
+    assert.equal(document.querySelector('.composer-draft').disabled,false);
+    await act(async()=>document.querySelector('.composer-draft').click());
+    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).photos.length,2);
   });
 });
 

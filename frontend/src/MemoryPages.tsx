@@ -10,7 +10,7 @@ import { LyricPicker } from './LyricPicker';
 import { PublicStoryList } from './PublicPages';
 import {StoryCard} from './StoryCard';
 import { GalleryPicker } from './PhotoGallery';
-import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
+import { cardCover, cardPhotos, parseTags, photoSource, songCover } from './cardMedia';
 import { Plus, X, MagnifyingGlass, MapPin, CalendarBlank, LockSimple, CaretRight, Hash, At } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
@@ -116,6 +116,11 @@ function validDraftSong(value:unknown) {
     &&(song.lyrics===undefined||(Array.isArray(song.lyrics)&&song.lyrics.every(line=>line&&typeof line==='object'&&typeof line.id==='string'&&typeof line.text==='string'&&typeof line.start_ms==='number'&&Number.isFinite(line.start_ms)&&line.start_ms>=0)));
 }
 
+function hasDraftContent(data:Record<string,unknown>) {
+  return ['title','story','tagText','lifeTime','lifeYear','locationName'].some(key=>typeof data[key]==='string'&&data[key].trim())
+    ||Array.isArray(data.photos)&&data.photos.length>0;
+}
+
 function readLocalMemoryDraft(userId:number) {
   try {
     const serialized=window.localStorage.getItem(`memory-draft:${userId}`);
@@ -124,6 +129,7 @@ function readLocalMemoryDraft(userId:number) {
     if(!data||typeof data!=='object'||Array.isArray(data)||data.version!==1||typeof data.story!=='string')return null;
     if(data.song!=null&&!validDraftSong(data.song))return null;
     if(data.photos!==undefined&&(!Array.isArray(data.photos)||data.photos.some((photo:Photo|null)=>!photo||typeof photo.id!=='string'||typeof photo.url!=='string')))return null;
+    if(!hasDraftContent(data))return null;
     return {serialized,data};
   } catch { return null; }
 }
@@ -217,16 +223,18 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const [lifeYear,setLifeYear] = useState(existing?.life_year?.toString() ?? '');
   const [locationName,setLocationName]=useState(existing?.location_name??'');
   const [locationQuery,setLocationQuery]=useState('');
-  const [sheet,setSheet]=useState<'place'|'time'|'visibility'|null>(null);
+  const [sheet,setSheet]=useState<'place'|'time'|'visibility'|'drafts'|null>(null);
+  const [boxedDraft,setBoxedDraft]=useState<ReturnType<typeof readLocalMemoryDraft>>(null);
+  const [confirmDraft,setConfirmDraft]=useState(false);
   const sheetPanel=useRef<HTMLDivElement>(null),sheetOrigin=useRef<HTMLElement|null>(null);
   function openSheet(value:'place'|'time'|'visibility'){sheetOrigin.current=document.activeElement as HTMLElement|null;setSheet(value);}
-  const [draftSaved,setDraftSaved]=useState(false);
+  const [savedDraftSnapshot,setSavedDraftSnapshot]=useState<string|null>(null);
   const ownedLocalDraft=useRef<string|null>(null);
   const storyInput=useRef<HTMLTextAreaElement>(null);
   const [markedDate,setMarkedDate]=useState(/^\d{4}-\d{2}-\d{2}/.exec(existing?.life_time??'')?.[0]??'');
   const initialLine = initialSong?.lyrics?.find(line=>line.id===(existing?existing.lyric_id:initialLyric));
   const [lyricId,setLyricId] = useState<string|null>(initialLine?.id ?? null);
-  const themeId = existing ? existing.theme_id ?? null : initialTheme;
+  const [themeId,setThemeId] = useState(existing ? existing.theme_id ?? null : initialTheme);
   const [position, setPosition] = useState<number | null>(initialLine?.start_ms ?? (existing ? existing.offset_ms : initialPosition));
   const [timeText, setTimeText] = useState(position === null ? '' : formatPosition(position));
   const [endText,setEndText] = useState(existing?.end_ms!=null?formatPosition(existing.end_ms):initialEnd&&Number.isFinite(Number(initialEnd))?formatPosition(Number(initialEnd)):'');
@@ -254,26 +262,9 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       if(!draft){if(resumeLocalDraft)setError('未找到可读取的草稿，你可以新建记忆。');return;}
       if(draft.version!==1)return;
       if(saved)ownedLocalDraft.current=saved.serialized;
-      if(typeof draft.story==='string')setStory(draft.story);
-      if(typeof draft.title==='string')setTitle(draft.title);
-      if(typeof draft.tagText==='string')setTagText(draft.tagText);
-      if(typeof draft.lifeTime==='string')setLifeTime(draft.lifeTime);
-      if(typeof draft.lifeYear==='string')setLifeYear(draft.lifeYear);
-      if(typeof draft.locationName==='string')setLocationName(draft.locationName);
-      if(typeof draft.markedDate==='string')setMarkedDate(draft.markedDate);
-      if(draft.song&&Number.isInteger(draft.song.id))setSong(draft.song);
-      if(Array.isArray(draft.photos))setPhotos(draft.photos);
-      if(typeof draft.cover==='string'||draft.cover===null)setCover(draft.cover);
-      if(typeof draft.position==='number'||draft.position===null)setPosition(draft.position);
-      if(typeof draft.timeText==='string')setTimeText(draft.timeText);
-      if(typeof draft.endText==='string')setEndText(draft.endText);
-      if(typeof draft.lyricId==='string'||draft.lyricId===null)setLyricId(draft.lyricId);
-      if(draft.visibility==='public'||draft.visibility==='private')setVisibility(draft.visibility);
-      if(typeof draft.eventId==='string'||draft.eventId===null)setEventId(draft.eventId);
-      if(typeof draft.anonymous==='boolean')setAnonymous(draft.anonymous);
-      if(typeof draft.shareLife==='boolean')setShareLife(draft.shareLife);
+      const restored=restoreDraft(draft);
       if(typeof draft.ownedLocalDraft==='string')ownedLocalDraft.current=draft.ownedLocalDraft;
-      setDraftSaved(Boolean(ownedLocalDraft.current));
+      if(ownedLocalDraft.current)try{setSavedDraftSnapshot(JSON.stringify(normalizeDraft(JSON.parse(ownedLocalDraft.current))));}catch{setSavedDraftSnapshot(JSON.stringify(restored));}
     } catch { /* A corrupt local draft must never prevent a new memory. */ }
   },[]);
   function insertToken(value:string){
@@ -281,8 +272,36 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const next=insertAtCursor(story,value,start,end);setStory(next.text);
     window.setTimeout(()=>{input?.focus();input?.setSelectionRange(next.cursor,next.cursor);},0);
   }
-  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,photos,cover,position,timeText,endText,lyricId,visibility,eventId,anonymous,shareLife};}
-  function saveDraft(){if(!user)return;try{const serialized=JSON.stringify(draftPayload());window.localStorage.setItem(`memory-draft:${user.id}`,serialized);ownedLocalDraft.current=serialized;setDraftSaved(true);setError('');}catch{setError('浏览器无法保存本地草稿，请先不要关闭此页面。');}}
+  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,photos,cover,position,timeText,endText,lyricId,visibility,eventId,themeId,anonymous,shareLife};}
+  function normalizeDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
+    return {version:1,story:typeof draft.story==='string'?draft.story:'',title:typeof draft.title==='string'?draft.title:'',tagText:typeof draft.tagText==='string'?draft.tagText:'',
+      lifeTime:typeof draft.lifeTime==='string'?draft.lifeTime:'',lifeYear:typeof draft.lifeYear==='string'?draft.lifeYear:'',locationName:typeof draft.locationName==='string'?draft.locationName:'',markedDate:typeof draft.markedDate==='string'?draft.markedDate:'',
+      song:validDraftSong(draft.song)?draft.song!:null,photos:Array.isArray(draft.photos)?draft.photos:[],cover:typeof draft.cover==='string'?draft.cover:null,
+      position:typeof draft.position==='number'?draft.position:null,timeText:typeof draft.timeText==='string'?draft.timeText:'',endText:typeof draft.endText==='string'?draft.endText:'',lyricId:typeof draft.lyricId==='string'?draft.lyricId:null,
+      visibility:draft.visibility==='public'?'public':'private',eventId:typeof draft.eventId==='string'?draft.eventId:null,themeId:typeof draft.themeId==='string'?draft.themeId:null,anonymous:draft.anonymous!==false,shareLife:draft.shareLife===true};
+  }
+  function restoreDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
+    const value=normalizeDraft(draft);
+    setStory(value.story);setTitle(value.title);setTagText(value.tagText);setLifeTime(value.lifeTime);setLifeYear(value.lifeYear);setLocationName(value.locationName);setMarkedDate(value.markedDate);
+    setSong(value.song);setPhotos(value.photos);setCover(value.cover);setPosition(value.position);setTimeText(value.timeText);setEndText(value.endText);setLyricId(value.lyricId);
+    setVisibility(value.visibility);setEventId(value.eventId);setThemeId(value.themeId);setAnonymous(value.anonymous);setShareLife(value.shareLife);
+    return value;
+  }
+  const canSaveDraft=hasDraftContent(draftPayload());
+  const draftSaved=savedDraftSnapshot===JSON.stringify(draftPayload());
+  function saveDraft(){if(!user||!canSaveDraft||busy||uploading)return;try{const serialized=JSON.stringify(draftPayload());window.localStorage.setItem(`memory-draft:${user.id}`,serialized);ownedLocalDraft.current=serialized;setSavedDraftSnapshot(serialized);setError('');}catch{setError('浏览器无法保存本地草稿，请先不要关闭此页面。');}}
+  function openDraftBox(){
+    if(!user||busy||uploading)return;
+    sheetOrigin.current=document.activeElement as HTMLElement|null;
+    setBoxedDraft(readLocalMemoryDraft(user.id));setConfirmDraft(false);setSheet('drafts');
+  }
+  function resumeBoxedDraft(confirmed=false){
+    if(!boxedDraft||!user)return;
+    const same=JSON.stringify(draftPayload())===JSON.stringify(normalizeDraft(boxedDraft.data));
+    if(!confirmed&&canSaveDraft&&!same){setConfirmDraft(true);return;}
+    const restored=restoreDraft(boxedDraft.data);
+    ownedLocalDraft.current=boxedDraft.serialized;setSavedDraftSnapshot(JSON.stringify(restored));setError('');setSheet(null);
+  }
   function openSongSearch(){
     if(!user)return;
     const returnPath=location.pathname+location.search;
@@ -327,7 +346,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     finally {lock.current = false;if(live.current)setBusy(false);}
   }
   return <section className={`journal-page memory-composer ${existing?'is-edit':'is-new'}`}>
-    <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'新建记忆'}</h1>{existing&&<span>{visibility==='public'?'公开可见':'私密'}</span>}</header>
+    <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'新建记忆'}</h1>{existing?<span>{visibility==='public'?'公开可见':'私密'}</span>:<button type="button" className="composer-draft-box" disabled={busy||uploading} onClick={openDraftBox}>草稿箱</button>}</header>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
       {eventId&&<div className="composer-event-context"><EventNote key={eventId} id={eventId} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>setEventId(null)}><X size={16} aria-hidden="true"/></button></div>}
@@ -344,10 +363,17 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       {existing&&<div className="music-range"><div className="range-title"><strong>音乐片段</strong><button className="text-button" type="button" onClick={()=>{setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}>用整首歌</button></div><div className="range-inputs"><label>起点<input aria-label="音乐里的位置" value={timeText} onChange={e=>{setTimeText(e.target.value);setLyricId(null);}} placeholder="00:00" disabled={!song.audio_available}/></label><span aria-hidden="true">—</span><label>终点<input aria-label="播放区间终点" value={endText} onChange={e=>setEndText(e.target.value)} placeholder={formatPosition(song.duration_ms)} disabled={!song.audio_available}/></label></div><small>填写起止时间，查看记忆时播放这一段。</small></div>}
       </div></details>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <div className="composer-save">{!existing&&<button type="button" className="composer-draft" onClick={saveDraft}>{draftSaved?'已存草稿':'存草稿'}</button>}<button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '保存中…' : uploading?'上传中…':existing ? visibility==='public'?'保存':'保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
+      <div className="composer-save">{!existing&&<button type="button" className="composer-draft" disabled={!canSaveDraft||busy||uploading} onClick={saveDraft}>{draftSaved?'已存草稿':'存草稿'}</button>}<button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || !song}>{busy ? '保存中…' : uploading?'上传中…':existing ? visibility==='public'?'保存':'保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
       </fieldset>
     </form>
-    {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div ref={sheetPanel} className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':'谁可以看到这段记忆'}</h2></header>{sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');setMarkedDate(date);setLifeYear(year);setLifeTime(date);setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
+    {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div ref={sheetPanel} className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':'谁可以看到这段记忆'}</h2></header>{sheet==='drafts'?<div className="composer-draft-list">
+      {boxedDraft?confirmDraft?<div className="composer-draft-confirm"><p>读取这份草稿会替换当前内容。</p><div><button type="button" className="soft-button composer-draft-cancel" onClick={()=>setConfirmDraft(false)}>取消</button><button type="button" className="primary-button composer-draft-replace" onClick={()=>resumeBoxedDraft(true)}>读取草稿</button></div></div>:<>
+        <div className="composer-draft-preview">
+          {boxedDraft.data.photos?.length>0&&<img src={photoSource((boxedDraft.data.photos.find((photo:Photo)=>photo.id===boxedDraft.data.cover)??boxedDraft.data.photos[0]).url)} alt="草稿照片"/>}
+          <div><h3>{typeof boxedDraft.data.title==='string'&&boxedDraft.data.title.trim()||boxedDraft.data.song?.title||'未命名草稿'}</h3>{boxedDraft.data.story.trim()&&<p>{boxedDraft.data.story}</p>}{boxedDraft.data.photos?.length>0&&<small>{boxedDraft.data.photos.length} 张照片</small>}</div>
+        </div><button type="button" className="primary-button composer-draft-resume" onClick={()=>resumeBoxedDraft()}>继续编辑</button>
+      </>:<p className="composer-draft-empty">暂无草稿</p>}
+    </div>:sheet==='place'?<PlacePicker query={locationQuery} onQuery={setLocationQuery} selected={locationName} eventId={eventId} onSelect={value=>{setLocationName(value);setSheet(null);}}/>:sheet==='time'?<div className="composer-time-sheet"><p>选择这段记忆发生的时间</p><div className="composer-date-parts" role="group" aria-label="日期">{(['年','月','日'] as const).map((unit,index)=><label key={unit}><input aria-label={unit} inputMode="numeric" maxLength={index===0?4:2} value={markedDate.split('-')[index]??''} placeholder={unit} onChange={event=>{const parts=markedDate.split('-');while(parts.length<3)parts.push('');parts[index]=event.target.value.replace(/\D/g,'');setMarkedDate(parts.join('-'));}}/><span>{unit}</span></label>)}</div><button type="button" className="primary-button" disabled={!/^\d{4}-\d{1,2}-\d{1,2}$/.test(markedDate)} onClick={()=>{const [year,month,day]=markedDate.split('-');const date=`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;const checked=new Date(`${date}T12:00:00`);if(Number.isNaN(checked.getTime())||checked.getFullYear()!==Number(year)||checked.getMonth()+1!==Number(month)||checked.getDate()!==Number(day)){setError('日期不正确，请重新填写。');return;}setError('');setMarkedDate(date);setLifeYear(year);setLifeTime(date);setSheet(null);}}>完成</button></div>:<div className="composer-sheet-options"><button type="button" onClick={()=>{setVisibility('public');setSheet(null);}}><LockSimple size={18}/>公开可见<span>{visibility==='public'?'✓':'○'}</span></button><button type="button" onClick={()=>{setVisibility('private');setSheet(null);}}><LockSimple size={18}/>仅自己可见<span>{visibility==='private'?'✓':'○'}</span></button></div>}</div></div>}
   </section>;
 }
 
