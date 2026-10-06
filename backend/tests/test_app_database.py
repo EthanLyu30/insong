@@ -49,7 +49,7 @@ def test_fresh_database_directory_and_restart(tmp_path):
         with second_app.state.session_factory() as db:
             assert db.scalar(select(func.count()).select_from(User)) == 2
             assert db.scalar(select(func.count()).select_from(Song)) == 10
-            assert db.scalar(select(func.count()).select_from(MemoryCard)) == 10
+            assert db.scalar(select(func.count()).select_from(MemoryCard)) == 16
 
 
 @pytest.mark.parametrize("song_id", ["9223372036854775808", "-9223372036854775809"])

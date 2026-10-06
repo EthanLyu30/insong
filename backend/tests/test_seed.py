@@ -25,7 +25,7 @@ def test_seed_counts_and_labels(tmp_path):
         assert all(song.audio_available is False and song.is_demo is True for song in songs[:5])
         assert all(song.audio_available is False and song.is_demo is False for song in songs[5:])
         assert len(cards) >= 5
-        assert all(card.visibility == "private" and card.publication.published for card in cards)
+        assert all(card.visibility == "private" and (card.publication is None or card.publication.published) for card in cards)
         assert all(card.is_demo_sample is True for card in cards)
         assert all(10 <= len(card.story) <= 500 for card in cards)
         assert all(len(card.tag_links) <= 3 for card in cards)
@@ -45,7 +45,7 @@ def test_seed_is_idempotent_and_does_not_resurrect(tmp_path):
     with OrmSession(engine) as db:
         assert db.scalar(select(func.count()).select_from(User)) == 2
         assert db.scalar(select(func.count()).select_from(Song)) == 10
-        assert db.scalar(select(func.count()).select_from(MemoryCard)) == 10
+        assert db.scalar(select(func.count()).select_from(MemoryCard)) == 16
         card_1 = db.get(MemoryCard, 1)
         card_1.visibility = "private"
         db.delete(db.get(MemoryCard, 2))
@@ -55,7 +55,7 @@ def test_seed_is_idempotent_and_does_not_resurrect(tmp_path):
     with OrmSession(engine) as db:
         assert db.get(MemoryCard, 1).visibility == "private"
         assert db.get(MemoryCard, 2) is None
-        assert db.scalar(select(func.count()).select_from(MemoryCard)) == 9
+        assert db.scalar(select(func.count()).select_from(MemoryCard)) == 15
 
 
 def test_deleting_seed_marker_does_not_reseed_existing_database(tmp_path):

@@ -11,6 +11,7 @@ from .models import Base, MemoryCard, PublicStory
 from .seed import seed_demo_data, seed_fandom_showcase, refresh_showcase_photos, refresh_recent_showcase_photos
 from .sample_media import refresh_generated_covers, seed_sample_galleries
 from .event_snapshots import capture_event, snapshot_json
+from .event_record_samples import seed_event_record_samples
 from . import footprints
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "demo.db"
@@ -92,6 +93,7 @@ def initialize_database(engine: Engine) -> None:
         refresh_recent_showcase_photos(db)
         refresh_generated_covers(db)
         seed_sample_galleries(db)
+        seed_event_record_samples(db)
         # Legacy records get one best-effort snapshot from surviving catalog data.
         # A stored snapshot is never refreshed by startup or catalog updates.
         catalog = footprints.load_catalog()
