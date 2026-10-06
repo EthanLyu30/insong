@@ -3,7 +3,7 @@ import json
 
 from fastapi import Depends, HTTPException, Query
 from pydantic import Field, field_validator
-from sqlalchemy import exists, func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 
 from .content import THEMES, selected_lyric
@@ -15,6 +15,7 @@ from .photos import photo_url
 from .card_metadata import gallery_ids, normalize_tag, serialize_photos
 from .footprints import load_catalog
 from .event_snapshots import event_snapshot
+from .database_compat import json_array_contains
 
 
 class PublishInput(PublicationConsent):
@@ -51,7 +52,7 @@ def serialize_story(public, viewer: User | None = None):
     }
 
 
-def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None, tag=None):
+def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None, tag=None, dialect_name='sqlite'):
     query = select(PublicStory).join(MemoryCard).where(PublicStory.published.is_(True))
     if song_id is not None:
         query = query.where(MemoryCard.song_id == song_id)
@@ -62,8 +63,8 @@ def public_query(song_id=None, theme_id=None, lyric_id=None, event_id=None, tag=
     if event_id is not None:
         query = query.where(PublicStory.event_id == event_id)
     if tag is not None:
-        tags = func.json_each(PublicStory.tags_json).table_valued('value')
-        query = query.where(exists(select(1).select_from(tags).where(tags.c.value == normalize_tag(tag))).correlate(PublicStory))
+        query = query.where(json_array_contains(PublicStory.tags_json, normalize_tag(tag),
+            dialect_name).correlate(PublicStory))
     return query.order_by(PublicStory.published_at.desc(), PublicStory.memory_id.desc())
 
 
@@ -108,12 +109,12 @@ def install_stories(app, get_db, get_user, get_optional_user):
                      theme_id: str | None = None, lyric_id: str | None = None, event_id: str | None = None,
                      tag: str | None = Query(default=None, max_length=25),
                      db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
-        return [serialize_story(public, viewer) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id, tag))]
+        return [serialize_story(public, viewer) for public in db.scalars(public_query(song_id, theme_id, lyric_id, event_id, tag, db.get_bind().dialect.name))]
 
     @app.post('/api/stories/search')
     def search(data: PublicSearch, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
         exact_tag = normalize_tag(data.query) if data.query.startswith('#') else None
-        candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id, exact_tag or data.tag)))
+        candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id, exact_tag or data.tag, db.get_bind().dialect.name)))
         versions = {public.memory_id: public.version for public in candidates}
         # Never pass private originals, reflections, or unshared life metadata to inference.
         catalog = load_catalog()

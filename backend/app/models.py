@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, LargeBinary, String, Text, Integer, UniqueConstraint, func, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, LargeBinary, String, Text, Integer, UniqueConstraint, false, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -14,10 +14,15 @@ class Base(DeclarativeBase):
     pass
 
 
+# Existing interfaces accept signed 64-bit IDs. SQLite needs the exact INTEGER
+# primary-key type for automatic allocation; PostgreSQL needs BIGINT for that range.
+ID_TYPE = BigInteger().with_variant(Integer, 'sqlite')
+
+
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(ID_TYPE, primary_key=True)
     display_name: Mapped[str] = mapped_column(String(80), nullable=False)
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -28,7 +33,7 @@ class User(Base):
 class Song(Base):
     __tablename__ = "songs"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(ID_TYPE, primary_key=True)
     owner_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     artist: Mapped[str] = mapped_column(String(160), nullable=False)
@@ -51,7 +56,7 @@ class MemoryCard(Base):
         UniqueConstraint('owner_id', 'request_key', name='uq_memory_request'),
     )
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(ID_TYPE, primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"), nullable=False)
     story: Mapped[str] = mapped_column(Text, nullable=False)
@@ -77,7 +82,7 @@ class MemoryCard(Base):
         String(10), nullable=False, default="private", server_default=text("'private'")
     )
     is_demo_sample: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default=text("0")
+        Boolean, nullable=False, default=False, server_default=false()
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now,
@@ -125,7 +130,7 @@ class PublicStory(Base):
 class Tag(Base):
     __tablename__ = "tags"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(ID_TYPE, primary_key=True)
     name: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
 
     memory_card_links: Mapped[list["MemoryCardTag"]] = relationship(back_populates="tag")
@@ -167,7 +172,7 @@ class MemoryReceipt(Base):
     """Consumed IDs / request keys survive deletion; no private text is retained."""
     __tablename__ = 'memory_receipts'
     __table_args__ = (UniqueConstraint('owner_id', 'request_key'), {'sqlite_autoincrement': True})
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(ID_TYPE, primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
     request_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
@@ -211,7 +216,7 @@ class EventWish(Base):
 class ConcertPlaylist(Base):
     __tablename__ = 'concert_playlists'
     __table_args__ = (UniqueConstraint('owner_id', 'event_id'),)
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(ID_TYPE, primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False, index=True)
     event_id: Mapped[str] = mapped_column(String(100), nullable=False)
     snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)

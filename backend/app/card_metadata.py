@@ -2,7 +2,7 @@
 import json
 
 from sqlalchemy import select
-from sqlalchemy.dialects.sqlite import insert
+from .database_compat import conflict_insert
 
 from .models import MemoryCardTag, Tag
 
@@ -27,7 +27,7 @@ def memory_tags(card):
 def set_memory_tags(db, card, names):
     with db.no_autoflush:
         for name in names:
-            db.execute(insert(Tag).values(name=name).on_conflict_do_nothing(index_elements=['name']))
+            db.execute(conflict_insert(db, Tag).values(name=name).on_conflict_do_nothing(index_elements=['name']))
         by_name = {tag.name: tag for tag in db.scalars(select(Tag).where(Tag.name.in_(names)))}
         card.tag_links = [MemoryCardTag(tag=by_name[name]) for name in names]
         card.tags_json = json.dumps(names, ensure_ascii=False)

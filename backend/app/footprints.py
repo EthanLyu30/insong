@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import Depends, HTTPException, Response
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 from sqlalchemy import delete, select, update
-from sqlalchemy.dialects.sqlite import insert
+from .database_compat import conflict_insert
 from sqlalchemy.orm import Session as OrmSession
 
 from .models import ArtistFollow, ConcertPlaylist, EventWish, Footprint, User
@@ -162,7 +162,7 @@ def install_footprints(app, get_db, get_user):
         if not event['songs']:
             raise HTTPException(422, '这场还没有曲目，暂时不能收藏。')
         snapshot = build_snapshot(catalog, event)
-        db.execute(insert(ConcertPlaylist).values(owner_id=user.id, event_id=event_id, snapshot_json=json.dumps(snapshot, ensure_ascii=False)).on_conflict_do_nothing(index_elements=['owner_id', 'event_id']))
+        db.execute(conflict_insert(db, ConcertPlaylist).values(owner_id=user.id, event_id=event_id, snapshot_json=json.dumps(snapshot, ensure_ascii=False)).on_conflict_do_nothing(index_elements=['owner_id', 'event_id']))
         db.commit()
         record = db.scalar(select(ConcertPlaylist).where(ConcertPlaylist.owner_id == user.id, ConcertPlaylist.event_id == event_id))
         return serialize_playlist(record, catalog)
@@ -218,7 +218,7 @@ def install_footprints(app, get_db, get_user):
         if not any(artist['id'] == artist_id for artist in load_catalog()['artists']):
             raise HTTPException(422, '找不到这位歌手，请重新选择。')
         if data.followed:
-            db.execute(insert(ArtistFollow).values(owner_id=user.id, artist_id=artist_id).on_conflict_do_nothing())
+            db.execute(conflict_insert(db, ArtistFollow).values(owner_id=user.id, artist_id=artist_id).on_conflict_do_nothing())
         else:
             db.execute(delete(ArtistFollow).where(ArtistFollow.owner_id == user.id, ArtistFollow.artist_id == artist_id))
         db.commit()
@@ -235,7 +235,7 @@ def install_footprints(app, get_db, get_user):
             today = catalog.get('today') or datetime.now(timezone(timedelta(hours=8))).date().isoformat()
             if event.get('event_status') == 'cancelled' or event['date'] < today:
                 raise HTTPException(422, '只能把尚未结束且未取消的场次加入想去。')
-            db.execute(insert(EventWish).values(owner_id=user.id, event_id=event_id).on_conflict_do_nothing())
+            db.execute(conflict_insert(db, EventWish).values(owner_id=user.id, event_id=event_id).on_conflict_do_nothing())
         else:
             db.execute(delete(EventWish).where(EventWish.owner_id == user.id, EventWish.event_id == event_id))
         db.commit()
@@ -249,7 +249,7 @@ def install_footprints(app, get_db, get_user):
     def set_attendance(event_id: str, data: AttendanceInput, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
         validate_event(event_id, past=data.attended)
         if data.attended:
-            db.execute(insert(Footprint).values(owner_id=user.id, event_id=event_id).on_conflict_do_nothing())
+            db.execute(conflict_insert(db, Footprint).values(owner_id=user.id, event_id=event_id).on_conflict_do_nothing())
         else:
             db.execute(delete(Footprint).where(Footprint.owner_id == user.id, Footprint.event_id == event_id))
         db.commit()
