@@ -106,6 +106,40 @@ export function MemoryCollection() {
   return user ? <CollectionContent/> : <LoginGate/>;
 }
 
+function validDraftSong(value:unknown) {
+  if(!value||typeof value!=='object'||Array.isArray(value))return false;
+  const song=value as Record<string,unknown>;
+  return Number.isInteger(song.id)&&Number(song.id)>0&&typeof song.title==='string'&&typeof song.artist==='string'
+    &&['version','source_label','recording_label','cover_url','lyrics_note','qq_music_url','audio_url'].every(key=>song[key]==null||typeof song[key]==='string')
+    &&(song.duration_ms==null||(typeof song.duration_ms==='number'&&Number.isFinite(song.duration_ms)&&song.duration_ms>=0))
+    &&['is_demo','audio_available'].every(key=>song[key]===undefined||typeof song[key]==='boolean')
+    &&(song.lyrics===undefined||(Array.isArray(song.lyrics)&&song.lyrics.every(line=>line&&typeof line==='object'&&typeof line.id==='string'&&typeof line.text==='string'&&typeof line.start_ms==='number'&&Number.isFinite(line.start_ms)&&line.start_ms>=0)));
+}
+
+function readLocalMemoryDraft(userId:number) {
+  try {
+    const serialized=window.localStorage.getItem(`memory-draft:${userId}`);
+    if(!serialized)return null;
+    const data=JSON.parse(serialized);
+    if(!data||typeof data!=='object'||Array.isArray(data)||data.version!==1||typeof data.story!=='string')return null;
+    if(data.song!=null&&!validDraftSong(data.song))return null;
+    if(data.photos!==undefined&&(!Array.isArray(data.photos)||data.photos.some((photo:Photo|null)=>!photo||typeof photo.id!=='string'||typeof photo.url!=='string')))return null;
+    return {serialized,data};
+  } catch { return null; }
+}
+
+function LocalDraftEntry() {
+  const {user}=useSession();
+  const [available,setAvailable]=useState(()=>!!user&&!!readLocalMemoryDraft(user.id));
+  useEffect(()=>{
+    const refresh=()=>setAvailable(!!user&&!!readLocalMemoryDraft(user.id));
+    const changed=(event:StorageEvent)=>{if(event.key===null||event.key===`memory-draft:${user?.id}`)refresh();};
+    refresh();window.addEventListener('storage',changed);window.addEventListener('focus',refresh);
+    return()=>{window.removeEventListener('storage',changed);window.removeEventListener('focus',refresh);};
+  },[user?.id]);
+  return available?<Link className="collection-draft" to="/create?draft=1">草稿</Link>:null;
+}
+
 function CollectionContent() {
   const navigate=useNavigate();
   const location=useLocation();
@@ -143,7 +177,7 @@ function CollectionContent() {
   const filtered=Boolean(songId||experience||category||city||query||timeRange.startYear||timeRange.endYear);
   const songTitle=memories?.find(card=>card.song_id===Number(songId))?.song.title??'指定歌曲';
   return <section className="journal-page collection-page">
-    <div className="journal-title-row collection-title"><div><h1>我的记忆</h1></div><Link className="collection-new" to="/create"><Plus size={16}/>新建记忆</Link></div>
+    <div className="journal-title-row collection-title"><div><h1>我的记忆</h1></div><div className="collection-create-actions"><LocalDraftEntry/><Link className="collection-new" to="/create"><Plus size={16}/>新建记忆</Link></div></div>
     <div className="collection-filters" role="group" aria-label="筛选我的记忆"><ChoicePicker label="按经历标签筛选" value={experience} selectedLabel={tag||category||undefined} onChange={setExperience} options={options} disabled={!memories}/><MemoryTimeFilter value={timeRange} years={years} onChange={setTime} disabled={!memories}/><ChoicePicker label="按城市筛选" value={city} selectedLabel={city||undefined} onChange={setCity} options={[{value:'',label:'全部城市'},...cityOptions.map(value=>({value,label:value}))]} disabled={!memories}/></div>
     <div className="segmented-control timeline-toggle"><button aria-pressed="true" type="button">时间轴</button><button aria-pressed="false" type="button" onClick={()=>navigate(`/footprints?${new URLSearchParams({from:'mine',return:location.pathname+location.search})}`)}>足迹</button></div>
     <div className={`collection-search-surface${searchOpen?' is-open':''}`}>{searchOpen?<><div className="collection-search-panel"><label><MagnifyingGlass size={18}/><input aria-label="搜索我的记忆" autoFocus value={query} onChange={event=>setQuery(event.target.value)} placeholder="搜索记忆、歌曲或歌手" onKeyDown={event=>{if(event.key==='Escape'||event.key==='Enter')setSearchOpen(false);}}/></label><button type="button" onClick={()=>setSearchOpen(false)}>完成</button></div><div className="collection-search-preview" role="status">{visible.length} 条结果</div></>:<button type="button" className="collection-search-trigger" onClick={()=>setSearchOpen(true)}><MagnifyingGlass size={18}/><span>{query||'搜索记忆、歌曲或歌手'}</span></button>}
@@ -171,6 +205,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   const navigate = useNavigate();
   const location=useLocation();
   const navigationAction=useNavigationType();
+  const resumeLocalDraft=location.pathname==='/create'&&new URLSearchParams(location.search).get('draft')==='1';
   const fallback=existing?`/memories/${existing.id}`:initialSong?`/songs/${initialSong.id}${location.search}`:initialEvent?`/footprints?event=${encodeURIComponent(initialEvent)}&scene=sky`:'/memories';
   const {previous,back}=useBackNavigation(fallback);
   const musicOptions=useRef<HTMLDetailsElement>(null);
@@ -212,10 +247,13 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       const routed=location.state?.composerTransition;
       let stored=null;
       if(navigationAction==='POP')try{stored=JSON.parse(window.sessionStorage.getItem(`composer-transition:${user.id}`)??'null');}catch{/* An explicit return still works without browser storage. */}
-      const draft=stored?.originKey===location.key&&stored?.returnPath===returnPath?stored:routed?.returnPath===returnPath?routed:null;
-      if(draft){try {window.sessionStorage.removeItem(`composer-transition:${user.id}`);} catch { /* Route state is enough. */ }}
-      if(!draft)return;
+      const transition=stored?.ownerId===user.id&&stored?.version===1&&stored?.originKey===location.key&&stored?.returnPath===returnPath?stored:routed?.ownerId===user.id&&routed?.version===1&&routed?.returnPath===returnPath?routed:null;
+      const saved=!transition&&resumeLocalDraft?readLocalMemoryDraft(user.id):null;
+      const draft=transition??saved?.data;
+      if(transition){try {window.sessionStorage.removeItem(`composer-transition:${user.id}`);} catch { /* Route state is enough. */ }}
+      if(!draft){if(resumeLocalDraft)setError('未找到可读取的草稿，你可以新建记忆。');return;}
       if(draft.version!==1)return;
+      if(saved)ownedLocalDraft.current=saved.serialized;
       if(typeof draft.story==='string')setStory(draft.story);
       if(typeof draft.title==='string')setTitle(draft.title);
       if(typeof draft.tagText==='string')setTagText(draft.tagText);
@@ -248,7 +286,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   function openSongSearch(){
     if(!user)return;
     const returnPath=location.pathname+location.search;
-    const transition={...draftPayload(),returnPath,originKey:location.key,ownedLocalDraft:ownedLocalDraft.current};
+    const transition={...draftPayload(),ownerId:user.id,returnPath,originKey:location.key,ownedLocalDraft:ownedLocalDraft.current};
     try {window.sessionStorage.setItem(`composer-transition:${user.id}`,JSON.stringify(transition));} catch { /* Route state keeps the draft available. */ }
     // POP can recover only the history entry that opened this song picker.
     navigate(`/song-search?return=${encodeURIComponent(returnPath)}`,{state:{composerTransition:transition}});

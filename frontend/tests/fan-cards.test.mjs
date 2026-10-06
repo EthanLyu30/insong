@@ -25,7 +25,7 @@ async function harness(path,respond,work,fixtures={}){
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {default:App}=await server.ssrLoadModule('/src/App.tsx');const prior=globalThis.fetch;
   globalThis.fetch=async(url,options={})=>{
-    if(url==='/api/me')return Response.json({user:fixtures.guest?null:{id:3,display_name:'我',is_demo:false}});
+    if(url==='/api/me')return Response.json({user:fixtures.identity?fixtures.identity():fixtures.guest?null:{id:3,display_name:'我',is_demo:false}});
     if(url==='/api/themes')return fixtures.themesError?Response.json({detail:'主题服务不可用'},{status:503}):Response.json(fixtures.themes??[]);
     if(url==='/api/songs/1')return Response.json(song);
     if(url==='/api/memories/88'&&!options.method)return Response.json(fixtures.memory?fixtures.memory():card);
@@ -1130,6 +1130,116 @@ test('saving a local draft does not populate a later direct new memory',async()=
     assert.ok(!document.querySelector('.composer-song-trigger strong'));
     assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'草稿中的正文仍在。');
   });
+});
+
+test('My reopens a saved local draft without publishing it and saving removes only that draft',async()=>{
+  const draft={version:1,title:'还没写完的一晚',story:'第一行草稿。\n这一行也保留。',song,photos,cover:'b',position:10000,timeText:'00:10',endText:'00:14',lyricId:null,tagText:'演唱会',lifeYear:'2025',lifeTime:'2025-06-01',markedDate:'2025-06-01',locationName:'上海',visibility:'public',anonymous:false,shareLife:true};
+  let sent,writes=0;
+  await harness('/memories',async(url,options)=>{
+    if(url==='/api/songs')return Response.json([song]);
+    if(url==='/api/memories'&&options.method==='POST'){writes++;sent=JSON.parse(options.body);return Response.json(card);}throw new Error(url);
+  },async({act,location,go,fill})=>{
+    const entry=document.querySelector('.collection-draft');assert.ok(entry,'My has an explicit draft entry');
+    assert.equal(entry.textContent,'草稿');
+    await act(async()=>entry.click());
+    assert.equal(location().pathname,'/create');
+    assert.equal(document.querySelector('#memory-title').value,draft.title);
+    assert.equal(document.querySelector('#memory-story').value,draft.story);
+    assert.equal(document.querySelector('.composer-song-trigger strong').textContent,song.title);
+    assert.equal(document.querySelectorAll('.gallery-picker img').length,2);
+    assert.match(document.querySelector('.composer-setting-rows').textContent,/上海/);
+    assert.match(document.querySelector('.composer-setting-rows').textContent,/公开可见/);
+    assert.equal(writes,0,'opening the draft must not create or publish a memory');
+    assert.deepEqual(JSON.parse(window.localStorage.getItem('memory-draft:3')),draft,'opening must preserve the stored draft');
+    await fill('memory-story','接着写完的一晚。');
+    await act(async()=>document.querySelector('[aria-label="更换配乐"]').click());
+    await fill('create-song-query','散场以后');
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    assert.equal(document.querySelector('#memory-story').value,'接着写完的一晚。','returning from music search must keep the resumed edits, not reload the older local draft');
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.equal(location().pathname,'/memories/88');
+    assert.equal(window.localStorage.getItem('memory-draft:3'),null);
+    await go('/memories');assert.equal(document.querySelector('.collection-draft'),null);
+  },{localDraft:draft});
+  assert.equal(writes,1);assert.equal(sent.story,'接着写完的一晚。');assert.equal(sent.song_id,1);
+  assert.deepEqual(sent.photo_ids,['a','b']);assert.equal(sent.photo_id,'b');
+  assert.equal(sent.offset_ms,10000);assert.equal(sent.end_ms,14000);assert.equal(sent.life_year,2025);assert.equal(sent.location_name,'上海');
+  assert.deepEqual(sent.publication,{confirmed:true,anonymous:false,share_life_time:true});
+});
+
+test('resuming a local draft works without session storage and preserves it when a save fails',async()=>{
+  const draft={version:1,story:'先保存在这个浏览器里的草稿。',song};
+  await harness('/memories',async(url,options)=>{
+    if(url==='/api/memories'&&options.method==='POST')return Response.json({detail:'保存暂不可用'},{status:503});throw new Error(url);
+  },async({act,go})=>{
+    Object.defineProperty(window,'sessionStorage',{configurable:true,get(){throw new Error('storage disabled');}});
+    await act(async()=>document.querySelector('.collection-draft')?.click());
+    assert.equal(document.querySelector('#memory-story')?.value,draft.story);
+    await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
+    assert.match(document.querySelector('.form-error').textContent,/保存暂不可用/);
+    assert.deepEqual(JSON.parse(window.localStorage.getItem('memory-draft:3')),draft);
+    await go('/memories');assert.ok(document.querySelector('.collection-draft'));
+  },{localDraft:draft});
+});
+
+test('a missing or corrupt local draft never exposes another account or prevents a blank composer',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({go})=>{
+    window.localStorage.setItem('memory-draft:4',JSON.stringify({version:1,story:'另一个账号的草稿。',song}));
+    await go('/memories');assert.equal(document.querySelector('.collection-draft'),null);
+    await go('/create?draft=1');assert.equal(document.querySelector('#memory-story').value,'');
+    assert.match(document.querySelector('.form-error')?.textContent??'',/未找到.*草稿/);
+    window.localStorage.setItem('memory-draft:3','{broken');
+    await go('/memories');assert.equal(document.querySelector('.collection-draft'),null);
+    await go('/create?draft=1');assert.equal(document.querySelector('#memory-story').value,'');
+    assert.match(document.querySelector('.form-error')?.textContent??'',/未找到.*草稿/);
+    assert.equal(window.localStorage.getItem('memory-draft:3'),'{broken','invalid data is not silently deleted');
+  });
+});
+
+test('plain creation opens blank when reached directly from a resumed draft',async()=>{
+  await harness('/memories',async url=>{throw new Error(url);},async({act,go})=>{
+    await act(async()=>document.querySelector('.collection-draft').click());
+    assert.equal(document.querySelector('#memory-story').value,'还在编辑的本地草稿。');
+    await go('/create');assert.equal(document.querySelector('#memory-story').value,'');
+    assert.equal(JSON.parse(window.localStorage.getItem('memory-draft:3')).story,'还在编辑的本地草稿。');
+  },{localDraft:{version:1,story:'还在编辑的本地草稿。',song}});
+});
+
+test('account changes during song selection or after returning never restore the previous account draft',async()=>{
+  let identity={id:3,display_name:'账号甲',is_demo:false};
+  const draft={version:1,story:'只属于账号甲的草稿。',photos,song};
+  await harness('/memories',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill})=>{
+    const change=async id=>{identity={id,display_name:`账号${id}`,is_demo:false};await act(async()=>window.dispatchEvent(new window.StorageEvent('storage',{key:'memory-session-change'})));};
+    await act(async()=>document.querySelector('.collection-draft').click());
+    await act(async()=>document.querySelector('[aria-label="更换配乐"]').click());
+    await change(4);
+    await fill('create-song-query','散场以后');
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    assert.equal(document.querySelector('#memory-story').value,'');
+    assert.equal(document.querySelectorAll('.gallery-picker img').length,0);
+    await change(3);assert.equal(document.querySelector('#memory-story').value,draft.story);
+    await act(async()=>document.querySelector('[aria-label="更换配乐"]').click());
+    await fill('create-song-query','散场以后');
+    await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    assert.equal(document.querySelector('#memory-story').value,draft.story);
+    await change(4);
+    assert.equal(document.querySelector('#memory-story').value,'');
+    assert.equal(document.querySelectorAll('.gallery-picker img').length,0);
+    assert.deepEqual(JSON.parse(window.localStorage.getItem('memory-draft:3')),draft);
+    assert.equal(window.localStorage.getItem('memory-draft:4'),null);
+  },{localDraft:draft,identity:()=>identity});
+});
+
+test('nested-corrupt drafts cannot crash the composer and their raw data is preserved',async()=>{
+  for(const extra of [{photos:[null]},{song:{...song,lyrics:{broken:true}}}]){
+    const draft={version:1,story:'格式损坏但仍保留的草稿。',...extra};
+    await harness('/memories',async url=>{throw new Error(url);},async({go})=>{
+      assert.ok(!document.querySelector('.collection-draft'),'invalid nested draft must not be offered for restoration');
+      await go('/create?draft=1');assert.equal(document.querySelector('#memory-story').value,'');
+      assert.match(document.querySelector('.form-error').textContent,/未找到.*草稿/);
+      assert.deepEqual(JSON.parse(window.localStorage.getItem('memory-draft:3')),draft);
+    },{localDraft:draft});
+  }
 });
 
 test('saving an independent new memory preserves an older separately stored draft',async()=>{

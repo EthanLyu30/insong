@@ -12,6 +12,8 @@
 .collection-page .collection-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .collection-page .collection-title h1{margin:0;font:400 28px/1.5 'Noto Serif SC','Songti SC',serif;color:#514431}
 .collection-new{display:inline-flex;align-items:center;gap:3px;padding:8px 11px;border-radius:7px;background:#bd7d59;color:white;text-decoration:none;font-size:12px;white-space:nowrap}
+.collection-create-actions{display:flex;align-items:center;gap:10px}
+.collection-draft{display:inline-flex;align-items:center;min-height:40px;padding:0 3px;font-size:13px;color:#8e7058;text-decoration:none;white-space:nowrap}
 .collection-search-trigger{display:flex;align-items:center;gap:8px;width:100%;min-height:43px;padding:0 13px;border:1px solid #e4d7c5;border-radius:10px;background:#fffdf9;color:#a09280;text-align:left;font-size:13px}
 .collection-categories{display:flex;gap:5px;overflow:auto;scrollbar-width:none;margin:11px 0 14px}
 .collection-categories button{flex:none;border:0;border-radius:6px;padding:7px 10px;background:transparent;color:#948574;font-size:12px}

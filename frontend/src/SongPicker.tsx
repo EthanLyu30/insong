@@ -23,15 +23,15 @@ export function SongSearchPage(){
   const normalized=query.trim().normalize('NFKC').toLocaleLowerCase();
   const visible=normalized?songs?.filter(song=>`${song.title} ${song.artist}`.normalize('NFKC').toLocaleLowerCase().includes(normalized)):songs;
   function transitionDraft(){
-    const routed=location.state?.composerTransition;
-    if(routed?.returnPath===returnPath&&routed.version===1)return routed;
     if(!user)return null;
-    try{const raw=window.sessionStorage.getItem(`composer-transition:${user.id}`);const stored=raw?JSON.parse(raw):null;return stored?.returnPath===returnPath&&stored.version===1?stored:null;}
+    const routed=location.state?.composerTransition;
+    if(routed?.ownerId===user.id&&routed?.returnPath===returnPath&&routed.version===1)return routed;
+    try{const raw=window.sessionStorage.getItem(`composer-transition:${user.id}`);const stored=raw?JSON.parse(raw):null;return stored?.ownerId===user.id&&stored?.returnPath===returnPath&&stored.version===1?stored:null;}
     catch{return null;}
   }
   function returnToComposer(draft:object|null){navigate(returnPath,{replace:true,state:draft?{composerTransition:draft}:undefined});}
   function choose(song:Song){
-    const draft=selectDraftSong(transitionDraft()??{version:1,returnPath},song);
+    const draft=selectDraftSong(transitionDraft()??{version:1,ownerId:user?.id,returnPath},song);
     if(user)try{window.sessionStorage.setItem(`composer-transition:${user.id}`,JSON.stringify(draft));}catch{ /* Route state keeps the selection. */ }
     returnToComposer(draft);
   }
