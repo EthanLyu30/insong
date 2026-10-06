@@ -78,7 +78,7 @@ def install_accounts(app, get_db, serialize_user):
         revoke_session(db, request.cookies.get(SESSION_COOKIE_NAME))
         token = create_session(db, user)
         response.set_cookie(SESSION_COOKIE_NAME, token, max_age=SESSION_LIFETIME_SECONDS,
-                            httponly=True, secure=request.url.scheme == 'https', samesite='lax', path='/')
+                            httponly=True, secure=request.app.state.settings.cookie_secure or request.url.scheme == 'https', samesite='lax', path='/')
         return serialize_user(user)
 
     @app.post('/api/accounts/register', status_code=201)

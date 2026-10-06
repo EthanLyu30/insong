@@ -108,3 +108,54 @@ def test_create_app_reads_database_url_from_environment(monkeypatch, tmp_path):
     with TestClient(create_app()) as client:
         assert client.get('/api/health').status_code == 200
         assert path.is_file()
+
+
+def cloud_app(monkeypatch, tmp_path):
+    from app.main import create_app
+
+    monkeypatch.setenv('APP_ENV', 'production')
+    # The explicit factory URL supplies an isolated local fixture. Loading cloud
+    # configuration never attempts to connect to this synthetic remote hostname.
+    monkeypatch.setenv('DATABASE_URL', 'postgresql://demo@db.example.com/demo')
+    return create_app(f'sqlite:///{tmp_path / "cloud-request.db"}')
+
+
+def test_production_origin_can_log_in_refresh_and_log_out(monkeypatch, tmp_path):
+    from fastapi.testclient import TestClient
+
+    with TestClient(cloud_app(monkeypatch, tmp_path), base_url='https://insong.me') as client:
+        headers = {'Origin': 'https://insong.me'}
+        login = client.post('/api/demo/sessions', json={'user_id': 1}, headers=headers)
+        assert login.status_code == 200
+        assert login.headers['access-control-allow-origin'] == 'https://insong.me'
+        assert client.get('/api/me').json()['user']['id'] == 1
+        assert client.post('/api/demo/logout', headers=headers).status_code == 204
+        assert client.get('/api/me').json()['user'] is None
+
+
+def test_production_does_not_trust_an_arbitrary_request_host(monkeypatch, tmp_path):
+    from fastapi.testclient import TestClient
+
+    with TestClient(cloud_app(monkeypatch, tmp_path), base_url='https://foreign.example') as client:
+        rejected = client.post('/api/demo/sessions', json={'user_id': 1},
+                               headers={'Origin': 'https://foreign.example'})
+        assert rejected.status_code == 403
+        assert 'set-cookie' not in rejected.headers
+
+
+@pytest.mark.parametrize('route,body', [
+    ('/api/demo/sessions', {'user_id': 1}),
+    ('/api/accounts/register', {'username': 'cloud_test', 'password': 'synthetic-password', 'display_name': '云端测试'}),
+])
+def test_cloud_cookie_stays_secure_behind_http_proxy(monkeypatch, tmp_path, route, body):
+    from fastapi.testclient import TestClient
+
+    with TestClient(cloud_app(monkeypatch, tmp_path), base_url='http://internal-proxy') as client:
+        response = client.post(route, json=body)
+        assert response.status_code in (200, 201)
+        cookie = response.headers['set-cookie']
+        assert 'Secure' in cookie
+        assert 'HttpOnly' in cookie
+        assert 'SameSite=lax' in cookie
+        assert 'Path=/' in cookie
+        assert response.headers['cache-control'] == 'no-store'

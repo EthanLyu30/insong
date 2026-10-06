@@ -64,7 +64,9 @@ def create_app(database_url: str | None = None) -> FastAPI:
     @app.middleware('http')
     async def private_responses(request, call_next):
         origin = request.headers.get('origin')
-        trusted = {'http://localhost:5173', 'http://127.0.0.1:5173', str(request.base_url).rstrip('/')}
+        trusted = set(settings.allowed_origins)
+        if settings.app_env != 'production':
+            trusted.add(str(request.base_url).rstrip('/'))
         if request.method in ('POST', 'PATCH', 'DELETE', 'PUT') and origin and origin not in trusted:
             return JSONResponse({'detail': '请求来源不受支持。'}, status_code=403)
         response = await call_next(request)
@@ -73,7 +75,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
         return response
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origins=list(settings.allowed_origins),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -121,7 +123,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
             value=token,
             max_age=SESSION_LIFETIME_SECONDS,
             path="/",
-            secure=request.url.scheme == "https",
+            secure=settings.cookie_secure or request.url.scheme == "https",
             httponly=True,
             samesite="lax",
         )
