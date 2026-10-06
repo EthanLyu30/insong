@@ -117,6 +117,10 @@
 .atlas-map .atlas-wordmark>div>span{font:500 28px/1.3 'Noto Serif SC','Songti SC',serif;color:#514431}
 .atlas-map .atlas-wordmark small{font-size:18px;color:#bd7d59;text-shadow:none}
 .atlas-map .atlas-artist-pills button{min-height:33px;padding:6px 12px}
+.atlas-selected-actions{display:flex;align-items:center;gap:8px;flex:none}
+.atlas-map .atlas-selected-actions>button:not(.atlas-follow-button){display:grid;place-items:center;min-width:36px;min-height:36px;padding:0;border:0;background:transparent;color:#877562;font-size:25px}
+.atlas-map .atlas-panel header .atlas-follow-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:6px 10px;border:1px solid #d6c3a5;border-radius:20px;background:#fff8e8;color:#72523a;font-size:12px;white-space:nowrap;text-decoration:none}
+.atlas-map .atlas-panel header .atlas-follow-button[aria-pressed=true]{background:#f1eddf;color:#516943;border-color:#b7c4a6}
 .atlas-page.atlas-map .atlas-map-controls{right:17px;bottom:calc(var(--atlas-sheet-height,285px) + 82px)}
 .atlas-map .atlas-map-controls button{width:40px;height:40px;background:#fefdf9ed}
 .atlas-map .atlas-panel{left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom));padding:13px 20px 11px;border-radius:24px 24px 0 0;background:#faf7f0f2}

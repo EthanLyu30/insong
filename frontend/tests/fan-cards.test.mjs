@@ -438,6 +438,45 @@ test('editor public save uses the visible edited story and the newly saved revis
   });
 });
 
+test('following an artist is distinct from saving a concert and remains available in My artists',async()=>{
+  const interests={artist_ids:[],wish_event_ids:[]},writes=[];
+  await harness('/footprints?month=all&artist=gem',async(url,options)=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists')return Response.json([]);
+    if(url==='/api/footprints/follows/gem'&&options.method==='PUT'){
+      const body=JSON.parse(options.body);writes.push({url,body});
+      interests.artist_ids=body.followed?['gem']:[];return Response.json(interests);
+    }
+    throw new Error(url);
+  },async({act,until,go})=>{
+    await until('.atlas-itinerary');
+    const follow=document.querySelector('[aria-label="关注邓紫棋"]');assert.ok(follow,'selected artist has a follow action');
+    assert.equal(follow.textContent,'关注歌手');
+    await act(async()=>follow.click());
+    assert.equal(document.querySelector('[aria-label="已关注邓紫棋"]').getAttribute('aria-pressed'),'true');
+    await go('/memories');await go('/footprints?month=all&scope=followed');
+    await until('.atlas-map-fallback button');
+    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button img')].map(img=>img.alt),['邓紫棋']);
+    await act(async()=>document.querySelector('.atlas-map-fallback button').click());
+    await act(async()=>document.querySelector('[aria-label="已关注邓紫棋"]').click());
+    assert.ok(document.querySelector('[aria-label="关注邓紫棋"]'));
+    assert.equal(document.querySelectorAll('.atlas-venue-row').length,0);
+  },{interests});
+  assert.deepEqual(writes,[{url:'/api/footprints/follows/gem',body:{followed:true}},{url:'/api/footprints/follows/gem',body:{followed:false}}]);
+});
+
+test('an artist with no concerts this month can still be followed',async()=>{
+  const catalog={...revisionCatalog,events:[{...revisionCatalog.events[0],date:'2026-08-01'}]};
+  await harness('/footprints?artist=gem&month=2026-10',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(catalog);
+    if(url==='/api/playlists')return Response.json([]);throw new Error(url);
+  },async({until})=>{
+    await until('.atlas-itinerary');
+    assert.ok(document.querySelector('.atlas-schedule-empty'));
+    assert.ok(document.querySelector('[aria-label="关注邓紫棋"]'));
+  });
+});
+
 test('empty personal concert filters can restore all itineraries without leaving the map or My return context',async()=>{
   await harness('/footprints?from=mine&return=%2Fmemories%3Fview%3Dcards',async url=>{
     if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);

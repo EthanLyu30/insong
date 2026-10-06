@@ -18,7 +18,7 @@ import {selectSchedule,eventChangeNote,groupConcertRuns,matchesConcertSearch,typ
 import { chinaToday, dateLabel, eventPhase, filterArtists, groupVenues, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong, type AtlasVenue } from './footprintAtlas';
 import './footprints.css';
 import {BackLink,useBackNavigation} from './Navigation';
-import {InterestsError,useFootprintInterests} from './FootprintInterests';
+import {FollowArtist,InterestsError,useFootprintInterests} from './FootprintInterests';
 
 function Attendance({event,today,next}:{event:AtlasEvent;today:string;next:string}) {
   const {user}=useSession();const [saved,setSaved]=useState<string[]|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [retry,setRetry]=useState(0);
@@ -202,18 +202,18 @@ export function FootprintsPage() {
       <div className="atlas-wordmark"><div><span>音乐足迹</span><small>听见城市，走过山海。</small></div><Link to="/playlists" aria-label="我的现场歌单"><BookmarkSimple size={23} weight="light"/></Link></div>
       <div className="atlas-search-input"><MagnifyingGlass size={23} weight="light"/><input aria-label="搜索歌手或城市" placeholder="搜索喜欢的歌手或城市" value={query} onFocus={()=>setSearchOpen(true)} onChange={event=>{setQuery(event.target.value);setSearchOpen(true);}} onKeyDown={event=>{if(event.key==='Escape')setSearchOpen(false);if(event.key==='Enter'&&matchingArtists.length===1)chooseArtist(matchingArtists[0].id);}}/>{(query||searchOpen)&&<button type="button" aria-label="收起搜索" onClick={()=>{setSearchOpen(false);setQuery('');}}><X size={20}/></button>}</div>
       {searchOpen?<div className="atlas-search-results"><span>{query?'搜索结果':'从一位喜欢的歌手开始'}</span>{matchingArtists.map(item=><button key={item.id} type="button" onClick={()=>chooseArtist(item.id)}>{item.name}<small>查看行程 <CaretRight size={16}/></small></button>)}{matchingCities.map(item=><button key={item.id} type="button" onClick={()=>chooseCity(item)}>{item.name}<small>看看这里的现场 <CaretRight size={16}/></small></button>)}{!matchingArtists.length&&!matchingCities.length&&<p>暂未收录这位歌手，试试邓紫棋或刘雨昕。</p>}</div>:<div className="atlas-artist-pills"><button type="button" aria-pressed={!scope} onClick={()=>chooseScope('all')}>全部</button><button type="button" aria-pressed={scope==='saved'} onClick={()=>chooseScope('saved')}>我的收藏</button><button type="button" aria-pressed={scope==='followed'} onClick={()=>chooseScope('followed')}>我的歌手</button></div>}
-      {scope==='followed'&&<InterestsError data={interests}/>}
+      {(artist||scope==='followed')&&<InterestsError data={interests}/>}
     </header>:<header className="atlas-scene-toolbar"><button type="button" onClick={back} aria-label="返回上一页"><ArrowLeft size={25} weight="light"/></button><span>{scene==='venue'?city?.name:''}</span><button type="button" onClick={()=>{setParams(filters(artist?{artist:artist.id}:{}));setStories(false);setExpanded(false);}} aria-label="返回全国地图"><MapPinArea size={24} weight="light"/></button></header>}
     {scene==='map'&&<div className="atlas-legend" aria-label="行程图例"><span><i className="past"/>往期</span><span><i className="future"/>今日 / 待演</span></div>}
     {invalidEvent&&<div className="atlas-invalid" role="status">这个场次暂未收录，请从地图重新选择。</div>}
     {scene==='map'&&city?<section ref={mapPanel} className="atlas-panel atlas-city-sheet">
-      <header><div><small>{artist?`${artist.name}的演出`:'这里的场馆'}</small><h2>{city.name}</h2></div><button type="button" onClick={back} aria-label="返回上一页">×</button></header>
+      <header><div><small>{artist?`${artist.name}的演出`:'这里的场馆'}</small><h2>{city.name}</h2></div><div className="atlas-selected-actions">{artist&&<FollowArtist artist={artist} next={next} data={interests}/>}<button type="button" onClick={back} aria-label="返回上一页">×</button></div></header>
       {scheduleFilters()}
       {venues.length?venues.map(item=><button className="atlas-venue-row" type="button" key={item.id} aria-label={`进入${item.name}`} onClick={()=>openVenue(item)}>
         {venuePhotograph(item.name,artist?.id)?<img className="atlas-venue-photo" src={venuePhotograph(item.name,artist?.id)!.url} alt={`${venuePhotograph(item.name,artist?.id)!.description} · 2026.09.26 实拍参考`}/>:<MapPin className="atlas-venue-icon" size={25} weight="light" aria-hidden="true"/>}<span><strong>{item.name}</strong><small>{groupConcertRuns(item.events).length} 组现场 · {item.events.length} 晚{item.events.every(event=>event.event_status==='cancelled')?' · 已取消':''}</small></span><CaretRight size={20} aria-hidden="true"/>
       </button>):<div className="atlas-empty-city"><p>{artist?`当前筛选下，${artist.name}在这里暂无已核实场次。`:'当前筛选下，这里暂无已核实场次。'}</p><a href="https://zwfw.mct.gov.cn/wycx/qgswyyxychd/" target="_blank" rel="noopener noreferrer">前往官方演出查询 ↗</a>{artist&&<button type="button" onClick={()=>setParams(filters({city:city.id}),{replace:true})}>看看这座城的其他现场</button>}</div>}
     </section>:scene==='map'&&!searchOpen?<section ref={mapPanel} className={`atlas-panel atlas-itinerary ${expanded?'is-expanded':''}`} aria-label="近期行程">
-      <header><h2>{recentHeading}</h2></header>
+      <header><h2>{artist?`${artist.name}的行程`:recentHeading}</h2>{artist&&<FollowArtist artist={artist} next={next} data={interests}/>}</header>
       {scheduleFilters()}
       <div className="atlas-schedule-list">{displayRuns.map(run=>runCard(run))}</div>
       {(saveError||playlistUpdate.error)&&<p className="atlas-save-error" role="alert">{saveError||playlistUpdate.error}<button type="button" disabled={!!savingEvent||playlistLoading||playlistUpdate.refreshing} onClick={retryPlaylists}>重试读取收藏</button></p>}

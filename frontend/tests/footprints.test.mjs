@@ -123,7 +123,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('往期');
     await React.act(async()=>document.querySelector('.atlas-month-filter button').click());
     await click('全部月份');
-    assert.match(document.querySelector('.atlas-itinerary h2').textContent,/最近一站/);
+    assert.equal(document.querySelector('.atlas-itinerary h2').textContent,'刘雨昕的行程');
     assert.ok(!document.body.textContent.includes('取消到场'));
     await search('北京');await click('进入五棵松');await click('2025.09.20');assert.ok(!document.body.textContent.includes('取消到场'));
     await React.act(async()=>{user=null;window.dispatchEvent(new window.StorageEvent('storage',{key:'memory-session-change'}));});
