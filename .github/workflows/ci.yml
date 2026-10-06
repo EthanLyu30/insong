@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main, codex/public-deployment]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v6
+        with:
+          version: '11.19.0'
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend
+      - run: pnpm build:checked
+        working-directory: frontend
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: insong_qa
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt 'psycopg[binary]>=3.2,<4'
+        working-directory: backend
+      - run: python -m pytest -q
+        working-directory: backend
+        env:
+          APP_ENV: test
+          TEST_POSTGRES_URL: postgresql://postgres:postgres@127.0.0.1:5432/insong_qa?sslmode=disable
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: insong_qa
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: pip install httpx Pillow
+      - run: docker build -t insong-qa backend
+      - name: Run within the documented Free CPU and RAM limits
+        run: >-
+          docker run -d --name insong-qa --network host --memory 512m --cpus 0.1
+          -e APP_ENV=test -e DATABASE_SCHEMA=insong_container_smoke
+          -e DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:5432/insong_qa?sslmode=disable'
+          insong-qa
+      - run: python backend/tools/container_smoke.py
+      - name: Report container memory and logs
+        if: always()
+        run: |
+          docker stats --no-stream --format '{{.MemUsage}}' insong-qa || true
+          docker inspect --format 'OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}}' insong-qa || true
+          docker exec insong-qa cat /sys/fs/cgroup/memory.peak || true
+          docker logs insong-qa || true
