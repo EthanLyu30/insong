@@ -245,7 +245,7 @@ test('opening and cancelling a date picker preserves existing imprecise date met
   assert.equal(sent.life_time,'夏末');assert.equal(sent.life_year,2025);assert.equal(sent.life_precision,'year');
 });
 
-test('saving a public memory does not silently widen its previously published excerpt',async()=>{
+test('explicit public save replaces a legacy excerpt with the full story and preserves sharing settings',async()=>{
   const publication={published:true,excerpt:'第一行。',anonymous:false,share_life_time:true};let published;
   await harness('/memories/88/edit',async(url,options)=>{
     if(url==='/api/memories/88'&&options.method==='PATCH')return Response.json({...card,revision:2,publication});
@@ -253,9 +253,10 @@ test('saving a public memory does not silently widen its previously published ex
     throw new Error(url);
   },async({act})=>{
     assert.equal(Boolean(document.querySelector('.editor-sharing')),false);
+    assert.equal(published,undefined,'opening the editor does not alter an existing publication');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   },{memory:()=>({...card,publication})});
-  assert.deepEqual(published,{revision:2,excerpt:'第一行。',anonymous:false,share_life_time:true,confirmed:true});
+  assert.deepEqual(published,{revision:2,excerpt:card.story,anonymous:false,share_life_time:true,confirmed:true});
 });
 
 test('My search expands in place with a live matching result surface and no top overlay',async()=>{
@@ -433,6 +434,54 @@ test('editor public save uses the visible edited story and the newly saved revis
     assert.deepEqual(writes.map(write=>write.method),['PATCH','POST']);
     assert.deepEqual(writes[1].body,{revision:2,excerpt:'修改后的完整正文。',share_life_time:false,anonymous:true,confirmed:true});
     assert.equal(location().pathname,'/memories/88');
+  });
+});
+
+test('public editor replaces a legacy excerpt with the full current story, including on retry',async()=>{
+  const publication={published:true,excerpt:'第一行。',anonymous:false,share_life_time:true};
+  const revisions=[],published=[];let attempts=0;
+  const edited='旧片段已全部替换。\n这一行也要公开，不能被截掉。';
+  await harness('/memories/88/edit',async(url,options)=>{
+    const body=JSON.parse(options.body);
+    if(url==='/api/memories/88'&&options.method==='PATCH'){
+      revisions.push(body.revision);return Response.json({...card,story:body.story,revision:body.revision+1,publication:{...publication,published:false}});
+    }
+    if(url==='/api/memories/88/publication'){
+      published.push(body);return ++attempts===1?Response.json({detail:'暂时无法公开'},{status:503}):Response.json({...card,story:edited,revision:4,publication:{...publication,excerpt:body.excerpt}});
+    }
+    throw new Error(url);
+  },async({act,fill,location})=>{
+    await fill('memory-story',edited);
+    const submit=()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
+    await act(async()=>submit());
+    assert.equal(location().pathname,'/memories/88/edit');
+    assert.equal(document.querySelector('#memory-story').value,edited);
+    assert.equal(published[0].excerpt,edited,'publication uses all current text, not the old fragment');
+    await act(async()=>submit());
+    assert.deepEqual(revisions,[1,2]);assert.equal(location().pathname,'/memories/88');
+  },{memory:()=>({...card,publication})});
+  assert.deepEqual(published.map(body=>body.excerpt),[edited,edited]);
+  assert.ok(published.every(body=>body.anonymous===false&&body.share_life_time===true&&body.confirmed===true));
+});
+
+test('map information keeps photo credits out of the map and exposes their source and licence on demand',async()=>{
+  const catalog={...revisionCatalog,artists:[{id:'tnt',name:'时代少年团'}],events:revisionCatalog.events.map(event=>({...event,artist_id:'tnt'}))};
+  await harness('/footprints',async url=>{if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,until})=>{
+    await until('.atlas-map-fallback');
+    const button=document.querySelector('[aria-label="地图信息"]');
+    assert.ok(button,'source details have a compact map information entry');
+    assert.ok(!document.querySelector('.atlas-photo-credits'),'photo authors no longer cover the map');
+    assert.ok(!document.querySelector('[role="dialog"]'));
+    await act(async()=>button.click());
+    const dialog=document.querySelector('[role="dialog"][aria-label="地图与照片来源"]');assert.ok(dialog);
+    assert.match(dialog.textContent,/OpenStreetMap/);assert.match(dialog.textContent,/Sunny Anroi/);
+    assert.ok(dialog.querySelector('a[href="https://www.openstreetmap.org/copyright"]'));
+    assert.ok(dialog.querySelector('a[href="https://www.openmaptiles.org/"]'));
+    assert.ok(dialog.querySelector('a[href="https://mapterhorn.com/attribution/"]'));
+    assert.ok(dialog.querySelector('a[href="https://creativecommons.org/licenses/by-sa/4.0/"]'));
+    assert.ok([...dialog.querySelectorAll('a')].some(link=>link.href.includes('commons.wikimedia.org')));
+    await act(async()=>window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true})));
+    assert.ok(!document.querySelector('[role="dialog"]'));assert.equal(document.activeElement,button);
   });
 });
 

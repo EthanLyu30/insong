@@ -105,10 +105,6 @@
 .atlas-map .real-city-pin{width:58px;height:58px;color:#514431;text-shadow:none}
 .atlas-map .real-city-pin img{display:block;width:58px;height:58px;object-fit:cover;border:2px solid #fffdf9;border-radius:50%;background:#eee0ce;box-shadow:0 3px 6px #3f4f4a35}
 .atlas-map .real-city-pin img.is-whole-photo{object-fit:contain}
-.atlas-page.atlas-map .atlas-map-stage .real-map-canvas .maplibregl-ctrl-bottom-left{top:auto;bottom:calc(var(--atlas-sheet-height,285px) + 108px);left:8px;right:68px;max-width:none;z-index:3}
-.atlas-map .real-map-canvas .maplibregl-ctrl-attrib{background:transparent;font-size:8px;line-height:11px;padding:0;max-width:100%}
-.atlas-photo-credits{position:absolute;left:8px;right:68px;bottom:calc(var(--atlas-sheet-height,285px) + 73px);z-index:3;color:#6d7067;font-size:8px;line-height:11px;max-height:33px;overflow-y:auto;pointer-events:auto}
-.atlas-photo-credits a{color:inherit}
 .atlas-map .real-city-pin .map-artist-fallback{position:static;display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:5px;padding:5px;border:2px solid #fffdf9;border-radius:50%;background:#eee0ce;color:#514431;font-size:11px;line-height:15px;white-space:normal;word-break:break-all;text-align:center;opacity:1;transform:none;box-shadow:0 3px 6px #3f4f4a35}
 .atlas-map-fallback .map-artist-fallback{display:block;font-size:11px}
 .atlas-map .real-city-pin span{top:100%;left:50%;transform:translateX(-50%);padding:2px 5px;border-radius:8px;background:#fffdf9e8;color:#514431;font-size:10px;opacity:0}

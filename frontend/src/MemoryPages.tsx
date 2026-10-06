@@ -276,7 +276,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
       if(existing){
         editRevision.current=saved.revision;
         try{
-          if(visibility==='public')saved=await apiRequest<Memory>(apiBaseUrl,`/api/memories/${saved.id}/publication`,{method:'POST',body:JSON.stringify({revision:saved.revision,excerpt:existing.publication?.excerpt??story.trim(),share_life_time:shareLife,anonymous,confirmed:true})});
+          if(visibility==='public')saved=await apiRequest<Memory>(apiBaseUrl,`/api/memories/${saved.id}/publication`,{method:'POST',body:JSON.stringify({revision:saved.revision,excerpt:story.trim(),share_life_time:shareLife,anonymous,confirmed:true})});
           else if(saved.publication?.published)saved=await apiRequest<Memory>(apiBaseUrl,`/api/memories/${saved.id}/publication?revision=${saved.revision}`,{method:'DELETE'});
           editRevision.current=saved.revision;
         }catch(reason){throw new Error(`记忆内容已保存，但可见范围尚未确认。${reason instanceof Error?reason.message:'请重新打开编辑页确认最新状态。'}`);}
