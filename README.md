@@ -125,7 +125,7 @@ pnpm preview --host 127.0.0.1
 
 ```powershell
 .venv/Scripts/python.exe -m pip install -r requirements-ai.txt
-.venv/Scripts/hf.exe download Xenova/multilingual-e5-small onnx/model_quantized.onnx tokenizer.json config.json tokenizer_config.json --revision 761b726dd34fb83930e26aab4e9ac3899aa1fa78 --local-dir models/multilingual-e5-small
+.venv/Scripts/hf.exe download Xenova/multilingual-e5-small onnx/model_quantized.onnx tokenizer.json sentencepiece.bpe.model config.json tokenizer_config.json --revision 761b726dd34fb83930e26aab4e9ac3899aa1fa78 --local-dir models/multilingual-e5-small
 ```
 
 模型文件不提交到 Git。下载完成后重启后端，访问 `http://127.0.0.1:8000/api/search/status` 查看是否就绪。模型的 [ONNX 版本](https://huggingface.co/Xenova/multilingual-e5-small) 源自 [multilingual-e5-small](https://huggingface.co/intfloat/multilingual-e5-small)。

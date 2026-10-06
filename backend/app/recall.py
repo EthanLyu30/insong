@@ -1,5 +1,7 @@
 """Local-only E5 inference. No story or query is sent to a model provider."""
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from collections import OrderedDict
+import hashlib
 from pathlib import Path
 import re
 import threading
@@ -12,6 +14,7 @@ from sqlalchemy.orm import Session as OrmSession
 
 from .memories import serialize_memory
 from .models import MemoryCard, User
+from .embedding_tokenizer import load_tokenizer
 
 MODEL_ROOT = Path(__file__).resolve().parents[1] / 'models' / 'multilingual-e5-small'
 
@@ -22,6 +25,7 @@ class LocalRecall:
         self._slot = threading.BoundedSemaphore(1)
         self._session = None
         self._tokenizer = None
+        self._vectors = OrderedDict()
 
     @property
     def ready(self):
@@ -37,39 +41,68 @@ class LocalRecall:
             raise
         return future.result(timeout=5)
 
+    def _ensure_model(self):
+        if self._session is not None:
+            return
+        import onnxruntime as ort
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = 2
+        options.inter_op_num_threads = 1
+        options.enable_cpu_mem_arena = False
+        options.enable_mem_pattern = False
+        self._session = ort.InferenceSession(str(MODEL_ROOT / 'onnx/model_quantized.onnx'),
+            sess_options=options, providers=['CPUExecutionProvider'])
+        self._tokenizer = load_tokenizer(MODEL_ROOT)
+        self._tokenizer.enable_truncation(max_length=512)
+        self._tokenizer.enable_padding(pad_id=1, pad_token='<pad>')
+
+    def _encode(self, batch):
+        import numpy as np
+        enc = self._tokenizer.encode_batch(batch)
+        mask = np.array([x.attention_mask for x in enc], dtype=np.int64)
+        inputs = {'input_ids': np.array([x.ids for x in enc], dtype=np.int64),
+                  'attention_mask': mask, 'token_type_ids': np.zeros_like(mask)}
+        hidden = self._session.run(None, {x.name: inputs[x.name] for x in self._session.get_inputs()})[0]
+        pooled = (hidden * mask[:, :, None]).sum(axis=1) / mask.sum(axis=1)[:, None]
+        return pooled / np.maximum(np.linalg.norm(pooled, axis=1, keepdims=True), 1e-9)
+
+    def _key(self, text):
+        return hashlib.sha256(text.encode('utf8')).digest()
+
+    def _remember(self, text, vector):
+        key = self._key(text)
+        self._vectors[key] = vector.copy()
+        self._vectors.move_to_end(key)
+        while len(self._vectors) > 512:
+            self._vectors.popitem(last=False)
+
     def _job(self, query, texts):
         try:
             import numpy as np
-            import onnxruntime as ort
-            from tokenizers import Tokenizer
             deadline = time.monotonic() + 4.5
-            if self._session is None:
-                options = ort.SessionOptions()
-                options.intra_op_num_threads = 2
-                options.inter_op_num_threads = 1
-                self._session = ort.InferenceSession(str(MODEL_ROOT / 'onnx/model_quantized.onnx'), sess_options=options, providers=['CPUExecutionProvider'])
-                self._tokenizer = Tokenizer.from_file(str(MODEL_ROOT / 'tokenizer.json'))
-                self._tokenizer.enable_truncation(max_length=512)
-                self._tokenizer.enable_padding(pad_id=1, pad_token='<pad>')
-            def encode(batch):
-                enc = self._tokenizer.encode_batch(batch)
-                mask = np.array([x.attention_mask for x in enc], dtype=np.int64)
-                inputs = {'input_ids': np.array([x.ids for x in enc], dtype=np.int64), 'attention_mask': mask,
-                          'token_type_ids': np.zeros_like(mask)}
-                hidden = self._session.run(None, {x.name: inputs[x.name] for x in self._session.get_inputs()})[0]
-                pooled = (hidden * mask[:, :, None]).sum(axis=1) / mask.sum(axis=1)[:, None]
-                return pooled / np.maximum(np.linalg.norm(pooled, axis=1, keepdims=True), 1e-9)
-            vector = encode(['query: ' + query])[0]
-            # Chunk long originals; the ending of a 500-character memory remains searchable.
-            chunks = [(i, text[start:start + 260]) for i, text in enumerate(texts) for start in range(0, len(text), 230)]
-            scores = [0.] * len(texts)
-            for start in range(0, len(chunks), 8):
+            self._ensure_model()
+            query_text = 'query: ' + query
+            vector = self._vectors.get(self._key(query_text))
+            if vector is None:
+                vector = self._encode([query_text])[0]
+                self._remember(query_text, vector)
+            # The cache contains vectors only; candidates still come from the
+            # current authorized DB query and are rechecked after inference.
+            chunks = [(i, 'passage: ' + text[start:start + 260]) for i, text in enumerate(texts)
+                      for start in range(0, len(text), 230)]
+            missing = list(dict.fromkeys(text for _, text in chunks if self._key(text) not in self._vectors))
+            for start in range(0, len(missing), 2):
                 if time.monotonic() > deadline:
                     raise TimeoutError('local inference time budget')
-                batch = chunks[start:start + 8]
-                vectors = encode(['passage: ' + text for _, text in batch])
-                for (index, _), score in zip(batch, vectors @ vector):
-                    scores[index] = max(scores[index], float(score))
+                batch = missing[start:start + 2]
+                for content, embedding in zip(batch, self._encode(batch)):
+                    self._remember(content, embedding)
+            scores = [0.] * len(texts)
+            for index, content in chunks:
+                embedding = self._vectors.get(self._key(content))
+                if embedding is None:
+                    raise TimeoutError('local inference cache capacity')
+                scores[index] = max(scores[index], float(np.dot(embedding, vector)))
             return scores
         finally:
             self._slot.release()

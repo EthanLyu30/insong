@@ -32,12 +32,16 @@ def main():
         assert stories
         query = stories[0]['excerpt'][:200]
         matches = None
-        for _ in range(3):
+        warm_deadline = time.monotonic() + 90
+        while time.monotonic() < warm_deadline:
             result = client.post('/api/stories/search', json={'query': query, 'mode': 'semantic'})
             result.raise_for_status()
             matches = result.json()
             if matches['mode'] == 'semantic':
                 break
+            # A bounded first call may still be loading the model or caching
+            # passages. Let that worker finish before issuing another query.
+            time.sleep(2)
         assert matches['mode'] == 'semantic', 'E5 could not finish; keyword fallback is not a passing semantic test'
         assert matches['items']
         data = BytesIO()

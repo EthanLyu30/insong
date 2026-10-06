@@ -50,7 +50,9 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - run: pip install -r requirements.txt 'psycopg[binary]>=3.2,<4'
+      - run: pip install -r requirements-deploy.txt
+        working-directory: backend
+      - run: python tools/fetch_model.py --tokenizer-only
         working-directory: backend
       - run: python -m pytest -q
         working-directory: backend
