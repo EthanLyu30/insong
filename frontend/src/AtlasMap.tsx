@@ -13,7 +13,7 @@ import {MapResourceStatus,resourceTileKey} from './mapResourceStatus';
 import {mapMarkerPhotos,mapMarkerOffset} from './mapMarkerPhotos';
 import {MapCredits} from './MapCredits';
 
-type Props={cities:AtlasCity[];events:AtlasEvent[];artists?:AtlasArtist[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];focusPoint?:[number,number];onCity:(city:AtlasCity)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
+type Props={cities:AtlasCity[];events:AtlasEvent[];artists?:AtlasArtist[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];focusPoint?:[number,number];onCity:(city:AtlasCity,artistId?:string)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
 function artistIdentity(city:string,events:AtlasEvent[],artists:AtlasArtist[]=[],artistId?:string){
   const event=events.find(item=>item.city===city&&(!artistId||item.artist_id===artistId)&&item.event_status!=='cancelled');
   return {photo:event?mapMarkerPhotos[event.artist_id]:undefined,name:artists.find(artist=>artist.id===event?.artist_id)?.name??event?.songs[0]?.artist??'',id:event?.artist_id??''};
@@ -90,7 +90,7 @@ export function AtlasMap(props:Props){
         const button=document.createElement('button');button.type='button';button.className='real-city-pin';button.dataset.city=city.id;
         button.dataset.artist=artist.id;
         renderCityIdentity(button,city,latest.current.events,latest.current.artists);
-        button.addEventListener('click',()=>latest.current.onCity(city));
+        button.addEventListener('click',()=>latest.current.onCity(city,artist.id));
         markers.current.push(new gl.Marker({element:button,anchor:'center',offset:mapMarkerOffset(city.name,artist.id,latest.current.events)}).setLngLat([city.lng,city.lat]).addTo(map));
       }));
       const arrange=()=>{
@@ -214,7 +214,7 @@ export function AtlasMap(props:Props){
     <div className="real-map-canvas" ref={container} aria-label="中国演唱会地图" role="region" data-camera={JSON.stringify(target)}/>
     <img className="atlas-sky-canopy" src="/scenes/atlas-sky.webp" alt="" aria-hidden="true"/>
     {scene==='map'&&!selectedCity&&<img className="atlas-cloud-canopy" src="/scenes/atlas-clouds.png" alt="" aria-hidden="true"/>}
-    {failed&&<div className="atlas-map-fallback"><svg viewBox="0 0 1000 1050" aria-hidden="true">{provinces.features.map(feature=>{const polygons=feature.geometry.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry.coordinates;const d=(polygons as number[][][][]).map(p=>p.map(r=>r.map(([x,y],i)=>(i?'L':'M')+projectChina(x,y).join(',')).join(' ')+'Z').join(' ')).join(' ');return <path key={feature.properties.adcode} d={d}/>;})}</svg>{cities.flatMap(city=>(props.artists??[]).map(artist=>{const [x,y]=projectChina(city.lng,city.lat),identity=artistIdentity(city.name,events,props.artists,artist.id),offset=mapMarkerOffset(city.name,artist.id,events);return identity.photo?<button type="button" key={`${city.id}:${artist.id}`} className="real-city-pin" aria-label={`${city.name} · ${identity.name}`} onClick={()=>props.onCity(city)} style={{left:`calc(${x/10}% + ${offset[0]}px)`,top:`calc(${y/10.5}% + ${offset[1]}px)`}}><img src={identity.photo.url} alt={identity.name} className={identity.photo.contain?'is-whole-photo':undefined}/></button>:null;}))}<p>当前设备无法开启三维地图，可继续选择照片标记或下方日程。</p></div>}
+    {failed&&<div className="atlas-map-fallback"><svg viewBox="0 0 1000 1050" aria-hidden="true">{provinces.features.map(feature=>{const polygons=feature.geometry.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry.coordinates;const d=(polygons as number[][][][]).map(p=>p.map(r=>r.map(([x,y],i)=>(i?'L':'M')+projectChina(x,y).join(',')).join(' ')+'Z').join(' ')).join(' ');return <path key={feature.properties.adcode} d={d}/>;})}</svg>{cities.flatMap(city=>(props.artists??[]).map(artist=>{const [x,y]=projectChina(city.lng,city.lat),identity=artistIdentity(city.name,events,props.artists,artist.id),offset=mapMarkerOffset(city.name,artist.id,events);return identity.photo?<button type="button" key={`${city.id}:${artist.id}`} className="real-city-pin" aria-label={`${city.name} · ${identity.name}`} onClick={()=>props.onCity(city,artist.id)} style={{left:`calc(${x/10}% + ${offset[0]}px)`,top:`calc(${y/10.5}% + ${offset[1]}px)`}}><img src={identity.photo.url} alt={identity.name} className={identity.photo.contain?'is-whole-photo':undefined}/></button>:null;}))}<p>当前设备无法开启三维地图，可继续选择照片标记或下方日程。</p></div>}
     {scene==='map'&&<MapCredits events={events} artists={props.artists}/>}
     {imageryError&&scene==='map'&&<div className="atlas-imagery-error" role="status">地图连接较慢，地点与日程仍可查看。</div>}
     {(!modelReady||sceneImageLoading)&&scene!=='map'&&!failed&&<span className="cinematic-loading" role="status">正在准备场馆画面…</span>}
