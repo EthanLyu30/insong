@@ -461,7 +461,7 @@ test('following an artist is distinct from saving a concert and remains availabl
     await act(async()=>document.querySelector('.atlas-map-fallback button').click());
     await act(async()=>document.querySelector('[aria-label="已关注邓紫棋"]').click());
     assert.ok(document.querySelector('[aria-label="关注邓紫棋"]'));
-    assert.equal(document.querySelectorAll('.atlas-venue-row').length,0);
+    assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,0);
   },{interests});
   assert.deepEqual(writes,[{url:'/api/footprints/follows/gem',body:{followed:true}},{url:'/api/footprints/follows/gem',body:{followed:false}}]);
 });
@@ -514,8 +514,73 @@ test('artist portraits open that artist and city across months instead of an emp
     await act(async()=>marker.click());
     const query=new URLSearchParams(location().search);
     assert.equal(query.get('artist'),'gem');assert.equal(query.get('city'),'shanghai');assert.equal(query.get('month'),'all');
-    assert.deepEqual([...document.querySelectorAll('.atlas-venue-row strong')].map(item=>item.textContent),['上海体育场']);
+    assert.deepEqual([...document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row>span small')].map(item=>item.textContent),['上海体育场']);
     assert.ok(!document.querySelector('.atlas-empty-city'));
+  });
+});
+
+test('a known concert opens its starry night in one step and returns to the same filtered itinerary',async()=>{
+  const path='/footprints?from=mine&return=%2Fmemories%3Ftag%3D%E6%BC%94%E5%94%B1%E4%BC%9A&period=past&month=all';
+  await harness(path,async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists'||url==='/api/footprints')return Response.json([]);throw new Error(url);
+  },async({act,until,location})=>{
+    await until('.atlas-itinerary .atlas-schedule-row');
+    const original=location().search;
+    await act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
+    assert.equal(document.querySelector('.atlas-page').dataset.scene,'sky');
+    assert.ok(!document.querySelector('[aria-label="夕阳场馆"]'));
+    assert.ok(document.querySelector('.atlas-night-panel'));
+    await act(async()=>document.querySelector('[aria-label="返回上一页"]').click());
+    assert.equal(location().search,original);
+    assert.ok(document.querySelector('.atlas-itinerary'));
+  });
+});
+
+test('an artist portrait opens local concert rows directly and the selected night returns to that local search',async()=>{
+  const catalog={...revisionCatalog,events:[
+    {...revisionCatalog.events[0],id:'old-sh',date:'2026-09-19'},
+    {...revisionCatalog.events[0],id:'another-venue',venue:'另一座体育馆',date:'2026-09-21'},
+    {...revisionCatalog.events[1],city:'上海',venue:'别人的场馆',date:'2026-09-19'},
+  ]};
+  await harness('/footprints?month=2026-10',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(catalog);
+    if(url==='/api/playlists'||url==='/api/footprints')return Response.json([]);throw new Error(url);
+  },async({act,until,location})=>{
+    await until('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');
+    await act(async()=>document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]').click());
+    assert.equal(document.querySelector('.atlas-page').dataset.scene,'map');
+    assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,2);
+    assert.ok(!document.querySelector('.atlas-venue-row'),'no venue-selection step precedes the concert list');
+    await act(async()=>document.querySelector('[aria-label="搜索场次"]').click());
+    await act(async()=>{const input=document.querySelector('[aria-label="搜索当地场次"]');Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(input,'9/19');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
+    assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,1);
+    const original=location().search;
+    await act(async()=>{const list=document.querySelector('.atlas-city-sheet .atlas-schedule-list');list.scrollTop=72;list.dispatchEvent(new window.Event('scroll',{bubbles:true}));});
+    await act(async()=>document.querySelector('.atlas-city-sheet .atlas-schedule-row').click());
+    assert.equal(document.querySelector('.atlas-page').dataset.scene,'sky');
+    assert.equal(new URLSearchParams(location().search).get('event'),'old-sh');
+    await act(async()=>document.querySelector('[aria-label="返回上一页"]').click());
+    assert.equal(location().search,original);
+    assert.equal(document.querySelector('[aria-label="搜索当地场次"]').value,'9/19');
+    assert.equal(document.querySelector('.atlas-city-sheet .atlas-schedule-list').scrollTop,72,'return retains the internal list position');
+    assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,1);
+    await act(async()=>document.querySelector('.atlas-city-sheet [aria-label="返回上一页"]').click());
+    assert.ok(document.querySelector('.atlas-itinerary'));
+  });
+});
+
+test('an old sunset scene link opens the selected night and its fallback returns to local concerts',async()=>{
+  await harness('/footprints?artist=gem&month=all&city=shanghai&venue=上海%3A上海体育场&event=sh&scene=venue',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
+    if(url==='/api/playlists'||url==='/api/footprints')return Response.json([]);throw new Error(url);
+  },async({act,until})=>{
+    await until('.atlas-night-panel');
+    assert.equal(document.querySelector('.atlas-page').dataset.scene,'sky');
+    assert.ok(!document.querySelector('[aria-label="夕阳场馆"]'));
+    await act(async()=>document.querySelector('[aria-label="返回上一页"]').click());
+    assert.equal(document.querySelector('.atlas-page').dataset.scene,'map');
+    assert.ok(document.querySelector('.atlas-city-sheet .atlas-schedule-row'));
   });
 });
 
@@ -529,7 +594,7 @@ test('a saved night pinned outside the period remains reachable from its artist 
     await act(async()=>document.querySelector('.atlas-map-fallback button').click());
     const query=new URLSearchParams(location().search);
     assert.equal(query.get('scope'),'saved');assert.equal(query.get('event'),future.id);
-    assert.ok(document.querySelector('.atlas-venue-row'),'the intentionally pinned night still supplies its venue');
+    assert.ok(document.querySelector('.atlas-city-sheet .atlas-schedule-row'),'the intentionally pinned night stays in the local concert list');
     assert.ok(!document.querySelector('.atlas-empty-city'));
   });
 });
@@ -780,7 +845,7 @@ test('one shared playlist read gates cancellation and preserves other favorites 
     const sh=document.querySelector('[aria-label="收藏 上海 邓紫棋"]');
     assert.ok(sh,'the cancelled heart stays unfilled after the obsolete read');
     assert.equal(sh.getAttribute('aria-pressed'),'false');
-    await go('/footprints?month=2026-10&city=beijing&venue=北京:北京五棵松&event=bj&scene=venue');
+    await go('/footprints?month=2026-10&city=beijing&venue=北京:北京五棵松&event=bj&scene=map');
     assert.equal(document.querySelector('[aria-label="取消收藏 北京 刘雨昕"]').getAttribute('aria-pressed'),'true','unrelated saved events remain available');
   });
 });
@@ -1428,29 +1493,29 @@ test('returning from song selection keeps the filtered My page as the composer b
 for(const scope of ['saved','followed'])test(`the ${scope} concert filter stays applied when searching inside a shared venue`,async()=>{
   const gem={...revisionCatalog.events[0],venue_lng:121.437,venue_lat:31.183};
   const liu={...gem,id:'other',artist_id:'liu-yuxin'};
-  await harness(`/footprints?scope=${scope}&month=all&city=shanghai&venue=上海%3A上海体育场&event=sh&scene=venue`,async url=>{
+  await harness(`/footprints?scope=${scope}&month=all&city=shanghai&venue=上海%3A上海体育场&event=sh&scene=map`,async url=>{
     if(url==='/api/footprints/catalog')return Response.json({...revisionCatalog,events:[gem,liu]});
     if(url==='/api/playlists')return Response.json([{event_id:'sh',songs:[]}]);throw new Error(url);
   },async({act,until})=>{
-    await until('.atlas-show-sheet');
+    await until('.atlas-city-sheet');
     await act(async()=>document.querySelector('[aria-label="搜索场次"]').click());
-    assert.deepEqual([...document.querySelectorAll('.atlas-show-sheet .atlas-schedule-row strong')].map(label=>label.textContent),['上海 · 邓紫棋']);
+    assert.deepEqual([...document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row strong')].map(label=>label.textContent),['上海 · 邓紫棋']);
   },{interests:{artist_ids:['gem'],wish_event_ids:[]}});
 });
 
 test('removing the linked concert from favorites does not reinsert it into that personal scope',async()=>{
   const gem={...revisionCatalog.events[0],venue_lng:121.437,venue_lat:31.183};
   const liu={...gem,id:'other',artist_id:'liu-yuxin'};
-  await harness('/footprints?scope=saved&month=all&city=shanghai&venue=上海%3A上海体育场&event=sh&scene=venue',async(url,options)=>{
+  await harness('/footprints?scope=saved&month=all&city=shanghai&venue=上海%3A上海体育场&event=sh&scene=map',async(url,options)=>{
     if(url==='/api/footprints/catalog')return Response.json({...revisionCatalog,events:[gem,liu]});
     if(url==='/api/playlists')return Response.json([{event_id:'sh',songs:[]},{event_id:'other',songs:[]}]);
     if(url==='/api/playlists/concerts/sh'&&options.method==='DELETE')return new Response(null,{status:204});throw new Error(url);
   },async({act,until})=>{
-    await until('.atlas-show-sheet');
+    await until('.atlas-city-sheet');
     await act(async()=>document.querySelector('[aria-label="取消收藏 上海 邓紫棋"]').click());
-    assert.deepEqual([...document.querySelectorAll('.atlas-show-sheet .atlas-schedule-row strong')].map(label=>label.textContent),['上海 · 刘雨昕']);
+    assert.deepEqual([...document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row strong')].map(label=>label.textContent),['上海 · 刘雨昕']);
     await act(async()=>document.querySelector('[aria-label="搜索场次"]').click());
-    assert.deepEqual([...document.querySelectorAll('.atlas-show-sheet .atlas-schedule-row strong')].map(label=>label.textContent),['上海 · 刘雨昕']);
+    assert.deepEqual([...document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row strong')].map(label=>label.textContent),['上海 · 刘雨昕']);
   });
 });
 

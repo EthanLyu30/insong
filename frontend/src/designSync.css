@@ -134,6 +134,14 @@
 .atlas-map .atlas-wordmark small{font-size:18px;color:#bd7d59;text-shadow:none}
 .atlas-map .atlas-artist-pills button{min-height:33px;padding:6px 12px}
 .atlas-selected-actions{display:flex;align-items:center;gap:8px;flex:none}
+.atlas-local-itinerary{display:flex;flex-direction:column;max-height:min(52dvh,460px)}
+.atlas-local-itinerary .atlas-schedule-list{min-height:0;overflow-x:hidden;overflow-y:auto;max-height:27dvh;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin}
+.atlas-map .atlas-local-itinerary .atlas-schedule-row{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;min-height:68px}
+.atlas-local-itinerary .atlas-schedule-row time,.atlas-local-itinerary .atlas-schedule-item.is-run .atlas-schedule-row time{min-width:0;font-size:16px;white-space:nowrap}
+.atlas-local-itinerary .atlas-schedule-row:disabled{opacity:.5;cursor:default}
+.atlas-local-itinerary .atlas-selected-actions{gap:4px}
+.atlas-map .atlas-local-itinerary .atlas-selected-actions>button:not(.atlas-follow-button){min-width:44px;min-height:44px}
+.atlas-local-itinerary .atlas-venue-search-toggle{border:0;background:none}
 .atlas-map .atlas-selected-actions>button:not(.atlas-follow-button){display:grid;place-items:center;min-width:36px;min-height:36px;padding:0;border:0;background:transparent;color:#877562;font-size:25px}
 .atlas-map .atlas-panel header .atlas-follow-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:6px 10px;border:1px solid #d6c3a5;border-radius:20px;background:#fff8e8;color:#72523a;font-size:12px;white-space:nowrap;text-decoration:none}
 .atlas-map .atlas-panel header .atlas-follow-button[aria-pressed=true]{background:#f1eddf;color:#516943;border-color:#b7c4a6}

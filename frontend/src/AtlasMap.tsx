@@ -204,7 +204,7 @@ export function AtlasMap(props:Props){
     if(scene==='map')for(const event of local){
       const button=document.createElement('button');button.type='button';button.className='real-venue-pin';button.dataset.event=event.id;
       const wanted=events.some(show=>show.city===event.city&&show.venue===event.venue&&latest.current.wantedEventIds?.includes(show.id));
-      button.classList.toggle('is-wanted',wanted);button.setAttribute('aria-label',`地图场馆 · ${event.venue} · 进入外景`);button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=event.venue+(wanted?' · 想去':'');
+      button.classList.toggle('is-wanted',wanted);button.setAttribute('aria-label',`地图场馆 · ${event.venue} · ${event.date} · 进入星空`);button.append(document.createElement('i'),document.createElement('span'));button.lastElementChild!.textContent=event.venue+(wanted?' · 想去':'');
       button.addEventListener('click',()=>latest.current.onVenue(event));const marker=makeVenueMarker.current?.(button,[event.venue_lng!,event.venue_lat!]);if(marker)venuePins.current.push(marker);
     }
   },[ready,cities,events,today,selectedCity?.id,artistSelected,route,scene,props.wantedEventIds,props.artists]);
