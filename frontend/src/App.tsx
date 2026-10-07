@@ -50,6 +50,25 @@ function Shell() {
   const location = useLocation();
   const navigate = useNavigate();
   const homeParams = new URLSearchParams(location.search);
+  const publicPage = ['/', '/discover', '/footprints'].includes(location.pathname)
+    || /^\/(songs|stories)\/\d+$/.test(location.pathname)
+    || /^\/themes\/[^/]+$/.test(location.pathname);
+  const [publicSession, setPublicSession] = useState<{
+    identity: number | null | undefined; pending: boolean; revision: number;
+  }>({identity: undefined, pending: false, revision: 0});
+  const identity = user?.id ?? null;
+  // Adjust this component's state before its children render: a changed account
+  // must never render cached private sections, even when React batches the switch.
+  // The first confirmation keeps public requests already running.
+  if ((loading || error) && publicSession.identity !== undefined && !publicSession.pending) {
+    setPublicSession({...publicSession, pending: true});
+  } else if (!loading && !error && (publicSession.pending || publicSession.identity !== identity)) {
+    setPublicSession({identity, pending: false,
+      revision: publicSession.revision + (publicSession.identity === undefined ? 0 : 1)});
+  }
+  // Once a session is known, preserve the existing refresh guard for cached
+  // personalized sections such as followed artists and private song cards.
+  const guardSession = !publicPage || publicSession.identity !== undefined;
   // Home has one visual state, regardless of how the user arrived here.
   const intro = location.pathname === '/' && !['theme','event','choose'].some(key=>homeParams.has(key));
   const atlas = location.pathname === '/footprints';
@@ -58,8 +77,8 @@ function Shell() {
   return <div className={`site-shell${intro?' intro-shell':''}${atlas?' atlas-shell':''}`}>
     {!atlas&&!composerRoute && <header className="topbar"><Link to={intro?'/':'/discover'} className="brand" aria-label="歌里有我，前往共鸣"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
-      {loading ? <div className="status-card" role="status">正在打开你的空间…</div> : error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
-        <Routes key={`${user?.id ?? 'guest'}:${location.pathname}`}>
+      {guardSession && loading ? <div className="status-card" role="status">正在打开你的空间…</div> : guardSession && error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
+        <Routes key={`${publicPage ? `public-${publicSession.revision}` : user?.id ?? 'guest'}:${location.pathname}`}>
           <Route path="/" element={<HomePage intro={intro} onEnter={()=>navigate('/discover')}/>}/>
           <Route path="/account" element={<AccountPage/>}/>
           <Route path="/songs/:songId" element={<SongPage/>}/>
