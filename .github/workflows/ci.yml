@@ -12,11 +12,13 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !(github.repository == 'EthanLyu30/insong' && github.ref == 'refs/heads/main') }}
 
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    outputs:
+      tree: ${{ steps.frontend-digest.outputs.tree }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -29,6 +31,8 @@ jobs:
         working-directory: frontend
       - run: pnpm build:checked
         working-directory: frontend
+      - id: frontend-digest
+        run: echo "tree=$(python ops/hk/deploy_client.py digest)" >> "$GITHUB_OUTPUT"
 
   backend:
     runs-on: ubuntu-latest
@@ -59,10 +63,12 @@ jobs:
         env:
           APP_ENV: test
           TEST_POSTGRES_URL: postgresql://postgres:postgres@127.0.0.1:5432/insong_qa?sslmode=disable
+      - run: python -m pytest ops/hk/tests -q
 
   container:
+    needs: [frontend, backend]
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:17
@@ -82,7 +88,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install httpx Pillow
-      - run: docker build -t insong-qa backend
+      - run: docker build --build-arg RELEASE_SHA="$GITHUB_SHA" -t "insong-backend:$GITHUB_SHA" -t insong-qa backend
       - name: Run within the documented Free CPU and RAM limits
         run: >-
           docker run -d --name insong-qa --network host --memory 512m --cpus 0.1
@@ -102,3 +108,28 @@ jobs:
           docker inspect --format 'OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}}' insong-qa || true
           docker exec insong-qa cat /sys/fs/cgroup/memory.peak || true
           docker logs insong-qa || true
+      - uses: actions/setup-node@v7
+        if: github.repository == 'EthanLyu30/insong' && github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.HK_DEPLOY_ENABLED == 'true'
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v6
+        if: github.repository == 'EthanLyu30/insong' && github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.HK_DEPLOY_ENABLED == 'true'
+        with:
+          version: '11.19.0'
+      - name: Publish the checked commit to Hong Kong
+        if: github.repository == 'EthanLyu30/insong' && github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.HK_DEPLOY_ENABLED == 'true'
+        env:
+          HK_DEPLOY_ENABLED: 'true'
+          HK_CI_COMPLETE: 'true'
+          HK_HOST: ${{ secrets.HK_HOST }}
+          HK_USER: ${{ secrets.HK_USER }}
+          HK_SSH_PRIVATE_KEY: ${{ secrets.HK_SSH_PRIVATE_KEY }}
+          HK_SSH_KNOWN_HOSTS: ${{ secrets.HK_SSH_KNOWN_HOSTS }}
+          EXPECTED_FRONTEND: ${{ needs.frontend.outputs.tree }}
+        run: |
+          pnpm --dir frontend install --frozen-lockfile
+          pnpm --dir frontend build
+          test "$(python ops/hk/deploy_client.py digest)" = "$EXPECTED_FRONTEND"
+          docker save "insong-backend:$GITHUB_SHA" -o backend-image.tar
+          python ops/hk/deploy_client.py bundle
+          python ops/hk/deploy_client.py publish

@@ -1,4 +1,6 @@
 FROM python:3.12-slim
+ARG RELEASE_SHA=development
+LABEL org.opencontainers.image.revision=$RELEASE_SHA
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
