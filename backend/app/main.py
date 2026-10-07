@@ -69,6 +69,11 @@ def create_app(database_url: str | None = None) -> FastAPI:
             trusted.add(str(request.base_url).rstrip('/'))
         if request.method in ('POST', 'PATCH', 'DELETE', 'PUT') and origin and origin not in trusted:
             return JSONResponse({'detail': '请求来源不受支持。'}, status_code=403)
+        if (settings.migration_read_only and request.url.path.startswith('/api/')
+                and request.method not in ('GET', 'HEAD', 'OPTIONS')):
+            return JSONResponse(
+                {'detail': '站点正在迁移，暂时不能保存。请保留当前内容，稍后重试。'},
+                status_code=503, headers={'Retry-After': '60', 'Cache-Control': 'no-store'})
         response = await call_next(request)
         if request.url.path.startswith('/api/') and not request.url.path.startswith('/api/audio/'):
             response.headers['Cache-Control'] = 'no-store'

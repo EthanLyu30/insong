@@ -27,6 +27,7 @@ class Settings:
     database_schema: str
     allowed_origins: tuple[str, ...]
     cookie_secure: bool
+    migration_read_only: bool = False
 
 
 def _database_url(raw: str, production: bool) -> str:
@@ -69,6 +70,9 @@ def _origin(value: str) -> str:
 
 
 def load_settings() -> Settings:
+    migration_flag = os.environ.get('MIGRATION_READ_ONLY', '0').strip()
+    if migration_flag not in ('0', '1'):
+        raise ValueError('MIGRATION_READ_ONLY 必须为 0 或 1。')
     app_env = os.environ.get('APP_ENV', 'development').strip().lower()
     if app_env not in ('development', 'test', 'production'):
         raise ValueError('APP_ENV 必须是 development、test 或 production。')
@@ -85,4 +89,4 @@ def load_settings() -> Settings:
     origins.extend(_origin(value) for value in os.environ.get('CORS_ORIGINS', '').split(',') if value.strip())
     return Settings(app_env=app_env, database_url=_database_url(raw, production),
                     database_schema=schema, allowed_origins=tuple(dict.fromkeys(origins)),
-                    cookie_secure=production)
+                    cookie_secure=production, migration_read_only=migration_flag == '1')
