@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "corepack pnpm install --frozen-lockfile",
-  "buildCommand": "corepack pnpm build:checked",
+  "buildCommand": "corepack pnpm test && corepack pnpm build",
   "outputDirectory": "dist",
   "rewrites": [
     {
