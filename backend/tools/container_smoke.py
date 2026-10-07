@@ -46,8 +46,8 @@ def main():
         assert matches['mode'] == 'semantic', 'E5 could not finish; keyword fallback is not a passing semantic test'
         assert matches['items']
         data = BytesIO()
-        # The allowed maximum decoded pixel count, with a compact generated JPEG.
-        Image.new('RGB', (5000, 4000), '#b78664').save(data, format='JPEG')
+        # RGBA needs more decoded memory than RGB at the allowed pixel limit.
+        Image.new('RGBA', (5000, 4000), (183, 134, 100, 128)).save(data, format='PNG')
         encoded = base64.b64encode(data.getvalue()).decode()
         start = threading.Barrier(4)
         def upload_photo():
@@ -76,7 +76,7 @@ def main():
         assert client.get(photo['url']).status_code == 200
         assert client.get('/api/health').status_code == 200
         print(json.dumps({'health': 'pass', 'model': 'semantic', 'items': len(matches['items']),
-                          'max_pixel_upload': 'pass', 'concurrent_uploads': 'bounded',
+                          'max_pixel_upload': 'pass', 'input_format': 'RGBA PNG', 'concurrent_uploads': 'bounded',
                           'busy_uploads': len(busy), 'upload_retry': 'pass',
                           'concurrent_search_mode': search_response.json()['mode']}))
 
