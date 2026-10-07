@@ -126,6 +126,7 @@ jobs:
           HK_SSH_PRIVATE_KEY: ${{ secrets.HK_SSH_PRIVATE_KEY }}
           HK_SSH_KNOWN_HOSTS: ${{ secrets.HK_SSH_KNOWN_HOSTS }}
           EXPECTED_FRONTEND: ${{ needs.frontend.outputs.tree }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           pnpm --dir frontend install --frozen-lockfile
           pnpm --dir frontend build

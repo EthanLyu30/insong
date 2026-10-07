@@ -17,6 +17,7 @@ class Manifest:
     image_tag: str
     files: dict
     archive_sha256: str
+    generation: int = 0
 
 
 def _name(name):
@@ -88,6 +89,9 @@ def verify_bundle(path: Path, expected_sha: str) -> Manifest:
                 raise ValueError('invalid release manifest')
             if document.get('sha') != expected_sha or document.get('image_tag') != 'insong-backend:' + expected_sha:
                 raise ValueError('release revision does not match')
+            generation = document.get('generation', 0)
+            if type(generation) is not int or generation < 0:
+                raise ValueError('invalid publication generation')
             expected = document.get('files')
             if not isinstance(expected, dict) or not expected:
                 raise ValueError('missing release files')
@@ -103,7 +107,7 @@ def verify_bundle(path: Path, expected_sha: str) -> Manifest:
             source.seek(0)
             if _digest(source)[0] != outer:
                 raise ValueError('release changed during verification')
-            return Manifest(expected_sha, document['image_tag'], expected, outer)
+            return Manifest(expected_sha, document['image_tag'], expected, outer, generation)
     except (tarfile.TarError, EOFError, OSError, json.JSONDecodeError, UnicodeError) as error:
         raise ValueError('release archive is invalid') from error
 
@@ -144,4 +148,5 @@ def extract_verified(path: Path, manifest: Manifest, target: Path):
             if {'size': length, 'sha256': digest.hexdigest()} != checked.files[name]:
                 raise ValueError('extraction content changed')
     (target / 'manifest.json').write_text(json.dumps({'sha': checked.sha, 'image_tag': checked.image_tag,
-                                                    'files': checked.files, 'archive_sha256': checked.archive_sha256}), encoding='utf-8')
+                                                    'files': checked.files, 'archive_sha256': checked.archive_sha256,
+                                                    'generation': checked.generation}), encoding='utf-8')

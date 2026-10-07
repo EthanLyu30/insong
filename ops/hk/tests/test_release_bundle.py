@@ -11,10 +11,10 @@ from ops.hk.release_bundle import verify_bundle, extract_verified
 SHA = 'a' * 40
 
 
-def make_bundle(path, *, extra=None, wrong_hash=False, sha=SHA):
+def make_bundle(path, *, extra=None, wrong_hash=False, sha=SHA, generation=0):
     files = {'backend-image.tar': b'qa-image', 'frontend/index.html': b'qa-home',
              'frontend/assets/qa.js': b'qa-versioned-code'}
-    manifest = {'version': 1, 'sha': sha, 'image_tag': 'insong-backend:' + sha,
+    manifest = {'version': 1, 'sha': sha, 'generation': generation, 'image_tag': 'insong-backend:' + sha,
                 'files': {n: {'size': len(v), 'sha256': hashlib.sha256(v).hexdigest()}
                           for n, v in files.items()}}
     if wrong_hash:

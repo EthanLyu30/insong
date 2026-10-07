@@ -10,7 +10,7 @@ SHA = 'a'*40
 
 def approved_event():
     return {'repository': 'EthanLyu30/insong', 'ref': 'refs/heads/main', 'event': 'push',
-            'sha': SHA, 'checkout_sha': SHA, 'ci_complete': True, 'enabled': True}
+            'sha': SHA, 'checkout_sha': SHA, 'latest_sha':SHA, 'ci_complete': True, 'enabled': True}
 
 
 def test_only_completed_main_push_of_the_deployment_repository_can_publish():
@@ -19,7 +19,7 @@ def test_only_completed_main_push_of_the_deployment_repository_can_publish():
 
 @pytest.mark.parametrize('field,value', [('repository','Saskia-1/TME'), ('event','pull_request'),
                                       ('ref','refs/heads/lxy'), ('ci_complete',False), ('enabled',False),
-                                      ('checkout_sha','b'*40), ('sha','invalid')])
+                                      ('checkout_sha','b'*40), ('latest_sha','b'*40), ('sha','invalid')])
 def test_untrusted_or_incomplete_events_cannot_publish(field,value):
     event=approved_event(); event[field]=value
     assert not can_deploy(event)

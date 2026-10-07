@@ -24,7 +24,8 @@ def can_deploy(context):
             and context.get('enabled') is True
             and isinstance(context.get('sha'), str)
             and re.fullmatch('[a-f0-9]{40}', context['sha']) is not None
-            and context.get('checkout_sha') == context['sha'])
+            and context.get('checkout_sha') == context['sha']
+            and context.get('latest_sha') == context['sha'])
 
 
 def _files(root):
@@ -53,7 +54,7 @@ def tree_digest(root):
     return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
-def create_bundle(frontend, image, sha, output):
+def create_bundle(frontend, image, sha, output, generation=0):
     if not re.fullmatch('[a-f0-9]{40}', sha):
         raise ValueError('invalid revision')
     if image.is_symlink() or not image.is_file():
@@ -63,7 +64,7 @@ def create_bundle(frontend, image, sha, output):
     entries = {name: _entry(file) for name, file in files.items()}
     if sum(e['size'] for e in entries.values()) > MAX_TOTAL-1024**2:
         raise ValueError('release too large')
-    manifest = json.dumps({'version': 1, 'sha': sha, 'image_tag': 'insong-backend:'+sha,
+    manifest = json.dumps({'version': 1, 'sha': sha, 'generation':generation, 'image_tag': 'insong-backend:'+sha,
                            'files': entries}, sort_keys=True).encode()
     with tarfile.open(output, 'w:gz', format=tarfile.USTAR_FORMAT, compresslevel=1) as archive:
         member = tarfile.TarInfo('manifest.json'); member.size = len(manifest)
@@ -107,13 +108,15 @@ if __name__ == '__main__':
     else:
         sha = os.environ.get('GITHUB_SHA', '')
         checkout = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+        latest = subprocess.check_output(['gh','api','repos/EthanLyu30/insong/git/ref/heads/main',
+                                          '--jq','.object.sha'],text=True).strip()
         context = {'repository': os.environ.get('GITHUB_REPOSITORY'), 'ref': os.environ.get('GITHUB_REF'),
-                   'event': os.environ.get('GITHUB_EVENT_NAME'), 'sha': sha, 'checkout_sha': checkout,
+                   'event': os.environ.get('GITHUB_EVENT_NAME'), 'sha': sha, 'checkout_sha': checkout, 'latest_sha':latest,
                    'ci_complete': os.environ.get('HK_CI_COMPLETE') == 'true',
                    'enabled': os.environ.get('HK_DEPLOY_ENABLED') == 'true'}
         if not can_deploy(context):
             raise SystemExit('this event cannot publish')
         if args.action == 'bundle':
-            create_bundle(args.frontend, args.image, sha, args.output)
+            create_bundle(args.frontend, args.image, sha, args.output,int(os.environ['GITHUB_RUN_NUMBER']))
         else:
             publish(args.output, sha)

@@ -88,9 +88,9 @@ def test_invalid_archive_and_existing_deploy_lock_have_no_runtime_side_effect(tm
         deploy_release(bundle, NEW, root, runtime=runtime)
     assert runtime.calls == []
     make_bundle(bundle)
-    (root / 'state/deploy.lock').write_text('other-running-publisher')
-    with pytest.raises(RuntimeError, match='deployment'):
-        deploy_release(bundle, NEW, root, runtime=runtime)
+    with deploy_module._lock(root / 'state/deploy.lock'):
+        with pytest.raises(RuntimeError, match='deployment'):
+            deploy_release(bundle, NEW, root, runtime=runtime)
     assert runtime.calls == []
 
 
@@ -150,3 +150,64 @@ def test_failure_to_stop_old_slot_does_not_report_a_failed_live_release(tmp_path
         raise RuntimeError('stop-failed')
     runtime.stop = stop
     assert deploy_release(bundle, NEW, root, runtime=runtime).sha == NEW
+
+
+def test_old_workflow_rerun_cannot_replace_a_newer_live_version(tmp_path):
+    root=owned_root(tmp_path)
+    (root/'state/current.json').write_text(json.dumps({'sha':OLD,'slot':'blue','port':18001,'generation':20}))
+    bundle=tmp_path/'old.tar.gz';make_bundle(bundle,generation=19)
+    runtime=Runtime()
+    with pytest.raises(ValueError,match='older'):
+        deploy_release(bundle,NEW,root,runtime=runtime)
+    assert runtime.calls==[]
+    assert json.loads((root/'state/current.json').read_text())['sha']==OLD
+
+
+def test_active_old_workers_keep_the_old_backend_and_prevent_slot_reuse(tmp_path):
+    root=owned_root(tmp_path)
+    bundle=tmp_path/'release.tar.gz';make_bundle(bundle,generation=1)
+    runtime=Runtime()
+    runtime.prepare_slot=lambda slot: True
+    runtime.retire_slot=lambda slot: False
+    deploy_release(bundle,NEW,root,runtime=runtime)
+    assert 'stop' not in runtime.calls
+    second=tmp_path/'next.tar.gz';make_bundle(second,sha='c'*40,generation=2)
+    runtime=Runtime();runtime.prepare_slot=lambda slot: False
+    with pytest.raises(RuntimeError,match='drain'):
+        deploy_release(second,'c'*40,root,runtime=runtime)
+    assert 'start' not in runtime.calls
+
+
+def test_exited_lock_holder_does_not_block_the_next_deployment(tmp_path):
+    import subprocess,sys
+    path=tmp_path/'deploy.lock'
+    child=subprocess.Popen([sys._base_executable,'-c',
+        'import sys,time;from pathlib import Path;from ops.hk.deploy_release import _lock;'
+        '\nwith _lock(Path(sys.argv[1])): print("held",flush=True);time.sleep(60)',str(path)],stdout=subprocess.PIPE,text=True)
+    try:
+        assert child.stdout.readline().strip()=='held'
+        child.terminate();child.wait(timeout=5)
+        with deploy_module._lock(path): pass
+    finally:
+        if child.poll() is None: child.kill();child.wait()
+
+
+def test_incoming_retention_preserves_unknown_files_and_limits_owned_packages(tmp_path):
+    from ops.hk.deploy_release import prune_incoming
+    root=owned_root(tmp_path);incoming=root/'incoming';incoming.mkdir()
+    for letter in 'abcd': (incoming/(letter*40+'.tar.gz')).write_bytes(b'owned')
+    (incoming/'user-backup.dump').write_bytes(b'preserve')
+    prune_incoming(root,{'a'*40,'b'*40,'c'*40})
+    assert len(list(incoming.glob('*.tar.gz')))==3
+    assert (incoming/'user-backup.dump').read_bytes()==b'preserve'
+
+
+def test_low_free_space_rejects_before_loading_an_image(tmp_path,monkeypatch):
+    from collections import namedtuple
+    root=owned_root(tmp_path);bundle=tmp_path/'release.tar.gz';make_bundle(bundle)
+    disk=namedtuple('usage','total used free')
+    monkeypatch.setattr(deploy_module.shutil,'disk_usage',lambda path: disk(100,90,10))
+    runtime=Runtime()
+    with pytest.raises(RuntimeError,match='space'):
+        deploy_release(bundle,NEW,root,runtime=runtime)
+    assert runtime.calls==[]
