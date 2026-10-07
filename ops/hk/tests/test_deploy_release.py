@@ -211,3 +211,16 @@ def test_low_free_space_rejects_before_loading_an_image(tmp_path,monkeypatch):
     with pytest.raises(RuntimeError,match='space'):
         deploy_release(bundle,NEW,root,runtime=runtime)
     assert runtime.calls==[]
+
+
+def test_failed_candidates_keep_the_explicit_rollback_release(tmp_path):
+    import os
+    root=owned_root(tmp_path);rollback='c'*40
+    (root/'state/previous.json').write_text(json.dumps({'sha':rollback,'slot':'green','port':18002}))
+    for index,sha in enumerate([rollback,OLD,'d'*40,'e'*40],1):
+        release=root/'releases'/sha;release.mkdir()
+        (release/'manifest.json').write_text(json.dumps({'sha':sha}))
+        os.utime(release,(index,index))
+    bundle=tmp_path/'failed.tar.gz';make_bundle(bundle)
+    with pytest.raises(RuntimeError): deploy_release(bundle,NEW,root,runtime=Runtime('health'))
+    assert (root/'releases'/rollback).exists()

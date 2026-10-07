@@ -71,8 +71,9 @@ def _owned(root):
     return root
 
 
-def _current(root):
-    path = root / 'state/current.json'
+def _current(root, name='current.json'):
+    assert name in ('current.json','previous.json')
+    path = root / 'state' / name
     if not path.exists():
         return None
     if path.is_symlink():
@@ -80,7 +81,8 @@ def _current(root):
     state = json.loads(path.read_text())
     if (not re.fullmatch('[a-f0-9]{40}', state.get('sha', ''))
             or state.get('slot') not in ('blue', 'green')
-            or state.get('port') != (18001 if state['slot'] == 'blue' else 18002)):
+            or state.get('port') != (18001 if state['slot'] == 'blue' else 18002)
+            or type(state.get('generation',0)) is not int or state.get('generation',0)<0):
         raise ValueError('invalid current pointer')
     return state
 
@@ -242,7 +244,9 @@ def deploy_release(bundle: Path, expected_sha: str, root: Path, *, runtime=None)
                 finally:
                     if started:
                         runtime.stop(slot)
-                    keep=prune_releases(root,previous['sha'] if previous else None,None)
+                    rollback=_current(root,'previous.json')
+                    keep=prune_releases(root,previous['sha'] if previous else None,
+                                        rollback['sha'] if rollback else None)
                     prune_incoming(root,keep)
                     if hasattr(runtime,'prune_images'): runtime.prune_images(keep)
                 raise
