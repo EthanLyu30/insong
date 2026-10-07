@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { createServer } from 'vite';
+import {loadApp} from './support/loadApp.mjs';
 
 test('late save/delete responses cannot replace drafts after route or identity changes', async () => {
   const dom = new JSDOM('<div id="root"></div>', {url:'http://localhost:5173'});
@@ -14,7 +15,7 @@ test('late save/delete responses cannot replace drafts after route or identity c
   const { createRoot } = await import('react-dom/client');
   const { createMemoryRouter, RouterProvider, useNavigate, useLocation } = await import('react-router');
   const server = await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
-  const { default: App } = await server.ssrLoadModule('/src/App.tsx');
+  const { default: App } = await loadApp(server);
   let navigate, currentPath, finishSave, finishDelete;
   let user = {id:3,display_name:'测试',is_demo:false};
   const song = id => ({id,title:'测试音源',artist:'测试',version:'v1',is_demo:true,source_label:'测试',audio_available:false,audio_url:null,duration_ms:null,recording_label:'测试'});

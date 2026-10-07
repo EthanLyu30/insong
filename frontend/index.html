@@ -6,6 +6,17 @@
     <meta name="theme-color" content="#151019" />
     <meta name="description" content="歌里有我：把一首歌和一段人生经历留在一起。" />
     <title>歌里有我</title>
+    <script>
+      const entry = new URLSearchParams(location.search);
+      if (location.pathname === '/' && !['theme', 'event', 'choose'].some(key => entry.has(key))) {
+        const image = document.createElement('link');
+        image.rel = 'preload';
+        image.setAttribute('as', 'image');
+        image.href = '/collage-scene.webp';
+        image.setAttribute('fetchpriority', 'high');
+        document.head.appendChild(image);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

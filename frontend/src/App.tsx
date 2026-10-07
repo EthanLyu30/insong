@@ -3,17 +3,24 @@ import { Link, NavLink, Route, Routes, useLocation, useNavigate, useSearchParams
 import { getSongs, type Song } from './api';
 import {songCover} from './cardMedia';
 import { MemoryCollage } from './MemoryCollage';
+import {introSongs} from './introSongs';
+import {RouteLoadBoundary} from './RouteLoadBoundary';
 import {BackLink,NavigationProvider} from './Navigation';
 import { AccountControl, SessionProvider, useSession } from './SessionContext';
-import { AccountPage } from './AccountPage';
-import { CreateMemoryPage, MemoryCollection, MemoryDetailPage, SongPage } from './MemoryPages';
-import {CreationPage} from './CreationPage';
-import {SongSearchPage} from './SongPicker';
-import { DiscoverPage, StoryPage, ThemePage } from './PublicPages';
 import './footprints.css';
 import {Plus} from '@phosphor-icons/react';
 const FootprintsPage = lazy(() => import('./FootprintsPage').then(module => ({default:module.FootprintsPage})));
 const PlaylistsPage = lazy(() => import('./ConcertPlaylist').then(module => ({default:module.PlaylistsPage})));
+const AccountPage = lazy(() => import('./AccountPage').then(module => ({default:module.AccountPage})));
+const CreateMemoryPage = lazy(() => import('./MemoryPages').then(module => ({default:module.CreateMemoryPage})));
+const MemoryCollection = lazy(() => import('./MemoryPages').then(module => ({default:module.MemoryCollection})));
+const MemoryDetailPage = lazy(() => import('./MemoryPages').then(module => ({default:module.MemoryDetailPage})));
+const SongPage = lazy(() => import('./MemoryPages').then(module => ({default:module.SongPage})));
+const CreationPage = lazy(() => import('./CreationPage').then(module => ({default:module.CreationPage})));
+const SongSearchPage = lazy(() => import('./SongPicker').then(module => ({default:module.SongSearchPage})));
+const DiscoverPage = lazy(() => import('./PublicPages').then(module => ({default:module.DiscoverPage})));
+const StoryPage = lazy(() => import('./PublicPages').then(module => ({default:module.StoryPage})));
+const ThemePage = lazy(() => import('./PublicPages').then(module => ({default:module.ThemePage})));
 
 function Glyph({ name }: { name: 'home' | 'search' | 'bookmark' | 'map' }) {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{name === 'home' ? <><path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/></> : name === 'search' ? <><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.4 4.4"/></> : name === 'map' ? <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/></> : <path d="M6 3h12v18l-6-4-6 4V3Z"/>}</svg>;
@@ -39,9 +46,11 @@ function HomePage({intro,onEnter}:{intro:boolean;onEnter:()=>void}) {
     {!intro && params.get('theme') && <aside className="home-theme-note">选一首属于这个时刻的歌，主题会和记忆一起留下。<Link to={`/themes/${encodeURIComponent(params.get('theme')!)}`}>回看主题 →</Link></aside>}
     {!intro && params.get('event') && <aside className="home-theme-note">选一首歌，把这场现场留进记忆。当前可试听的是原创样例配乐。</aside>}
     {choosing&&<BackLink fallback={params.get('event')?`/footprints?event=${encodeURIComponent(params.get('event')!)}`:params.get('theme')?`/themes/${encodeURIComponent(params.get('theme')!)}`:'/memories'}/>}
-    {loading && <div className="status-card" role="status">正在布置你的音乐记忆…</div>}
-    {error && <div className="status-card error-card" role="alert">{error}<button onClick={() => setRequestKey(x => x + 1)}>重新加载</button></div>}
-    {!loading && !error && (choosing?<section className="journal-page song-selection"><h1>这一晚，你想留下哪首歌？</h1><p>从喜欢的歌开始，写自己的音乐卡片。</p><div>{songs.map(song=><Link key={song.id} to={`/songs/${song.id}/write?${params}`}><img src={songCover(song)} alt=""/><span><strong>{song.title}</strong><small>{song.artist}</small></span></Link>)}</div></section>:<MemoryCollage songs={homeSongs} intro={intro} onEnter={onEnter}/>)}
+    {intro ? <MemoryCollage songs={loading||error?introSongs:homeSongs} intro onEnter={onEnter}/> : <>
+      {loading && <div className="status-card" role="status">正在布置你的音乐记忆…</div>}
+      {error && <div className="status-card error-card" role="alert">{error}<button onClick={() => setRequestKey(x => x + 1)}>重新加载</button></div>}
+      {!loading && !error && (choosing?<section className="journal-page song-selection"><h1>这一晚，你想留下哪首歌？</h1><p>从喜欢的歌开始，写自己的音乐卡片。</p><div>{songs.map(song=><Link key={song.id} to={`/songs/${song.id}/write?${params}`}><img src={songCover(song)} alt=""/><span><strong>{song.title}</strong><small>{song.artist}</small></span></Link>)}</div></section>:<MemoryCollage songs={homeSongs} intro={intro} onEnter={onEnter}/>)}
+    </>}
   </div>;
 }
 
@@ -78,7 +87,8 @@ function Shell() {
     {!atlas&&!composerRoute && <header className="topbar"><Link to={intro?'/':'/discover'} className="brand" aria-label="歌里有我，前往共鸣"><span className="brand-mark"><span/></span><span>歌里有我</span></Link><AccountControl/></header>}
     <main className="main-content">
       {guardSession && loading ? <div className="status-card" role="status">正在打开你的空间…</div> : guardSession && error ? <div className="status-card error-card" role="alert">{error}<button onClick={() => void refresh()}>重新确认登录状态</button></div> :
-        <Routes key={`${publicPage ? `public-${publicSession.revision}` : user?.id ?? 'guest'}:${location.pathname}`}>
+        <RouteLoadBoundary key={`${publicPage ? `public-${publicSession.revision}` : user?.id ?? 'guest'}:${location.pathname}`} onReload={()=>window.location.reload()}>
+        <Suspense fallback={<div className="status-card" role="status">正在打开这一页…</div>}><Routes>
           <Route path="/" element={<HomePage intro={intro} onEnter={()=>navigate('/discover')}/>}/>
           <Route path="/account" element={<AccountPage/>}/>
           <Route path="/songs/:songId" element={<SongPage/>}/>
@@ -94,7 +104,7 @@ function Shell() {
           <Route path="/memories/:memoryId" element={<MemoryDetailPage/>}/>
           <Route path="/memories/:memoryId/edit" element={<MemoryDetailPage edit/>}/>
           <Route path="*" element={<section className="journal-page empty-journal"><h1>这一页，还没有写下。</h1><BackLink className="soft-button"/></section>}/>
-        </Routes>}
+        </Routes></Suspense></RouteLoadBoundary>}
     </main>
     {!intro&&<nav className="bottom-nav three-item-nav" aria-label="主导航">{([
       ['/discover', 'search', '共鸣'], ['/create', 'create', ''], ['/memories', 'bookmark', '我的'],

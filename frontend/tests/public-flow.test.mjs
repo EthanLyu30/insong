@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {JSDOM} from 'jsdom';
 import {createServer} from 'vite';
+import {loadApp} from './support/loadApp.mjs';
 
 test('guest discovery and explicit editor save expose only the edited story and consented fields', async () => {
   const dom = new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
@@ -11,7 +12,7 @@ test('guest discovery and explicit editor save expose only the edited story and 
   const React=await import('react');const {createRoot}=await import('react-dom/client');
   const {createMemoryRouter,RouterProvider,useNavigate}=await import('react-router');
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
-  const {default:App}=await server.ssrLoadModule('/src/App.tsx');
+  const {default:App}=await loadApp(server);
   let user=null,navigate,publicationBody,memoryBody;
   const song={id:1,title:'原创样例',recording_label:'器乐',audio_url:null,audio_available:false,duration_ms:null,lyrics:[]};
   const card={id:88,owner_id:3,song_id:1,song,story:'愿意分享的原文。不公开的细节。',life_time:'不分享的人生阶段',life_year:2021,life_precision:'year',offset_ms:null,theme_id:'graduation',revision:1,reflections:[],tags:[],created_at:'2026-01-01',updated_at:'2026-01-01'};

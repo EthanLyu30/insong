@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 import {createServer} from 'vite';
+import {loadApp} from './support/loadApp.mjs';
 
 const song={id:1,title:'散场以后',artist:'Demo Artist',is_demo:true,audio_available:true,audio_url:'/api/audio/song-1-v1.wav',duration_ms:48000,recording_label:'原创器乐样例',lyrics:[]};
 const photos=[{id:'a',url:'/api/photos/a'},{id:'b',url:'/api/photos/b'}];
@@ -327,7 +328,7 @@ async function harness(path,respond,work,fixtures={}){
   const React=await import('react'),{createRoot}=await import('react-dom/client'),{createMemoryRouter,RouterProvider,useNavigate,useLocation}=await import('react-router');
   let navigate,current;function Probe(){navigate=useNavigate();current=useLocation();return null;}
   const server=await createServer({define:fixtures.apiBase?{'import.meta.env.VITE_API_BASE_URL':JSON.stringify(fixtures.apiBase)}:{},server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
-  const {default:App}=await server.ssrLoadModule('/src/App.tsx');const prior=globalThis.fetch;
+  const {default:App}=await loadApp(server);const prior=globalThis.fetch;
   globalThis.fetch=async(url,options={})=>{
     if(fixtures.apiBase&&url.startsWith(fixtures.apiBase))url=url.slice(fixtures.apiBase.length);
     if(url==='/api/me')return Response.json({user:fixtures.identity?fixtures.identity():fixtures.guest?null:{id:3,display_name:'我',is_demo:false}});

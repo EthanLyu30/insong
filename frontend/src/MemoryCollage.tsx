@@ -2,6 +2,7 @@ import { ArrowRight, Heart, MusicNote, Pause, Play, Repeat, Shuffle, SkipBack, S
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Song } from "./api";
+type IntroSong = Pick<Song, 'id' | 'title'>;
 
 type Point = readonly [number, number];
 type Quad = readonly [Point, Point, Point, Point];
@@ -34,7 +35,7 @@ function cardProjection([p0, p1, p2, p3]: Quad): string {
 }
 const projections = slots.map((slot) => cardProjection(slot.corners));
 
-function Artwork({ songs, activeId, className }: { songs: Song[]; activeId: number; className: string }) {
+function Artwork({ songs, activeId, className }: { songs: IntroSong[]; activeId: number; className: string }) {
   return (
     <span className={className} aria-hidden="true">
       {songs.map((song) => (
@@ -68,7 +69,7 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]; intro?:boolean; onEnter?:()=>void }) {
+export function MemoryCollage({ songs, intro = false, onEnter }: { songs: IntroSong[]; intro?:boolean; onEnter?:()=>void }) {
   const [params] = useSearchParams();
   const capture = new URLSearchParams();for(const key of ['theme','event'])if(params.get(key))capture.set(key,params.get(key)!);
   const themeQuery = capture.size ? `?${capture}` : '';
@@ -98,7 +99,7 @@ export function MemoryCollage({ songs, intro = false, onEnter }: { songs: Song[]
   }, [isPaused, reducedMotion, songs.length]);
 
   const visibleSongs = useMemo(
-    () => slots.map((_, index) => songs[(index + offset) % songs.length]).filter((song): song is Song => Boolean(song)),
+    () => slots.map((_, index) => songs[(index + offset) % songs.length]).filter((song): song is IntroSong => Boolean(song)),
     [offset, songs],
   );
   const selected = songs.find((song) => song.id === selectedId) ?? visibleSongs[0];

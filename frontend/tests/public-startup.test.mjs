@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {JSDOM} from 'jsdom';
 import {createServer} from 'vite';
+import {loadApp} from './support/loadApp.mjs';
 
 const song={id:1,title:'散场以后',artist:'Demo Artist',version:'原创',source_label:'样例',is_demo:true,audio_available:false,audio_url:null,duration_ms:null,recording_label:'器乐'};
 const story={id:1,song_id:1,song,excerpt:'公开的散场故事',author_name:'听友',life_time:null,life_year:null,offset_ms:null,lyric:null,is_demo_sample:true,tags:[]};
 
-async function withStartup(path,check,{atomicIdentity=false}={}){
+async function withStartup(path,check,{atomicIdentity=false,holdSongs=false}={}){
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
   const previous={window:globalThis.window,document:globalThis.document,HTMLElement:globalThis.HTMLElement,fetch:globalThis.fetch,ResizeObserver:globalThis.ResizeObserver};
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;
@@ -29,14 +30,14 @@ export function SessionProvider({children}) {
 export function AccountControl`);
     }
   }]:[]});
-  const {default:App}=await server.ssrLoadModule('/src/App.tsx');
+  const {default:App}=await loadApp(server);
   const sessionModule=await server.ssrLoadModule('/src/SessionContext.tsx');
   const {useSession}=sessionModule;
-  const calls=[];const pending=[];const crossIdentityReads=[];let serverIdentity=atomicIdentity?3:null;
+  const calls=[];const pending=[];const pendingSongs=[];const crossIdentityReads=[];let serverIdentity=atomicIdentity?3:null;
   globalThis.fetch=async(url)=>{
     calls.push(url);
     if(url==='/api/me')return new Promise(resolve=>pending.push(resolve));
-    if(url==='/api/songs')return Response.json([song]);
+    if(url==='/api/songs')return holdSongs?new Promise(resolve=>pendingSongs.push(resolve)):Response.json([song]);
     if(url==='/api/songs/1')return Response.json({...song,lyrics:[]});
     if(url==='/api/themes')return Response.json([]);
     if(url.startsWith('/api/stories?'))return Response.json([story]);
@@ -58,12 +59,13 @@ export function AccountControl`);
   const reply=(user,error=false)=>{assert.ok(pending.length);serverIdentity=user?.id??null;pending.shift()(Response.json(error?{detail:'暂时未连接'}:{user},{status:error?503:200}));};
   const settle=async(user,error=false)=>React.act(async()=>reply(user,error));
   const atomicSwitch=async user=>React.act(async()=>{serverIdentity=user.id;sessionModule.setStartupIdentity(user);});
+  const settleSongs=async songs=>React.act(async()=>{assert.ok(pendingSongs.length);pendingSongs.shift()(Response.json(songs));});
   try{
     const router=createMemoryRouter([{path:'*',element:React.createElement(App)}],{initialEntries:[path]});
     await React.act(async()=>root.render(React.createElement(RouterProvider,{router})));
-    await check({React,calls,settle,atomicSwitch,crossIdentityReads});
+    await check({React,calls,settle,settleSongs,atomicSwitch,crossIdentityReads});
   }finally{
-    await React.act(async()=>{for(const resolve of pending.splice(0))resolve(Response.json({user:null}));});
+    await React.act(async()=>{for(const resolve of pending.splice(0))resolve(Response.json({user:null}));for(const resolve of pendingSongs.splice(0))resolve(Response.json([song]));});
     await React.act(async()=>root.unmount());await server.close();dom.window.close();
     Object.assign(globalThis,previous);
   }
@@ -83,6 +85,17 @@ test('home starts loading songs alongside the identity check',async()=>{
     assert.ok(calls.includes('/api/songs'),'song loading starts before identity completes');
     assert.ok(document.querySelector('[aria-label="从演示歌曲中选一首"]'));
   });
+});
+
+test('the intro displays five public samples before either API responds and adopts confirmed song metadata',async()=>{
+  await withStartup('/',async({calls,settleSongs})=>{
+    assert.ok(calls.includes('/api/songs'));
+    assert.equal(document.querySelectorAll('.collage-card').length,5);
+    assert.ok(document.body.textContent.includes('下一站再见'));
+    await settleSongs([{...song,title:'后台核对后的样例标题'}]);
+    assert.ok(document.body.textContent.includes('后台核对后的样例标题'));
+    assert.equal(document.body.textContent.includes('下一站再见'),false,'successful server metadata replaces the bootstrap');
+  },{holdSongs:true});
 });
 
 test('public discovery remains usable when identity checking fails',async()=>{

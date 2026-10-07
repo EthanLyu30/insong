@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import {readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {JSDOM} from 'jsdom';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 async function fontCss(file){
@@ -32,4 +33,15 @@ test('immutable cache rules cover versioned static assets and exclude private ro
   assert.ok(cacheFor('/assets/index-abc123.js').some(value=>value.includes('immutable')));
   assert.ok(cacheFor('/fonts/chunks/wanwei-abc123.woff2').some(value=>value.includes('immutable')));
   for(const url of ['/','/api/me','/api/photos/example','/api/memories','/memories','/create'])assert.deepEqual(cacheFor(url),[],`no static cache override for ${url}`);
+});
+
+test('the intro backdrop is preloaded only on the home document',async()=>{
+  const html=await readFile(path.join(root,'index.html'),'utf8');
+  for(const page of ['/','/create','/memories','/?choose=1']){
+    const dom=new JSDOM(html,{url:'https://insong.me'+page,runScripts:'dangerously'});
+    const link=dom.window.document.querySelector('link[rel="preload"][as="image"][href="/collage-scene.webp"]');
+    assert.equal(Boolean(link),page==='/');
+    if(link)assert.equal(link.getAttribute('fetchpriority'),'high');
+    dom.window.close();
+  }
 });
