@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, codex/public-deployment]
+    branches: [main, lxy, codex/public-deployment]
   pull_request:
     branches: [main]
   workflow_dispatch:

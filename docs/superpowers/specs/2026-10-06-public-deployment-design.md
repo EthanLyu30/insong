@@ -65,13 +65,13 @@ Supabase 采用 Session pooler 连接，适配 IPv4 并使用小连接池。数�
 
 ## GitHub 自动部署
 
-使用当前正式仓库 `Saskia-1/TME` 的 main 分支。
+按用户 2026-10-07 确认的流程，开发更新先推送到 `Saskia-1/TME` 的 `lxy` 分支，再将同一版本推送到 `EthanLyu30/insong` 的 `main` 分支。Vercel 和 Render 连接后者；原仓库的 `main` 不作为部署触发入口。
 
 - 新增 Vercel 配置，包含前端构建、SPA 路由回退及后端转发。Render 主机地址在云端服务建立后填入实际值。
 - 新增后端 Dockerfile、Docker 构建排除规则和 Render Blueprint；只包含应用、必要媒体、依赖和固定版本模型。
 - 新增 CI：前端测试与构建、现有后端测试，以及真实 PostgreSQL 上的关键流程测试。
 - Vercel 的生产构建先运行前端检查；Render 配置为 CI 检查通过后自动部署。
-- 平台完成 GitHub 授权和仓库连接后，push main 将更新前后端。数据库记录和照片独立保存，不因代码重新部署重置。
+- 平台完成 GitHub 授权和仓库连接后，push `EthanLyu30/insong` 的 main 将更新前后端。两次推送都要核对成功和提交编号；不自动覆盖任一远端的新提交。数据库记录和照片独立保存，不因代码重新部署重置。
 - 数据库结构变更采用向前兼容方式，允许前后端部署短暂错开。初次发布需核对两端对应提交，再切换域名。
 
 ## 实施顺序
