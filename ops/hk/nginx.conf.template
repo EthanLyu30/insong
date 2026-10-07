@@ -1,0 +1,57 @@
+server {
+    listen 80;
+    server_name insong.me;
+    location ^~ /.well-known/acme-challenge/ {
+        root __ROOT__/acme;
+        try_files $uri =404;
+    }
+    location / { return 301 https://insong.me$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name insong.me;
+    server_tokens off;
+    ssl_certificate __ROOT__/https/fullchain.pem;
+    ssl_certificate_key __ROOT__/https/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    root __ROOT__/releases/__SHA__/frontend;
+    client_max_body_size 12m;
+    gzip on;
+    gzip_vary on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_static on;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Insong-Release __SHA__ always;
+    location /api/ {
+        gzip off;
+        proxy_pass http://127.0.0.1:__PORT__;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_buffering off;
+        add_header Cache-Control no-store always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Insong-Release __SHA__ always;
+    }
+    location /assets/ {
+        alias __ROOT__/shared/assets/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header X-Content-Type-Options nosniff always;
+    }
+    location /fonts/chunks/ {
+        alias __ROOT__/shared/font-chunks/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header X-Content-Type-Options nosniff always;
+    }
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control no-cache always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Insong-Release __SHA__ always;
+    }
+}

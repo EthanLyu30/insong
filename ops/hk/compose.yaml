@@ -1,0 +1,49 @@
+name: insong-hk
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin.password
+      POSTGRES_DB: postgres
+    command: [postgres, -c, ssl=on, -c, ssl_cert_file=/run/insong-tls/server.crt, -c, ssl_key_file=/run/insong-tls/server.key, -c, hba_file=/run/insong-tls/pg_hba.conf]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - /opt/insong/secrets/admin.password:/run/secrets/admin.password:ro
+      - /opt/insong/secrets/init.sql:/docker-entrypoint-initdb.d/01-insong.sql:ro
+      - /opt/insong/tls/postgres.crt:/run/insong-tls/server.crt:ro
+      - /opt/insong/tls/postgres.key:/run/insong-tls/server.key:ro
+      - /opt/insong/tls/pg_hba.conf:/run/insong-tls/pg_hba.conf:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d postgres]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [insong]
+    mem_limit: 768m
+  blue:
+    image: ${APP_IMAGE:-insong-backend:bootstrap}
+    profiles: [blue]
+    restart: unless-stopped
+    env_file: /opt/insong/secrets/runtime.env
+    ports: [127.0.0.1:18001:8000]
+    volumes: [/opt/insong/tls/ca.crt:/run/insong-ca/ca.crt:ro]
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [insong]
+    mem_limit: 1024m
+  green:
+    image: ${APP_IMAGE:-insong-backend:bootstrap}
+    profiles: [green]
+    restart: unless-stopped
+    env_file: /opt/insong/secrets/runtime.env
+    ports: [127.0.0.1:18002:8000]
+    volumes: [/opt/insong/tls/ca.crt:/run/insong-ca/ca.crt:ro]
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [insong]
+    mem_limit: 1024m
+networks:
+  insong: {}
+volumes:
+  pgdata: {}
