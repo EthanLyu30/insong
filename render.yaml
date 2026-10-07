@@ -17,6 +17,6 @@ services:
       - key: DATABASE_SCHEMA
         value: insong
       - key: CORS_ORIGINS
-        value: https://insong.me
+        value: https://insong.me,https://insong.vercel.app
       - key: DATABASE_SSLROOTCERT
         value: /app/certs/prod-ca-2021.crt
