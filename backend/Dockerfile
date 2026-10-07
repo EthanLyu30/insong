@@ -20,6 +20,7 @@ RUN python tools/fetch_model.py
 
 COPY app ./app
 COPY media ./media
+COPY certs ./certs
 RUN useradd --create-home --uid 1000 appuser \
     && chown -R appuser:appuser /app
 USER appuser

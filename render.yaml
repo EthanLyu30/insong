@@ -19,4 +19,4 @@ services:
       - key: CORS_ORIGINS
         value: https://insong.me
       - key: DATABASE_SSLROOTCERT
-        value: system
+        value: /app/certs/prod-ca-2021.crt

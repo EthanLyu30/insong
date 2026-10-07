@@ -90,6 +90,11 @@ jobs:
           -e DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:5432/insong_qa?sslmode=disable'
           insong-qa
       - run: python backend/tools/container_smoke.py
+      - name: Check bundled database CA is readable by the runtime user
+        run: >-
+          docker exec insong-qa python -c "import ssl; context=ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT);
+          context.load_verify_locations(cafile='/app/certs/prod-ca-2021.crt');
+          assert context.cert_store_stats()['x509_ca'] == 1"
       - name: Report container memory and logs
         if: always()
         run: |
