@@ -35,7 +35,7 @@ export function MapCredits({events,artists=[],selections=[]}:{events:AtlasEvent[
             <li><a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener noreferrer">© Mapterhorn · 地形来源</a></li>
             <li><a href="https://datav.aliyun.com/portal/school/atlas/area_selector" target="_blank" rel="noopener noreferrer">DataV GeoAtlas 省界</a></li>
           </ul></section>
-          <section><h3>照片来源</h3><p>优先使用你的经历照片，其次使用有效公开记忆中的照片。虚构样例照片是生成示意，不代表本场实拍。以下列出当前筛选下实际用作兜底的歌手资料图与参考素材。</p>{!!photos.length&&<ul>{photos.map(photo=><li key={photo.source}><strong>{photo.name}</strong><span>{photo.context}</span><div><a href={photo.source} target="_blank" rel="noopener noreferrer">{photo.author} · 来源</a><a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></div></li>)}</ul>}</section>
+          <section><h3>照片来源</h3><p>优先使用你的经历照片，其次使用有效公开记忆中的照片。虚构样例可能使用生成示意或用户提供的演出配图，均不代表故事所写的本场实拍。用户提供照片的拍摄者与具体日期尚未核实。以下列出当前筛选下实际用作兜底的歌手资料图与参考素材。</p>{!!photos.length&&<ul>{photos.map(photo=><li key={photo.source}><strong>{photo.name}</strong><span>{photo.context}</span><div><a href={photo.source} target="_blank" rel="noopener noreferrer">{photo.author} · 来源</a><a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></div></li>)}</ul>}</section>
         </div>
       </div>
     </div>,document.body)}

@@ -337,7 +337,7 @@ async function harness(path,respond,work,fixtures={}){
     if(url==='/api/memories/88'&&!options.method)return Response.json(fixtures.memory?fixtures.memory():card);
     if(url==='/api/memories'&&!options.method)return fixtures.memoriesError?Response.json({detail:'个人记忆暂不可用'},{status:503}):Response.json(fixtures.memories??[card]);
     if(url==='/api/footprints/interests')return Response.json(fixtures.interests??{artist_ids:[],wish_event_ids:[]});
-    if(url.startsWith('/api/stories?'))return Response.json(fixtures.stories??[]);
+    if(url.startsWith('/api/stories?'))return Response.json(typeof fixtures.stories==='function'?fixtures.stories(url):fixtures.stories??[]);
     return respond(url,options);
   };
   const root=createRoot(document.getElementById('root'));
@@ -582,6 +582,70 @@ test('detail song region owns playback and song navigation without duplicate out
   assert.equal(songLineHasLink,true);
   assert.match(songLineText,/散场以后.*Demo Artist/);
   assert.equal(hasSongAction,false,'no duplicate song action outside the card');
+});
+
+test('story detail offers only other published stories of the same song',async()=>{
+  const event={id:'concert-night',title:'深圳现场',artist:'Demo Artist',date:'2026-10-05',city:'深圳',venue:'体育场'};
+  const story={...card,excerpt:card.story,author_name:'听友',event_id:event.id,event_snapshot:event};
+  const sameSong={...story,id:89,title:'另一晚的故事',author_name:'小周',event_id:'another-night',event_snapshot:null,is_demo_sample:true};
+  const requested=[];
+  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({until})=>{
+    await until('[aria-label="这首歌的其他故事"]');
+    const section=document.querySelector('[aria-label="这首歌的其他故事"]');
+    assert.deepEqual([...section.querySelectorAll('a[href^="/stories/"]')].map(link=>new URL(link.href).pathname),['/stories/89']);
+    assert.ok(section.textContent.includes('另一晚的故事'));
+    assert.ok(section.textContent.includes('虚构样例'));
+    assert.ok(requested.includes('/api/stories?song_id=1'));
+  },{stories:url=>{requested.push(url);return url==='/api/stories?song_id=1'?[story,sameSong]:[];}});
+});
+
+test('story detail connects another view of the exact concert without duplicating the song trail',async()=>{
+  const event={id:'concert-night',title:'深圳现场',artist:'Demo Artist',date:'2026-10-05',city:'深圳',venue:'体育场'};
+  const story={...card,excerpt:card.story,author_name:'听友',event_id:event.id,event_snapshot:event};
+  const sameSongAndEvent={...story,id:89,title:'同场唱这首歌',author_name:'阿禾'};
+  const otherSong={...story,id:90,title:'同场另一首歌',song_id:2,song:{...song,id:2,title:'另一首'},author_name:'阿远'};
+  const unrelated={...story,id:91,title:'另一场的故事',song_id:2,song:{...song,id:2,title:'另一首'},event_id:'other-night'};
+  const requested=[];
+  await harness('/stories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({until,act,location})=>{
+    await until('[aria-label="这场演出的其他故事"]');
+    const section=document.querySelector('[aria-label="这场演出的其他故事"]');
+    assert.deepEqual([...section.querySelectorAll('a[href^="/stories/"]')].map(link=>new URL(link.href).pathname),['/stories/89','/stories/90']);
+    assert.ok(section.textContent.includes('另一首'));
+    assert.equal(document.querySelector('[aria-label="这首歌的其他故事"]'),null,'同歌同场只出现在同场一组');
+    assert.ok(requested.includes('/api/stories?event_id=concert-night'));
+    await act(async()=>section.querySelector('a[href="/stories/90"]').click());
+    assert.equal(location().pathname,'/stories/90');
+  },{stories:url=>{requested.push(url);return url==='/api/stories?event_id=concert-night'?[story,sameSongAndEvent,otherSong,unrelated]:[story,sameSongAndEvent];}});
+});
+
+test('returning from a related story opens the unfiltered discovery home',async()=>{
+  const story={...card,excerpt:card.story,author_name:'阿远',event_id:null,event_snapshot:null};
+  const related={...story,id:89,title:'另一晚的故事',author_name:'小周'};
+  await harness('/stories/88',async url=>{
+    if(url==='/api/stories/88')return Response.json(story);
+    if(url==='/api/stories/89')return Response.json(related);
+    if(url==='/api/footprints/catalog')return Response.json({artists:[],events:[]});
+    throw new Error(url);
+  },async({act,until,location})=>{
+    await until('.story-trail-link[href="/stories/89"]');
+    await act(async()=>document.querySelector('.story-trail-link[href="/stories/89"]').click());
+    assert.equal(location().pathname,'/stories/89');
+    const back=document.querySelector('.public-detail .back-link');
+    assert.equal(new URL(back.href).pathname,'/discover');
+    await act(async()=>back.click());
+    assert.equal(location().pathname,'/discover');
+    assert.equal(location().search,'');
+  },{stories:url=>url==='/api/stories?song_id=1'?[story,related]:[]});
+});
+
+test('discovery alternates cards into two independently stacked columns',async()=>{
+  const stories=[88,89,90,91].map((id,index)=>({...card,id,excerpt:`第${index+1}个故事`,title:`第${index+1}张卡片`,author_name:'听友'}));
+  await harness('/discover',async url=>{if(url==='/api/footprints/catalog')return Response.json({artists:[],events:[]});throw new Error(url);},async({until})=>{
+    await until('.discover-page .story-card');
+    const columns=[...document.querySelectorAll('.discover-page .story-masonry-column')];
+    assert.equal(columns.length,2);
+    assert.deepEqual(columns.map(column=>[...column.querySelectorAll('.story-card-main')].map(link=>new URL(link.href).pathname)),[['/stories/88','/stories/90'],['/stories/89','/stories/91']]);
+  },{stories,guest:true});
 });
 
 const revisionCatalog={today:'2026-10-04',artists:[{id:'gem',name:'邓紫棋'},{id:'liu-yuxin',name:'刘雨昕'}],cities:[{id:'shanghai',name:'上海',lng:121.47,lat:31.23},{id:'beijing',name:'北京',lng:116.4,lat:39.9}],events:[
@@ -1431,21 +1495,23 @@ test('the recommendation area shows other people’s stories, not the signed-in 
   },{stories:[mine,other]});
 });
 
-test('recommended cards alternate their vertical starting position for a staggered layout',async()=>{
+test('discovery keeps one subtle column offset without adding space between later cards',async()=>{
   const css=await readFile(new URL('../src/fanCards.css',import.meta.url),'utf8');
   const stories=[89,90,91].map(id=>({...card,id,excerpt:`听友${id}的故事`,author_name:'听友',is_demo_sample:false}));
-  let topOffsets;
+  let columnOffsets,cardOffsets;
   await harness('/discover',async url=>{
     if(url==='/api/footprints/catalog')return Response.json({today:'2026-10-04',artists:[],cities:[],events:[]});
     throw new Error(url);
   },async()=>{
     const style=document.createElement('style');style.textContent=css;document.head.append(style);
-    topOffsets=[...document.querySelectorAll('.public-story-list .story-card')].map(item=>parseFloat(window.getComputedStyle(item).paddingTop)||0);
+    columnOffsets=[...document.querySelectorAll('.public-story-list .story-masonry-column')].map(item=>parseFloat(window.getComputedStyle(item).paddingTop)||0);
+    cardOffsets=[...document.querySelectorAll('.public-story-list .story-card')].map(item=>parseFloat(window.getComputedStyle(item).paddingTop)||0);
     style.remove();
   },{stories});
-  assert.equal(topOffsets.length,3);
-  assert.ok(topOffsets[1]>topOffsets[0]);
-  assert.equal(topOffsets[2],topOffsets[0]);
+  assert.equal(cardOffsets.length,3);
+  assert.deepEqual(cardOffsets,[0,0,0]);
+  assert.equal(columnOffsets.length,2);
+  assert.ok(columnOffsets[1]>columnOffsets[0]);
 });
 
 test('public recommendations remain readable when private interests cannot load',async()=>{

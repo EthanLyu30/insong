@@ -47,7 +47,7 @@ export function mapPhotoIdentity(city:string,events:AtlasEvent[],artists:AtlasAr
   const official=event?officialArtistPhotos[event.artist_id]:undefined;
   const fallback=official??(event?mapMarkerPhotos[event.artist_id]:undefined);
   const name=artists.find(artist=>artist.id===event?.artist_id)?.name??event?.songs?.[0]?.artist??'';
-  const photo=selected?{url:selected.url,context:`${selected.source==='mine'?'我的经历':'同担公开记忆'} · ${event?.date??''}${selected.is_demo_sample?' · 虚构样例照片':''}`,bakedAvatar:false,contain:false}:fallback?{...fallback,bakedAvatar:!official&&['gem','liu','liu-yuxin'].includes(event!.artist_id)}:undefined;
+  const photo=selected?{url:selected.url,context:`${selected.source==='mine'?'我的经历':'同担公开记忆'} · ${event?.date??''}${selected.is_demo_sample?' · 虚构样例配图（非本场实拍）':''}`,bakedAvatar:false,contain:false}:fallback?{...fallback,bakedAvatar:!official&&['gem','liu','liu-yuxin'].includes(event!.artist_id)}:undefined;
   return {photo,name,id:event?.artist_id??'',eventId:event?.id,source:selected?.source??(official?'official':fallback?'reference':'none'),eventCount:shows.length};
 }
 

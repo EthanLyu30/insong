@@ -74,6 +74,18 @@
 .discover-page .search-cancel-button:hover { background: #f0e7db; }
 .discover-page .search-cancel-button:focus-visible { outline: 2px solid #a97556; outline-offset: 2px; }
 
+.public-detail .story-trail { margin-top: 26px; padding-top: 18px; border-top: 1px solid #e6d8c6; }
+.story-trail h2 { margin: 0 0 11px; color: #604a39; font: 600 17px/1.5 'Microsoft YaHei',sans-serif; }
+.story-trail > div { display: grid; gap: 9px; }
+.story-trail-link { display: grid; grid-template-columns: 58px minmax(0,1fr) 16px; align-items: center; gap: 11px; min-height: 76px; padding: 8px 11px 8px 8px; border: 1px solid #e8dcca; border-radius: 11px; background: #fffdf7; color: #6d513d; text-decoration: none; }
+.story-trail-link img { display: block; width: 58px; height: 58px; object-fit: cover; border-radius: 6px; }
+.story-trail-link > span { min-width: 0; display: grid; gap: 5px; }
+.story-trail-link strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.story-trail-link small { color: #99816b; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.story-trail-link > svg { color: #ad8064; }
+.story-trail-link:hover { border-color: #cfa98d; background: #fffaf2; }
+.story-trail-link:focus-visible { outline: 2px solid #a97556; outline-offset: 2px; }
+
 .site-shell.intro-shell {
   display: flex;
   flex-direction: column;
