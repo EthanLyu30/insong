@@ -54,7 +54,7 @@ test('static overview style keeps borders and names without entry fades or aeria
     const {atlasMapStyle}=await server.ssrLoadModule('/src/atlasMapStyle.ts');
     const style=atlasMapStyle(true);
     assert.equal(style.transition.duration,0);
-    assert.equal(style.layers.find(layer=>layer.id==='aerial-overview').paint['raster-fade-duration'],0);
+    assert.ok(!style.layers.some(layer=>layer.type==='raster'||layer.type==='hillshade'),'the flat view has no background imagery work or fading');
     assert.ok(style.layers.some(layer=>layer.id==='province-names'&&layer.source==='province-labels'),'the overview exposes one real administrative name per province');
     assert.ok(style.layers.some(layer=>layer.id==='city-names'&&layer.source==='cities'));
     assert.equal(style.sources.china.type,'geojson');

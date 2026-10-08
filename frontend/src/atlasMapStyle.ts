@@ -68,8 +68,10 @@ export function atlasMapStyle(staticOverview=false):StyleSpecification{
     light:{anchor:'viewport',color:'#ffe6bd',intensity:.48,position:[1.4,210,45]},
     sky:{'sky-color':'#a8cadb','horizon-color':'#f8e0bd','fog-color':'#bccfca','sky-horizon-blend':.8,'horizon-fog-blend':.6,'fog-ground-blend':.12,'atmosphere-blend':0},
     sources:{
-      satellite:{type:'raster',tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:8,attribution:'Esri, Vantor, Earthstar Geographics, GIS User Community'},
-      shade:{type:'raster-dem',url:'https://tiles.mapterhorn.com/tilejson.json',attribution:'<a href="https://mapterhorn.com/" target="_blank">Mapterhorn</a>'},
+      ...(!staticOverview?{
+        satellite:{type:'raster' as const,tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:8,attribution:'Esri, Vantor, Earthstar Geographics, GIS User Community'},
+        shade:{type:'raster-dem' as const,url:'https://tiles.mapterhorn.com/tilejson.json',attribution:'<a href="https://mapterhorn.com/" target="_blank">Mapterhorn</a>'},
+      }:{}),
       openmaptiles:{type:'vector',url:'https://tiles.openfreemap.org/planet',attribution:'<a href="https://openfreemap.org/" target="_blank">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap</a>'},
       china:{type:'geojson',data:provinces as never},
       'province-labels':{type:'geojson',data:provinceLabels},
@@ -81,8 +83,10 @@ export function atlasMapStyle(staticOverview=false):StyleSpecification{
     layers:[
       {id:'land',type:'background',paint:{'background-color':'#cde3e3'}},
       {id:'china-fill',type:'fill',source:'china',maxzoom:8,paint:{'fill-color':'#f7f2e8','fill-opacity':1}},
-      {id:'aerial-overview',type:'raster',source:'satellite',maxzoom:7.5,paint:{'raster-opacity':0,'raster-saturation':-.18,'raster-contrast':-.05,'raster-brightness-min':.08,'raster-brightness-max':.98,'raster-fade-duration':staticOverview?0:180}},
-      {id:'terrain-light',type:'hillshade',source:'shade',maxzoom:7.5,paint:{'hillshade-exaggeration':0,'hillshade-illumination-direction':315,'hillshade-shadow-color':'#46655b','hillshade-highlight-color':'#f9f8ee','hillshade-accent-color':'#b3b5a0'}},
+      ...(!staticOverview?[
+        {id:'aerial-overview',type:'raster' as const,source:'satellite',maxzoom:7.5,paint:{'raster-opacity':0,'raster-saturation':-.18,'raster-contrast':-.05,'raster-brightness-min':.08,'raster-brightness-max':.98,'raster-fade-duration':180}},
+        {id:'terrain-light',type:'hillshade' as const,source:'shade',maxzoom:7.5,paint:{'hillshade-exaggeration':0,'hillshade-illumination-direction':315,'hillshade-shadow-color':'#46655b','hillshade-highlight-color':'#f9f8ee','hillshade-accent-color':'#b3b5a0'}},
+      ]:[]),
       {id:'urban-surfaces',type:'fill',source:'openmaptiles','source-layer':'landuse',minzoom:7,filter:['in',['get','class'],['literal',['residential','commercial','industrial']]],paint:{'fill-color':'#ddccb0','fill-opacity':['interpolate',['linear'],['zoom'],7,0,9,.65]}},
       {id:'wood',type:'fill',source:'openmaptiles','source-layer':'landcover',minzoom:6,filter:['in',['get','class'],['literal',['wood','grass']]],paint:{'fill-color':'#a5b89c','fill-opacity':['interpolate',['linear'],['zoom'],6,0,8,.9]}},
       {id:'parks',type:'fill',source:'openmaptiles','source-layer':'park',minzoom:7,paint:{'fill-color':'#94b199','fill-opacity':['interpolate',['linear'],['zoom'],7,0,9,.9]}},

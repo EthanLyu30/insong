@@ -51,6 +51,24 @@ export function mapPhotoIdentity(city:string,events:AtlasEvent[],artists:AtlasAr
   return {photo,name,id:event?.artist_id??'',eventId:event?.id,source:selected?.source??(official?'official':fallback?'reference':'none'),eventCount:shows.length};
 }
 
+/** Only real, currently scoped city/artist pairs need engine markers. */
+export function mapPhotoMarkers(cities:AtlasCity[],events:AtlasEvent[],artists:AtlasArtist[]=[],photos:MapPhotoChoice[]=[]){
+  const byCity=new Map(cities.map(city=>[city.name,city]));
+  const knownArtists=new Set(artists.map(artist=>artist.id));
+  const groups=new Map<string,{city:AtlasCity;artistId:string;events:AtlasEvent[]}>();
+  for(const event of events){
+    const city=byCity.get(event.city);
+    if(!city||!knownArtists.has(event.artist_id)||event.event_status==='cancelled')continue;
+    const key=`${city.id}:${event.artist_id}`;
+    const group=groups.get(key)??{city,artistId:event.artist_id,events:[]};
+    group.events.push(event);groups.set(key,group);
+  }
+  return [...groups].flatMap(([key,group])=>{
+    const identity=mapPhotoIdentity(group.city.name,group.events,artists,photos,group.artistId);
+    return identity.photo?[{key,...group,identity}]:[];
+  });
+}
+
 export function mapPhotoCredits(events:AtlasEvent[],artists:AtlasArtist[]=[],photos:MapPhotoChoice[]=[]):(MarkerPhoto&{name:string})[]{
   const seen=new Set<string>(),groups=[...new Map(events.map(event=>[JSON.stringify([event.city,event.artist_id]),event])).values()];
   return groups.flatMap(event=>{

@@ -8,6 +8,7 @@ import { useData } from './useData';
 import {EventRecords} from './EventRecords';
 import {MonthFilter} from './MonthFilter';
 import { AtlasMap } from './AtlasMap';
+import {loadAtlasMapEngine} from './atlasMapEngine';
 import type {SceneController} from './sceneInteraction';
 import { CollectConcert, SongList, usePlaylistRefresh, type SavedPlaylist } from './ConcertPlaylist';
 import {ConcertPlayer,useConcertPlayer} from './ConcertPlayer';
@@ -31,6 +32,7 @@ function ScheduleFacts({event,catalog}:{event:AtlasEvent;catalog:AtlasCatalog}){
 }
 
 export function FootprintsPage() {
+  useEffect(()=>{if(typeof window.WebGL2RenderingContext!=='undefined')void loadAtlasMapEngine().catch(()=>{});},[]);
   const navigation=useBackNavigation('/footprints');
   const navigate=useNavigate();
   const location=useLocation();
