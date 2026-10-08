@@ -148,7 +148,9 @@ test('concert records separate private owner records from other listeners public
     await until('.concert-my-memories .unified-story-card');
     assert.ok(document.querySelector('.concert-my-memories').textContent.includes(card.story));
     assert.equal(document.querySelector('.concert-my-memories .concert-memory-edit').getAttribute('href'),'/memories/88/edit');
-    assert.ok(document.querySelector('.concert-public-memories').textContent.includes('听友分享的这一晚'));
+    assert.equal(document.querySelectorAll('.concert-public-memories .story-card').length,1);
+    assert.equal(document.querySelector('.concert-public-memories .story-card-author')?.getAttribute('aria-label'),'作者：听友');
+    assert.ok(document.querySelector('.concert-public-memories').textContent.includes('听友分享的这一晚'),'缩略卡保留故事标题');
     assert.ok(!document.querySelector('.concert-public-memories').textContent.includes('只属于我的公开稿'));
   },{stories:[{...card,id:7,excerpt:'公开原文',author_name:'听友',title:'听友分享的这一晚',is_mine:false},{...card,id:8,title:'只属于我的公开稿',excerpt:'原文',is_mine:true}]});
 });
@@ -1479,7 +1481,8 @@ test('reading a searched story and returning restores the search; player keeps t
     await act(async()=>document.querySelector('.public-detail .back-link').click());
     assert.equal(document.querySelector('#public-query').value,'散场');
     assert.equal(searches.at(-1).mode,'semantic');
-    assert.ok(document.querySelector('.story-card').textContent.includes(card.title));
+    assert.ok(document.querySelector('.story-card').textContent.includes(song.title));
+    assert.ok(document.querySelector('.story-card').textContent.includes(card.title),'返回搜索后仍显示故事标题');
   });
 });
 

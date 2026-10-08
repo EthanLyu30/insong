@@ -1,5 +1,6 @@
 """Consented public excerpts, separate from owner-only originals."""
 import json
+import re
 
 from fastapi import Depends, HTTPException, Query
 from pydantic import Field, field_validator
@@ -87,6 +88,26 @@ def public_search_text(public, catalog):
     return ' '.join(fields)
 
 
+def named_artists(query, candidates, catalog):
+    """Resolve explicit artist names/aliases without treating short Latin aliases as substrings."""
+    labels = {public.memory.song.artist: {public.memory.song.artist} for public in candidates}
+    for artist in catalog['artists']:
+        labels.setdefault(artist['name'], {artist['name']}).update(artist.get('aliases', []))
+    text = query.casefold()
+    matches = set()
+    for name, names in labels.items():
+        for label in names:
+            label = label.casefold()
+            if re.search(r'[a-z0-9]', label):
+                found = re.search(r'(?<![a-z0-9])' + re.escape(label) + r'(?![a-z0-9])', text)
+            else:
+                found = label in text
+            if found:
+                matches.add(name)
+                break
+    return matches
+
+
 def install_stories(app, get_db, get_user, get_optional_user):
     @app.get('/api/themes')
     def themes():
@@ -118,9 +139,13 @@ def install_stories(app, get_db, get_user, get_optional_user):
     def search(data: PublicSearch, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
         exact_tag = normalize_tag(data.query) if data.query.startswith('#') else None
         candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id, exact_tag or data.tag)))
+        catalog = load_catalog()
+        if not exact_tag:
+            artists = named_artists(data.query, candidates, catalog)
+            if artists:
+                candidates = [public for public in candidates if public.memory.song.artist in artists]
         versions = {public.memory_id: public.version for public in candidates}
         # Never pass private originals, reflections, or unshared life metadata to inference.
-        catalog = load_catalog()
         texts = [public_search_text(public, catalog) for public in candidates]
         lexical = [keyword_score(data.query, text) for text in texts]
         mode, notice, scores = ('keyword' if exact_tag else data.mode), '', lexical

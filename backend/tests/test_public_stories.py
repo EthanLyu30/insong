@@ -83,6 +83,43 @@ def test_search_only_consented_text_and_rechecks_withdrawal(tmp_path):
         assert card['id'] not in [item['story']['id'] for item in result['items']]
 
 
+def test_named_artist_search_excludes_other_artists_when_semantic_falls_back(tmp_path):
+    class Unavailable:
+        ready = False
+        def scores(self, query, texts):
+            raise RuntimeError('model unavailable')
+
+    app = create_app(f'sqlite:///{tmp_path / "artist-fallback.db"}')
+    with TestClient(app) as client:
+        app.state.recall = Unavailable()
+        result = client.post('/api/stories/search', json={
+            'query': '第一次一个人看邓紫棋现场，原本怕孤单，后来旁边听友陪我举灯',
+            'mode': 'semantic',
+        }).json()
+        assert result['mode'] == 'keyword'
+        assert result['items']
+        assert {item['story']['song']['artist'] for item in result['items']} == {'邓紫棋'}
+
+
+def test_artist_alias_limits_candidates_before_semantic_scoring(tmp_path):
+    class AllSimilar:
+        ready = True
+        def scores(self, query, texts):
+            assert texts
+            assert all('邓紫棋' in text for text in texts)
+            return [.95] * len(texts)
+
+    app = create_app(f'sqlite:///{tmp_path / "artist-alias.db"}')
+    with TestClient(app) as client:
+        app.state.recall = AllSimilar()
+        result = client.post('/api/stories/search', json={
+            'query': 'G.E.M. 演唱会的灯海', 'mode': 'semantic',
+        }).json()
+        assert result['mode'] == 'semantic'
+        assert result['items']
+        assert {item['story']['song']['artist'] for item in result['items']} == {'邓紫棋'}
+
+
 def test_coordinate_validation_and_migration_does_not_republish(tmp_path):
     url = f'sqlite:///{tmp_path / "migration.db"}'
     with TestClient(create_app(url)) as client:

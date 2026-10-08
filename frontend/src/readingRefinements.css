@@ -58,6 +58,21 @@
 }
 .discover-page .public-search-suggestions button:hover,
 .discover-page .public-search-suggestions button:focus-visible { background: #f0e7db; outline: 0; }
+.discover-page .search-cancel-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #dfd1c0;
+  border-radius: 50%;
+  background: #fffdf8;
+  color: #80634e;
+  cursor: pointer;
+}
+.discover-page .search-cancel-button:hover { background: #f0e7db; }
+.discover-page .search-cancel-button:focus-visible { outline: 2px solid #a97556; outline-offset: 2px; }
 
 .site-shell.intro-shell {
   display: flex;
