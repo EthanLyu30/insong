@@ -12,7 +12,7 @@
 | 域名注册与 DNS | Cloudflare |
 | 自动检查和发布 | EthanLyu30/insong 的 GitHub Actions |
 
-浏览器只访问同一个域名。数据库和后端不开放独立公网端口；生产数据库连接保持 TLS verify-full。Cookie 使用 Secure、HttpOnly、SameSite=Lax，API 和私密照片保持 no-store。E5 查询在服务器处理，不调用外部模型 API。草稿仍留在当前浏览器，不随数据库迁移。
+应用前端和 API 使用同一个域名。足迹底图仍读取 Esri、OpenFreeMap 和 Mapterhorn 的第三方瓦片及字体，地图首次加载速度也受这些外部资源影响。数据库和后端不开放独立公网端口；生产数据库连接保持 TLS verify-full。Cookie 使用 Secure、HttpOnly、SameSite=Lax，API 和私密照片保持 no-store。E5 查询在服务器处理，不调用外部模型 API。草稿仍留在当前浏览器，不随数据库迁移。
 
 ## 推送与自动发布
 
@@ -75,4 +75,6 @@ git push deploy HEAD:main
 
 源数据隔离恢复演练和正式停写快照的21项表和序列摘要一致。新服务器 HTTPS 下的账号、两张私密照片、公开与撤回、记录编辑、场次快照、关注、到场和 E5 匹配均通过；重启后会话、记录、照片字节与关注保留。验证样例已按归属清理，所有原始行摘要再次与冻结源库一致，序列不回退。
 
-本机指定新服务器访问时，首页 HTML 读取约125–157毫秒，不代表手机或全国网络速度。2026年10月8日，公网 A 记录已切至香港服务器并采用 DNS only；公网有效 HTTPS 返回正确发布 SHA。HTTP-01 自动续期、续期后 Nginx reload 和 certbot.timer 均已通过真实 dry-run。旧 Render 已暂停，原 Supabase 数据保留。用户关闭 VPN 后使用中国移动手机流量反馈主体页面比较流畅，足迹地图仍有少量等待。main 自动发布在最后一次推送后核对 Actions 与线上版本。
+本机指定新服务器访问时，首页 HTML 读取约125–157毫秒，不代表手机或全国网络速度。2026年10月8日，公网 A 记录已切至香港服务器并采用 DNS only；公网有效 HTTPS 返回正确发布 SHA。HTTP-01 自动续期、续期后 Nginx reload 和 certbot.timer 均已通过真实 dry-run。旧 Render 已暂停，原 Supabase 数据保留。用户关闭 VPN 后使用中国移动手机流量反馈主体页面比较流畅，足迹地图仍有少量等待。首次 main 自动发布已由 [GitHub Actions 37763711567](https://github.com/EthanLyu30/insong/actions/runs/37763711567) 完成，前端、后端及容器 job 全部成功。实际线上版本为 `6cf6bc692692123ae6946d8fbd2ab7bb845e66ac`，发布序号13。旧 Vercel `/discover` 返回307到正式域名，旧 Render API 返回503，Blueprint 的自动发布状态已同步为 Off。
+
+最终窄屏验收图见 [390px 页面截图](deployment/mobile-home-hk.png)。它通过本地只读转发获取同一线上 HTML 和资源，用于核对布局与图片完成状态；内置浏览器当前代理访问香港地址握手失败，公网可达性由直接有效 HTTPS 检查及上述真实手机反馈分别确认。
