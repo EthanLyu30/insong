@@ -11,7 +11,7 @@ import { PublicStoryList } from './PublicPages';
 import {StoryCard} from './StoryCard';
 import { GalleryPicker } from './PhotoGallery';
 import { cardCover, cardPhotos, parseTags, songCover } from './cardMedia';
-import { Plus, X, MagnifyingGlass, MapPin, CalendarBlank, LockSimple, CaretRight, Hash, At } from '@phosphor-icons/react';
+import { Plus, X, MapPin, CalendarBlank, LockSimple, CaretRight, Hash, At } from '@phosphor-icons/react';
 import { QuickReflection } from './QuickReflection';
 import { EventNote } from './EventNote';
 import {BackLink,useBackNavigation} from './Navigation';
@@ -30,6 +30,12 @@ import {validDraftSong,validEventSnapshot,validManualSong,validManualEvent,valid
 import {DraftBox} from './DraftBox';
 import {ConcertPicker} from './ConcertPicker';
 import {readComposerTransition,writeComposerTransition,clearComposerTransition,composerDiscarded} from './composerTransition';
+import {memoryDateLabel,memoryYear} from './memoryDates';
+import {CollectionSearch} from './CollectionSearch';
+import './readingRefinements.css';
+import {ConcertMusicPicker} from './ConcertMusicPicker';
+import {validConcertMusic} from './concertMusic';
+import type {ConcertMusicSelection} from './memoryClient';
 
 export function LoginGate() {
   const location = useLocation();
@@ -93,8 +99,8 @@ function SongMemories({ songId }: { songId: number }) {
   return <section className="song-memory-section">{error ? <p role="alert">{error}</p> : !value ? <p role="status">正在翻找…</p> : value.length ? <>{value.map(card => <MemoryEntry key={card.id} memory={card}/>)}</> : <p className="page-intro">还没有为这首歌留下记忆。</p>}</section>;
 }
 
-function MemoryEntry({ memory, evidence, matchLabel, collection=false }: { memory: Memory; evidence?: string; matchLabel?: string; collection?:boolean }) {
-  const date=[memory.life_year,memory.life_time].filter(Boolean).join(' · ');
+export function MemoryEntry({ memory, evidence, matchLabel, collection=false }: { memory: Memory; evidence?: string; matchLabel?: string; collection?:boolean }) {
+  const date=memoryDateLabel(memory);
   if(collection)return <Link className="memory-entry memory-snapshot collection-card" to={`/memories/${memory.id}`}>
     <div className="snapshot-image"><img src={cardCover(memory)} alt={memory.photo_url?'记忆里的照片':'歌曲配图'} loading="lazy"/>{cardPhotos(memory).length>1&&<span className="photo-count">{cardPhotos(memory).length} 张</span>}</div>
     <div className="snapshot-copy"><strong>{memory.song.title}</strong><small>{memory.song.artist}</small><span className="snapshot-status">{[memoryCategory(memory),memoryCity(memory)].filter(Boolean).join(' · ')}</span>{date&&<span className="snapshot-date">{date}</span>}</div><span className="snapshot-privacy">{memory.publication?.published?'公开':'私密'}</span>
@@ -131,9 +137,8 @@ function CollectionContent() {
   const [retry,setRetry]=useState(0);
   const {value:memories,error}=useData<Memory[]>('/api/memories',retry);
   const [params,setParams]=useSearchParams();
-  const [searchOpen,setSearchOpen]=useState(false);
   const query=params.get('q')??'';
-  function setQuery(value:string){const next=new URLSearchParams(params);if(value)next.set('q',value);else next.delete('q');setParams(next,{replace:true});}
+  function setQuery(value:string){if(value===query)return;const next=new URLSearchParams(params);if(value)next.set('q',value);else next.delete('q');setParams(next,{replace:true});}
   const songId=params.get('song')??'',tag=params.get('tag')??'',untagged=!tag&&params.get('withoutTags')==='1';
   const category=params.get('category')??'',city=params.get('city')??'';
   const experience=tag?`tag:${tag}`:untagged?'untagged':category?`category:${category}`:'';
@@ -158,16 +163,16 @@ function CollectionContent() {
   const base=memories?.filter(card=>(!songId||card.song_id===Number(songId))&&(!tag||card.tags.includes(tag))&&(!untagged||!card.tags.length))??[];
   const visible=filterMemories(base,{category,city,query,timeRange});
   const cityOptions=[...new Set((memories??[]).map(memoryCity).filter(Boolean))];
-  const years=[...new Set((memories??[]).flatMap(card=>card.life_year==null?[]:[card.life_year]))].sort((a,b)=>b-a);
+  const years=[...new Set((memories??[]).flatMap(card=>memoryYear(card)==null?[]:[memoryYear(card)!]))].sort((a,b)=>b-a);
   const filtered=Boolean(songId||experience||category||city||query||timeRange.startYear||timeRange.endYear);
   const songTitle=memories?.find(card=>card.song_id===Number(songId))?.song.title??'指定歌曲';
   return <section className="journal-page collection-page">
     <div className="journal-title-row collection-title"><div><h1>我的记忆</h1></div><div className="collection-create-actions"><LocalDraftEntry/><Link className="collection-new" to="/create"><Plus size={16}/>新建记忆</Link></div></div>
     <div className="collection-filters" role="group" aria-label="筛选我的记忆"><ChoicePicker label="按经历标签筛选" value={experience} selectedLabel={tag||category||undefined} onChange={setExperience} options={options} disabled={!memories}/><MemoryTimeFilter value={timeRange} years={years} onChange={setTime} disabled={!memories}/><ChoicePicker label="按城市筛选" value={city} selectedLabel={city||undefined} onChange={setCity} options={[{value:'',label:'全部城市'},...cityOptions.map(value=>({value,label:value}))]} disabled={!memories}/></div>
     <div className="segmented-control timeline-toggle"><button aria-pressed="true" type="button">时间轴</button><button aria-pressed="false" type="button" onClick={()=>navigate(`/footprints?${new URLSearchParams({from:'mine',return:location.pathname+location.search})}`)}>足迹</button></div>
-    <div className={`collection-search-surface${searchOpen?' is-open':''}`}>{searchOpen?<><div className="collection-search-panel"><label><MagnifyingGlass size={18}/><input aria-label="搜索我的记忆" autoFocus value={query} onChange={event=>setQuery(event.target.value)} placeholder="搜索记忆、歌曲或歌手" onKeyDown={event=>{if(event.key==='Escape'||event.key==='Enter')setSearchOpen(false);}}/></label><button type="button" onClick={()=>setSearchOpen(false)}>完成</button></div><div className="collection-search-preview" role="status">{visible.length} 条结果</div></>:<button type="button" className="collection-search-trigger" onClick={()=>setSearchOpen(true)}><MagnifyingGlass size={18}/><span>{query||'搜索记忆、歌曲或歌手'}</span></button>}
+    <CollectionSearch query={query} onQuery={setQuery} count={visible.length}/>
     {songId&&<button type="button" className="collection-song-context" aria-label="清除歌曲筛选" onClick={clearSong}><span>配乐：{songTitle}</span><X size={14} aria-hidden="true"/></button>}
-    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section className="collection-results">{visible.length?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card} collection/>)}</div></section>)}</div>:<div className="empty-paper">{filtered?<><h3>没有符合筛选的记忆</h3><button type="button" className="soft-button" onClick={clearAll}>查看全部记忆</button></>:<><h3>你的第一页，留给哪个瞬间？</h3><Link className="soft-button" to="/create">记录第一刻</Link></>}</div>}</section>}</div>
+    {!memories?<LoadingError error={error} retry={()=>setRetry(value=>value+1)}/>:<section className="collection-results">{visible.length?<div className="memory-timeline">{timelineGroups(visible).map(group=><section className="timeline-year" key={group.year??'unknown'}><h3>{group.year??'未标年份'}<span>{group.cards.length} 个时刻</span></h3><div>{group.cards.map(card=><MemoryEntry key={card.id} memory={card} collection/>)}</div></section>)}</div>:<div className="empty-paper">{filtered?<><h3>没有符合筛选的记忆</h3><button type="button" className="soft-button" onClick={clearAll}>查看全部记忆</button></>:<><h3>你的第一页，留给哪个瞬间？</h3><Link className="soft-button" to="/create">记录第一刻</Link></>}</div>}</section>}
   </section>;
 }
 export function CreateMemoryPage() {
@@ -186,6 +191,7 @@ function CreateContent() {
 
 export function MemoryForm({ song:initialSong=null, existing, initialPosition = null, initialLyric = null, initialTheme = null, initialEvent = null, initialEnd = null }: { song?: Song|null; existing?: Memory; initialPosition?: number | null; initialLyric?:string|null;initialTheme?:string|null;initialEvent?:string|null;initialEnd?:string|null }) {
   const [song,setSong]=useState<Song|null>(initialSong);
+  const [concertMusic,setConcertMusic]=useState<ConcertMusicSelection|null>(existing?.music_selection??null);
   const [manualSong,setManualSong]=useState<ManualSong|null>(null);
   const [pendingSong,setPendingSong]=useState<ManualSong|null>(null),[pendingEvent,setPendingEvent]=useState<ManualEvent|null>(null);
   const resumeSheet=useRef<'event'|null>(null);
@@ -264,7 +270,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const next=insertAtCursor(story,value,start,end);setStory(next.text);
     window.setTimeout(()=>{input?.focus();input?.setSelectionRange(next.cursor,next.cursor);},0);
   }
-  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,manualSong,manualEvent,pendingSong,pendingEvent,photos,cover,position,timeText,endText,lyricId,visibility,eventId,eventSnapshot,autoEventFields,themeId,anonymous,shareLife};}
+  function draftPayload(){return {version:1,story,title,tagText,lifeTime,lifeYear,locationName,markedDate,song,concertMusic,manualSong,manualEvent,pendingSong,pendingEvent,photos,cover,position,timeText,endText,lyricId,visibility,eventId,eventSnapshot,autoEventFields,themeId,anonymous,shareLife};}
   const initialDraft=useRef(draftPayload());
   const stableDraft=(value:Partial<ReturnType<typeof draftPayload>>)=>JSON.stringify({...normalizeDraft(value),markedDate:''});
   const dirty=(!!existing||hasDraftContent(draftPayload()))&&stableDraft(draftPayload())!==(savedDraftSnapshot?stableDraft(normalizeDraft(JSON.parse(savedDraftSnapshot))):stableDraft(initialDraft.current));
@@ -273,6 +279,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   function prefillEvent(value:EventSnapshot,explicit=false){
     if(!explicit&&(prefilled.current||existing||value.id!==eventId))return;
     prefilled.current=true;setEventSnapshot(value);
+    if(concertMusic&&concertMusic.event_id!==value.id)setConcertMusic(null);
     const defaults:Partial<ReturnType<typeof draftPayload>>={eventSnapshot:value};
     const automatic:string[]=[];
     if(!dateTouched.current&&(!lifeTime||autoEventFields.includes('lifeTime'))){
@@ -291,7 +298,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
   function normalizeDraft(draft:Partial<ReturnType<typeof draftPayload>>) {
     return {version:1,story:typeof draft.story==='string'?draft.story:'',title:typeof draft.title==='string'?draft.title:'',tagText:typeof draft.tagText==='string'?draft.tagText:'',
       lifeTime:typeof draft.lifeTime==='string'?draft.lifeTime:'',lifeYear:typeof draft.lifeYear==='string'?draft.lifeYear:'',locationName:typeof draft.locationName==='string'?draft.locationName:'',markedDate:typeof draft.markedDate==='string'?draft.markedDate:'',
-      manualSong:validManualSong(draft.manualSong)?draft.manualSong:null,manualEvent:validManualEvent(draft.manualEvent)?draft.manualEvent:null,pendingSong:validPending(draft.pendingSong,['title','artist'])?draft.pendingSong!:null,pendingEvent:validPending(draft.pendingEvent,['title','artist','date','city','venue'])?draft.pendingEvent!:null,song:validDraftSong(draft.song)?draft.song!:null,photos:Array.isArray(draft.photos)?draft.photos:[],cover:typeof draft.cover==='string'?draft.cover:null,
+      manualSong:validManualSong(draft.manualSong)?draft.manualSong:null,manualEvent:validManualEvent(draft.manualEvent)?draft.manualEvent:null,pendingSong:validPending(draft.pendingSong,['title','artist'])?draft.pendingSong!:null,pendingEvent:validPending(draft.pendingEvent,['title','artist','date','city','venue'])?draft.pendingEvent!:null,song:validDraftSong(draft.song)?draft.song!:null,concertMusic:validConcertMusic(draft.concertMusic,draft.eventId)?draft.concertMusic:null,photos:Array.isArray(draft.photos)?draft.photos:[],cover:typeof draft.cover==='string'?draft.cover:null,
       position:typeof draft.position==='number'?draft.position:null,timeText:typeof draft.timeText==='string'?draft.timeText:'',endText:typeof draft.endText==='string'?draft.endText:'',lyricId:typeof draft.lyricId==='string'?draft.lyricId:null,
       visibility:draft.visibility==='public'?'public':'private',eventId:typeof draft.eventId==='string'?draft.eventId:null,eventSnapshot:validEventSnapshot(draft.eventSnapshot,draft.eventId)?draft.eventSnapshot:null,autoEventFields:Array.isArray(draft.autoEventFields)?draft.autoEventFields.filter(key=>['lifeTime','lifeYear','locationName'].includes(key)):[],themeId:typeof draft.themeId==='string'?draft.themeId:null,anonymous:draft.anonymous!==false,shareLife:draft.shareLife===true};
   }
@@ -299,6 +306,7 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     const value=normalizeDraft(draft);
     setStory(value.story);setTitle(value.title);setTagText(value.tagText);setLifeTime(value.lifeTime);setLifeYear(value.lifeYear);setLocationName(value.locationName);setMarkedDate(value.markedDate);
     setSong(value.song);setPendingSong(value.pendingSong);setPendingEvent(value.pendingEvent);setManualSong(value.manualSong);setManualEvent(value.manualEvent);setPhotos(value.photos);setCover(value.cover);setPosition(value.position);setTimeText(value.timeText);setEndText(value.endText);setLyricId(value.lyricId);
+    setConcertMusic(value.concertMusic);
     setVisibility(value.visibility);setEventId(value.eventId);setThemeId(value.themeId);setAnonymous(value.anonymous);setShareLife(value.shareLife);
     setEventSnapshot(value.eventSnapshot);setAutoEventFields(value.autoEventFields);
     prefilled.current=!!value.eventSnapshot;dateTouched.current=!!value.lifeTime&&!value.autoEventFields.includes('lifeTime');placeTouched.current=!!value.locationName&&!value.autoEventFields.includes('locationName');
@@ -361,14 +369,15 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     event.preventDefault();if (lock.current||uploading) return;
     setError('');
     if(pendingSong||pendingEvent){setError('请先完成或取消正在填写的资料。');return;}
-    if(!song&&!manualSong){setError('请选择这一刻的配乐。');return;}
+    if(!song&&!manualSong&&!concertMusic){setError('请选择这一刻的配乐。');return;}
+    if(concertMusic&&!validConcertMusic(concertMusic,eventId)){setError('请为当前演出重新选择音乐。');return;}
     let offset: number | null, end:number|null;
     try {offset = parsePosition(timeText, song?.duration_ms ?? 0);end=parsePosition(endText,song?.duration_ms??0,true);if(end!==null&&(offset===null||end<=offset))throw new Error('播放区间需要起点，结束时间要晚于起点。');} catch (reason) {if(musicOptions.current)musicOptions.current.open=true;setError((reason as Error).message);return;}
     if (!story.trim()) {setError('写一句想留住的线索吧。');return;}
     const tags=[...new Set([...parseTags(tagText),...extractHashtags(story)])];if(tags.length>8||tags.some(tag=>tag.length>24)){setError('最多添加8个标签，每个不超过24字。');return;}
     lock.current = true;setBusy(true);
     try {
-      const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,event_input:manualEvent,location_name:locationName.trim()||null,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:themeId,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : markedDate&&lifeTime===markedDate?'day':'unknown',offset_ms:offset,...(existing ? {revision:editRevision.current} : {...(manualSong?{song_input:manualSong}:{song_id:song!.id}),request_key:requestKey.current,...(visibility==='public'?{publication:{confirmed:true,anonymous,share_life_time:shareLife}}:{})})};
+      const body = {story:story.trim(),title:title.trim()||null,tags,photo_ids:photos.map(photo=>photo.id),photo_id:cover,end_ms:end,event_id:eventId,event_input:manualEvent,location_name:locationName.trim()||null,life_time:lifeTime.trim() || null,life_year:lifeYear?Number(lifeYear):null,lyric_id:lyricId,theme_id:themeId,life_precision: existing && lifeTime === (existing.life_time ?? '') ? existing.life_precision : markedDate&&lifeTime===markedDate?'day':'unknown',offset_ms:offset,...(concertMusic||existing?.music_selection?{music_selection:concertMusic?{mode:concertMusic.mode,track_titles:concertMusic.tracks.map(track=>track.title)}:null}:{}),...(existing ? {revision:editRevision.current} : {...(concertMusic?{}:manualSong?{song_input:manualSong}:{song_id:song!.id}),request_key:requestKey.current,...(visibility==='public'?{publication:{confirmed:true,anonymous,share_life_time:shareLife}}:{})})};
       let saved = await apiRequest<Memory>(apiBaseUrl, existing ? `/api/memories/${existing.id}` : '/api/memories', {method:existing ? 'PATCH' : 'POST',body:JSON.stringify(body)});
       // Finish an explicitly confirmed edit's visibility write even after route exit.
       // Liveness only guards the newer page's UI, navigation and local draft.
@@ -396,22 +405,22 @@ export function MemoryForm({ song:initialSong=null, existing, initialPosition = 
     <header className="composer-heading"><BackLink fallback={fallback}/><h1>{existing?'编辑记忆':'新建记忆'}</h1>{existing?<span>{visibility==='public'?'公开可见':'私密'}</span>:<button type="button" className="composer-draft-box" disabled={busy||uploading} onClick={openDraftBox}>草稿箱</button>}</header>
     <form className="memory-form composer-paper" onSubmit={save} onInvalidCapture={event=>{const details=(event.target as HTMLElement).closest('details');if(details)details.open=true;}}>
       <fieldset className="memory-form form-fields" disabled={busy}>
-      {(eventId||eventSnapshot)&&<div className="composer-event-context"><EventNote key={eventId??'manual'} id={eventId??''} snapshot={eventSnapshot} onResolved={prefillEvent} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>{setEventId(null);setEventSnapshot(null);setManualEvent(null);}}><X size={16} aria-hidden="true"/></button></div>}
+      {(eventId||eventSnapshot)&&<div className="composer-event-context"><EventNote key={eventId??'manual'} id={eventId??''} snapshot={eventSnapshot} onResolved={prefillEvent} label="关联现场" linked={false}/><button className="composer-event-remove" type="button" aria-label="取消关联这场演出" title="取消关联这场演出" disabled={busy||uploading} onClick={()=>{setEventId(null);setEventSnapshot(null);setManualEvent(null);setConcertMusic(null);}}><X size={16} aria-hidden="true"/></button></div>}
       <button type="button" className="composer-event-select" aria-label="选择演出" disabled={busy||uploading} onClick={()=>openSheet('event')}>{pendingEvent?'继续填写演出':eventId||manualEvent?'选择实际参加的场次':'＋ 关联演出（选填）'}</button>
       <GalleryPicker photos={photos} cover={cover} onChange={setPhotos} onCover={setCover} onBusyChange={setUploading} disabled={busy||uploading} compact/>
-      {!existing&&<SongPicker song={song} manual={manualSong} pending={pendingSong} onOpen={openSongSearch} disabled={busy||uploading}/>}
+      {eventId?<ConcertMusicPicker eventId={eventId} value={concertMusic} fallbackTitle={(song??manualSong)?.title} fallbackArtist={(song??manualSong)?.artist} onOtherMusic={!existing?openSongSearch:undefined} disabled={busy||uploading} onChange={value=>{setConcertMusic(value);if(value){setPendingSong(null);setManualSong(null);setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}}/>:!existing&&<SongPicker song={song} manual={manualSong} pending={pendingSong} onOpen={openSongSearch} disabled={busy||uploading}/>}
       <label className="composer-title" htmlFor="memory-title"><span className="sr-only">标题（选填）</span><input id="memory-title" value={title} maxLength={80} onChange={event=>setTitle(event.target.value)} placeholder="标题（选填）"/></label>
       <label className="composer-story" htmlFor="memory-story"><span className="sr-only">写下这一刻</span><textarea ref={storyInput} id="memory-story" value={story} onChange={e => setStory(e.target.value)} maxLength={500} rows={5} required placeholder="写下这一刻的故事…"/></label><span className="character-count">{story.length} / 500</span>
       <div className="composer-recommendations" aria-label="推荐标签">{existing&&parseTags(tagText).map(value=><button className="composer-existing-tag" key={`saved-${value}`} type="button" aria-label={`移除标签${value}`} onClick={()=>setTagText(parseTags(tagText).filter(tag=>tag!==value).join('，'))}>#{value} ×</button>)}{recommendMemoryTags(title,story,song).filter(value=>!parseTags(tagText).includes(value)).map(value=><button key={value} type="button" onClick={()=>insertToken(`#${value}`)}>#{value}</button>)}</div>
       <div className="composer-mentions"><button type="button" onClick={()=>insertToken('#')}><Hash size={16}/>话题</button><button type="button" onClick={()=>insertToken('@')}><At size={16}/>用户</button></div>
       <div className="composer-setting-rows"><div className="composer-place-row"><button type="button" onClick={()=>openSheet('place')}><MapPin size={20}/>标记地点 <span>{locationName||'未标记'} <CaretRight size={17}/></span></button></div><button type="button" onClick={openTimeSheet}><CalendarBlank size={20}/>标记时间 <span>{lifeTime.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||lifeTime||'未标记'} <CaretRight size={17}/></span></button><button type="button" onClick={()=>openSheet('visibility')}><LockSimple size={20}/>可见范围 <span>{visibility==='public'?'公开可见':'仅自己可见'} <CaretRight size={17}/></span></button></div>
       {!existing&&visibility==='public'&&<div className="composer-sharing" role="group" aria-label="公开设置"><label><input type="checkbox" aria-label="匿名发布" checked={anonymous} onChange={event=>setAnonymous(event.target.checked)}/>匿名发布</label><label><input type="checkbox" aria-label="公开年份和时间" checked={shareLife} onChange={event=>setShareLife(event.target.checked)}/>公开年份和时间</label></div>}
-      {song&&<details ref={musicOptions} className="composer-options composer-music"><summary>{existing&&<img src={songCover(song)} alt=""/>}<span><strong>{existing?song.title:'词句与片段'}</strong><small>{timeText?`${lyricId?'所选词句 · ':''}${timeText}${endText?`—${endText}`:' 起'}`:'整首歌'}</small></span><span className="composer-disclosure">调整</span></summary><div className="composer-options-body">
+      {song&&!concertMusic&&<details ref={musicOptions} className="composer-options composer-music"><summary>{existing&&<img src={songCover(song)} alt=""/>}<span><strong>{existing?song.title:'词句与片段'}</strong><small>{timeText?`${lyricId?'所选词句 · ':''}${timeText}${endText?`—${endText}`:' 起'}`:'整首歌'}</small></span><span className="composer-disclosure">调整</span></summary><div className="composer-options-body">
       <AudioPlayer song={song} anchor={position} onMark={busy ? undefined : ms => {setPosition(ms);setTimeText(formatPosition(ms));setLyricId(null);}}/><LyricPicker song={song} selected={lyricId} disabled={busy} onSelect={(id,ms)=>{setLyricId(id);setPosition(ms);setTimeText(formatPosition(ms));}}/>
       {existing&&<div className="music-range"><div className="range-title"><strong>音乐片段</strong><button className="text-button" type="button" onClick={()=>{setPosition(null);setTimeText('');setEndText('');setLyricId(null);}}>用整首歌</button></div><div className="range-inputs"><label>起点<input aria-label="音乐里的位置" value={timeText} onChange={e=>{setTimeText(e.target.value);setLyricId(null);}} placeholder="00:00" disabled={!song.audio_available}/></label><span aria-hidden="true">—</span><label>终点<input aria-label="播放区间终点" value={endText} onChange={e=>setEndText(e.target.value)} placeholder={formatPosition(song.duration_ms)} disabled={!song.audio_available}/></label></div><small>填写起止时间，查看记忆时播放这一段。</small></div>}
       </div></details>}
       {error && <p className="form-error" role="alert">{error}<Link to={existing ? `/memories/${existing.id}` : '/memories'}>{existing ? '重新打开这段记忆' : '去我的记忆确认'}</Link></p>}
-      <div className="composer-save">{!existing&&<button type="button" className="composer-draft" disabled={!canSaveDraft||busy||uploading} onClick={saveDraft}>{draftSaved?'已存草稿':'存草稿'}</button>}<button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || (!song&&!manualSong)||!!pendingSong||!!pendingEvent}>{busy ? '保存中…' : uploading?'上传中…':existing ? visibility==='public'?'保存':'保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
+      <div className="composer-save">{!existing&&<button type="button" className="composer-draft" disabled={!canSaveDraft||busy||uploading} onClick={saveDraft}>{draftSaved?'已存草稿':'存草稿'}</button>}<button type="submit" className="primary-button" disabled={busy || uploading || !story.trim() || (!song&&!manualSong&&!concertMusic)||!!pendingSong||!!pendingEvent}>{busy ? '保存中…' : uploading?'上传中…':existing ? visibility==='public'?'保存':'保存修改' : visibility==='public'?'发布记忆':'保存记忆'}</button></div>
       </fieldset>
     </form>
     {sheet&&<div className="composer-modal" role="dialog" aria-modal="true" aria-label={sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':sheet==='event'?'关联演出':'可见范围'}><button className="composer-modal-scrim" type="button" aria-label="关闭弹层" onClick={()=>setSheet(null)}/><div ref={sheetPanel} className="composer-sheet"><div className="composer-sheet-handle"/><header><button type="button" onClick={()=>setSheet(null)} aria-label="关闭弹层"><X size={20}/></button><h2>{sheet==='place'?'标记地点':sheet==='time'?'标记时间':sheet==='drafts'?'草稿箱':sheet==='event'?'关联演出':'谁可以看到这段记忆'}</h2></header>{sheet==='drafts'?<div className="composer-draft-list">
@@ -435,7 +444,7 @@ function DetailContent({ edit }: { edit: boolean }) {
   return <section className="journal-page memory-detail">
     <header className="memory-toolbar"><BackLink fallback="/memories"/></header>
     {location.state?.saved && <p className="saved-notice" role="status">已保存。</p>}
-    <StoryCard author={card.is_demo_sample?'虚构歌迷 · 演示故事':user.display_name} sample={card.is_demo_sample} title={card.title} year={card.life_year} time={card.life_time} song={card.song} photos={cardPhotos(card)} text={card.story} tags={card.tags} scope="mine" anchor={card.offset_ms} end={card.end_ms} lyric={card.lyric}/>
+    <StoryCard author={card.owner_display_name??user.display_name} sample={card.is_demo_sample} title={card.title} year={card.life_year} time={card.life_time} song={card.song} photos={cardPhotos(card)} text={card.story} tags={card.tags} scope="mine" anchor={card.offset_ms} end={card.end_ms} lyric={card.lyric} musicSelection={card.music_selection}/>
     <MemoryActions key={'actions:'+card.id+':'+card.revision} card={card} onReload={()=>setVersion(v=>v+1)}/>
     {(card.event_id||card.event_snapshot)&&<EventNote id={card.event_id??''} snapshot={card.event_snapshot}/>}
     <QuickReflection key={card.id+':'+card.revision} card={card} onChange={()=>setVersion(v=>v+1)}/>

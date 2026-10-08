@@ -57,11 +57,11 @@ export function SongSearchPage(){
     }catch{setSaveError('浏览器无法保存草稿，请返回填写页面保留内容。');return false;}
   }
   function choose(song:Song){
-    const value={...selectDraftSong(base(),song),manualSong:null,pendingSong:null};persist(value);returnToComposer(value);
+    const value={...selectDraftSong(base(),song),manualSong:null,pendingSong:null,concertMusic:null};persist(value);returnToComposer(value);
   }
   function chooseManual(){
     if(!manual.title.trim()||!manual.artist.trim())return;
-    const value={...base(),song:null,pendingSong:null,manualSong:{title:manual.title.trim(),artist:manual.artist.trim()},position:null,timeText:'',endText:'',lyricId:null};
+    const value={...base(),song:null,pendingSong:null,concertMusic:null,manualSong:{title:manual.title.trim(),artist:manual.artist.trim()},position:null,timeText:'',endText:'',lyricId:null};
     persist(value);returnToComposer(value);
   }
   return <section className="journal-page song-search-page">

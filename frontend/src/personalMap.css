@@ -1,0 +1,52 @@
+/* Map-only containers: no shared memory-card styling. */
+.atlas-map .atlas-search-input{gap:10px;align-items:center}
+.atlas-map .atlas-search-input>svg{flex:none;width:23px;height:23px}
+.atlas-map .atlas-search-input input{flex:1;width:auto;font-size:14px;line-height:20px;height:40px}
+.atlas-map .atlas-search-input>button{flex:none;width:36px;min-width:36px}
+.atlas-map .atlas-search-input>button.is-inactive{visibility:hidden;pointer-events:none}
+.atlas-map .real-city-pin{box-sizing:border-box;width:58px;height:58px;overflow:hidden;border-radius:50%;border:3px solid #607b67;background:#fffdf8;box-shadow:0 3px 8px #344e3833}
+.atlas-map .real-city-pin.is-upcoming{border-color:#c76e3d}
+.atlas-map .real-city-pin img,.atlas-map .real-city-pin img.is-whole-photo{width:100%;height:100%;object-fit:cover;border:0;border-radius:0;box-shadow:none;background:none}
+.atlas-map .real-city-pin img.is-baked-avatar{transform:scale(1.43)}
+.atlas-map .real-city-pin:focus-visible{outline:2px solid #514431;outline-offset:3px}
+.atlas-map .atlas-legend{display:flex;background:#fffaf0ed;border:1px solid #e5d9c8;padding:7px 12px;color:#7d705f;font-size:11px;border-radius:18px;bottom:calc(var(--atlas-sheet-height,285px) + 82px);left:60px;max-width:calc(100% - 140px)}
+.atlas-map .atlas-legend i.past{background:#607b67}
+.atlas-map .atlas-legend i.future{background:#c76e3d}
+.atlas-map .atlas-time-slot>.choice-trigger{width:112px;min-height:44px;padding:8px 10px;font-size:12px;border-color:#e4d7c5;background:#f8f3ea}
+.atlas-map .atlas-local-itinerary{height:285px;max-height:calc(100dvh - 280px);overflow:hidden}
+.atlas-map .atlas-local-itinerary .atlas-schedule-list{flex:1;min-height:0;max-height:none}
+.atlas-map .atlas-local-itinerary .atlas-empty-city{margin-top:10px;overflow:auto;font-size:13px}
+.atlas-map:has(.atlas-search-results) :is(.atlas-map-controls,.map-source-entry,.atlas-legend){visibility:hidden}
+@media(max-height:720px){.atlas-map .atlas-local-itinerary{height:245px}.atlas-map .atlas-searchbar{padding-top:10px;padding-bottom:10px}.atlas-map .atlas-wordmark>div>span{font-size:26px}.atlas-map .atlas-wordmark small{font-size:15px;line-height:21px}.atlas-map .atlas-artist-pills{margin-top:8px}.atlas-map .atlas-artist-pills button{min-height:32px;padding-block:5px}.atlas-map .real-city-pin{width:50px;height:50px}}
+
+/* Compact only the map's page containers; memory cards and artist-following stay unchanged. */
+.atlas-page.atlas-map .atlas-searchbar.has-mine-return{padding:10px 18px 10px}
+.atlas-page.atlas-map .atlas-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px;min-height:28px}
+.atlas-page.atlas-map .atlas-topline :is(.atlas-return-mine,.atlas-return-map){margin:0;flex:none;font-size:13px}
+.atlas-page.atlas-map .atlas-topline small{font:400 13px/20px 'Wanwei Handwriting',sans-serif;color:#bd7d59;white-space:nowrap;letter-spacing:0}
+.atlas-page.atlas-map .atlas-wordmark{margin-bottom:7px;align-items:center}
+.atlas-page.atlas-map .atlas-wordmark>div>span{font-size:27px;line-height:36px}
+.atlas-page.atlas-map .atlas-wordmark>a{width:40px;height:36px}
+.atlas-page.atlas-map .atlas-artist-pills{margin-top:9px;gap:7px}
+.atlas-page.atlas-map .atlas-artist-pills button{min-height:34px;padding:6px 12px;font-size:13px}
+.atlas-page.atlas-map :is(.atlas-itinerary,.atlas-itinerary.is-expanded,.atlas-local-itinerary){height:clamp(210px,33dvh,285px);max-height:calc(100dvh - 365px)}
+.atlas-page.atlas-map .atlas-sky-canopy{height:150px;opacity:.45}
+.atlas-page.atlas-map .atlas-location-status{margin:7px 0 0;max-width:calc(100% - 45px);font-size:11px;line-height:17px;color:#725a42;background:#faf7f0e6;border-radius:6px;padding:3px 6px;pointer-events:none}
+.atlas-page.atlas-map:has(.atlas-search-results) .map-source-attribution{visibility:hidden}
+@media(max-width:370px){.atlas-page.atlas-map .atlas-searchbar.has-mine-return{padding-inline:14px}.atlas-page.atlas-map .atlas-topline small{font-size:12px}.atlas-page.atlas-map .atlas-artist-pills button{padding-inline:10px}}
+@media(max-height:720px){
+  .atlas-page.atlas-map .atlas-searchbar.has-mine-return{padding-block:6px}
+  .atlas-page.atlas-map .atlas-topline{margin-bottom:0}
+  .atlas-page.atlas-map .atlas-wordmark{margin-bottom:3px}
+  .atlas-page.atlas-map .atlas-search-input{height:44px}
+  .atlas-page.atlas-map .atlas-artist-pills{margin-top:4px}
+  .atlas-page.atlas-map .atlas-artist-pills button{min-height:32px}
+}
+
+.atlas-page.atlas-map .real-city-pin{width:var(--map-photo-size,58px);height:var(--map-photo-size,58px);min-width:0;transition:none;animation:none}
+.atlas-page.atlas-map .real-city-pin img{transition:none;animation:none}
+.atlas-page.atlas-map .real-map-canvas[data-frame-ready=false]{visibility:hidden}
+.atlas-map-preparing{position:absolute;z-index:3;top:calc(var(--atlas-header-height,185px) + 35px);left:20px;right:20px;margin:0;color:#8a7661;font-size:12px;text-align:center;pointer-events:none}
+.atlas-page.atlas-map .atlas-map-fallback{top:calc(var(--atlas-header-height,185px) + 12px);bottom:calc(var(--atlas-sheet-height,285px) + var(--atlas-nav-height,70px) + 28px);overflow:hidden;background:#cde3e3}
+.atlas-page.atlas-map .atlas-map-fallback path{fill:#f7f2e8;stroke:#a78670;stroke-width:.5}
+.atlas-page.atlas-map .atlas-map-fallback .real-city-pin{padding:0;transform:translate(-50%,-50%)}

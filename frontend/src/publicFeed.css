@@ -1,0 +1,7 @@
+.public-feed{margin-top:14px}
+.public-feed-status{margin:18px 0;color:#9a8670;font-size:12px;line-height:1.8;text-align:center}
+.public-feed-error{margin:18px 0;color:#a36545;font-size:13px;line-height:1.8}
+.public-feed-error button{margin-left:8px;min-height:44px}
+.public-feed-sentinel{height:1px}
+.public-feed-load{display:block;min-height:44px;margin:8px auto 18px}
+.public-feed-load:focus-visible,.public-feed-error button:focus-visible{outline:2px solid #a76443;outline-offset:3px}

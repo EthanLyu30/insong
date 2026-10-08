@@ -1,10 +1,18 @@
 import type {AtlasEvent,CatalogChange} from './footprintAtlas';
 
 export type SchedulePeriod='upcoming'|'past';
+export type FutureRange='week'|'month'|'two-months';
+export const futureRangeLabels:Record<FutureRange,string>={week:'未来 7 天',month:'未来 1 个月','two-months':'未来 2 个月'};
 type Dated={id:string;date:string;event_status?:string;event_status_note?:string};
-export function selectSchedule<T extends Dated>(events:T[],period:SchedulePeriod,month:string,today:string):T[]{
-  const lastDay=new Date(Date.parse(`${today}T00:00:00Z`)+6*86400000).toISOString().slice(0,10);
-  return events.filter(event=>(period==='past'?event.date<today:event.date>=today&&event.date<=lastDay)&&(!month||event.date.startsWith(month+'-')))
+export function futureRangeEnd(today:string,range:FutureRange):string{
+  if(range==='week')return new Date(Date.parse(`${today}T00:00:00Z`)+7*86400000).toISOString().slice(0,10);
+  const [year,month,day]=today.split('-').map(Number),offset=range==='two-months'?2:1;
+  const lastDay=new Date(Date.UTC(year,month+offset,0)).getUTCDate();
+  return new Date(Date.UTC(year,month-1+offset,Math.min(day,lastDay))).toISOString().slice(0,10);
+}
+export function selectSchedule<T extends Dated>(events:T[],period:SchedulePeriod,month:string,today:string,range:FutureRange='week'):T[]{
+  const end=futureRangeEnd(today,range);
+  return events.filter(event=>(period==='past'?event.date<today:event.date>=today&&event.date<end)&&(!month||event.date.startsWith(month+'-')))
     .sort((a,b)=>(period==='past'?b.date.localeCompare(a.date):a.date.localeCompare(b.date))||a.id.localeCompare(b.id));
 }
 export function scheduleMonths(events:Dated[],period:SchedulePeriod,today:string):string[]{

@@ -2,21 +2,14 @@ import {useEffect,useId,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {Info,X} from '@phosphor-icons/react';
 import {lockPageScroll,trapDialogFocus} from './dialogScroll';
-import {mapMarkerPhotos} from './mapMarkerPhotos';
+import {mapPhotoCredits,type MapPhotoChoice} from './personalMap';
 import type {AtlasArtist,AtlasEvent} from './footprintAtlas';
 import './mapCredits.css';
 
-export function MapCredits({events,artists=[]}:{events:AtlasEvent[];artists?:AtlasArtist[]}){
-  const [open,setOpen]=useState(false),[brief,setBrief]=useState(true);
+export function MapCredits({events,artists=[],selections=[]}:{events:AtlasEvent[];artists?:AtlasArtist[];selections?:MapPhotoChoice[]}){
+  const [open,setOpen]=useState(false);
   const button=useRef<HTMLButtonElement>(null),panel=useRef<HTMLDivElement>(null),id=useId();
-  const seen=new Set<string>();
-  const photos=events.filter(event=>event.event_status!=='cancelled').flatMap(event=>{
-    const photo=mapMarkerPhotos[event.artist_id];
-    if(!photo?.source||seen.has(photo.source))return [];
-    seen.add(photo.source);return [{...photo,name:artists.find(artist=>artist.id===event.artist_id)?.name??event.artist_id}];
-  });
-  // Attribution is legible on arrival, then remains available from the information button.
-  useEffect(()=>{const timer=window.setTimeout(()=>setBrief(false),5000);return()=>window.clearTimeout(timer);},[]);
+  const photos=mapPhotoCredits(events,artists,selections);
   useEffect(()=>{
     if(!open||!panel.current)return;
     const root=document.getElementById('root'),wasInert=root?.inert;
@@ -26,9 +19,9 @@ export function MapCredits({events,artists=[]}:{events:AtlasEvent[];artists?:Atl
   },[open]);
   return <>
     <div className="map-source-entry">
-      <button ref={button} type="button" aria-label="地图信息" aria-haspopup="dialog" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>{setBrief(false);setOpen(true);}}><Info size={20}/></button>
-      {brief&&<span className="map-source-brief"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a> · <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" target="_blank" rel="noopener noreferrer">Esri</a></span>}
+      <button ref={button} type="button" aria-label="地图信息" aria-haspopup="dialog" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>setOpen(true)}><Info size={20}/></button>
     </div>
+    <span className="map-source-attribution"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a> · <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" target="_blank" rel="noopener noreferrer">Esri</a></span>
     {open&&createPortal(<div className="map-credits-overlay">
       <button className="map-credits-scrim" type="button" aria-label="关闭地图信息" onClick={()=>setOpen(false)}/>
       <div ref={panel} id={id} className="map-credits-panel" role="dialog" aria-modal="true" aria-label="地图与照片来源">
@@ -42,7 +35,7 @@ export function MapCredits({events,artists=[]}:{events:AtlasEvent[];artists?:Atl
             <li><a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener noreferrer">© Mapterhorn · 地形来源</a></li>
             <li><a href="https://datav.aliyun.com/portal/school/atlas/area_selector" target="_blank" rel="noopener noreferrer">DataV GeoAtlas 省界</a></li>
           </ul></section>
-          {!!photos.length&&<section><h3>照片来源</h3><p>照片用于歌手标记，按圆形或矩形裁切显示。</p><ul>{photos.map(photo=><li key={photo.source}><strong>{photo.name}</strong><span>{photo.context}</span><div><a href={photo.source} target="_blank" rel="noopener noreferrer">{photo.author} · 原图</a><a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></div></li>)}</ul></section>}
+          <section><h3>照片来源</h3><p>优先使用你的经历照片，其次使用有效公开记忆中的照片。虚构样例可能使用生成示意或用户提供的演出配图，均不代表故事所写的本场实拍。用户提供照片的拍摄者与具体日期尚未核实。以下列出当前筛选下实际用作兜底的歌手资料图与参考素材。</p>{!!photos.length&&<ul>{photos.map(photo=><li key={photo.source}><strong>{photo.name}</strong><span>{photo.context}</span><div><a href={photo.source} target="_blank" rel="noopener noreferrer">{photo.author} · 来源</a><a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a></div></li>)}</ul>}</section>
         </div>
       </div>
     </div>,document.body)}

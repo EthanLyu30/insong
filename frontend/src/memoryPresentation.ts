@@ -1,4 +1,5 @@
 import type {Memory} from './memoryClient';
+import {memoryLifeDate,memoryYear} from './memoryDates.ts';
 
 type Card = Pick<Memory,'tags'|'event_id'|'story'|'song'|'title'|'life_time'|'life_year'> & {location_name?:string|null};
 export type MemoryCategory = '音乐现场'|'旅行'|'日常';
@@ -19,10 +20,12 @@ export type MemoryTimeRange={startYear:string;startMonth:string;endYear:string;e
 
 export function matchesMemoryTime(card:Card,range:MemoryTimeRange):boolean {
   if(!range.startYear&&!range.endYear)return true;
-  if(card.life_year==null)return false;
+  const year=memoryYear(card);
+  if(year==null)return false;
+  const fullDate=memoryLifeDate(card);
   const date=/^(\d{4})-(\d{1,2})(?:-|$|\s)/.exec(card.life_time??'');
-  const month=date&&Number(date[1])===card.life_year&&Number(date[2])>=1&&Number(date[2])<=12?Number(date[2]):null;
-  const earliest=card.life_year*12+(month??1),latest=card.life_year*12+(month??12);
+  const month=fullDate?.year===year?fullDate.month:date&&Number(date[1])===year&&Number(date[2])>=1&&Number(date[2])<=12?Number(date[2]):null;
+  const earliest=year*12+(month??1),latest=year*12+(month??12);
   const start=range.startYear?Number(range.startYear)*12+Number(range.startMonth||1):-Infinity;
   const end=range.endYear?Number(range.endYear)*12+Number(range.endMonth||12):Infinity;
   return earliest>=start&&latest<=end;
@@ -33,5 +36,5 @@ export function filterMemories<T extends Card>(cards:T[],filters:{category?:stri
   return cards.filter(card=>(!filters.category||memoryCategory(card)===filters.category)
     &&(!filters.city||memoryCity(card)===filters.city)
     &&(!filters.timeRange||matchesMemoryTime(card,filters.timeRange))
-    &&(!query||[card.title,card.story,card.song.title,card.song.artist,card.location_name,...card.tags].some(value=>value?.toLocaleLowerCase().includes(query))));
+    &&(!query||[card.title,card.story,card.song.title,card.song.artist,card.location_name,card.life_time,memoryYear(card)?.toString(),...card.tags].some(value=>value?.toLocaleLowerCase().includes(query))));
 }

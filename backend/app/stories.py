@@ -1,9 +1,10 @@
 """Consented public excerpts, separate from owner-only originals."""
 import json
+import re
 
 from fastapi import Depends, HTTPException, Query
 from pydantic import Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import exists, func, select, update
 from sqlalchemy.orm import Session as OrmSession
 
 from .content import THEMES, selected_lyric
@@ -16,6 +17,7 @@ from .card_metadata import gallery_ids, normalize_tag, serialize_photos
 from .footprints import load_catalog
 from .event_snapshots import event_snapshot
 from .database_compat import json_array_contains
+from .music_selection import selected_music
 
 
 class PublishInput(PublicationConsent):
@@ -45,9 +47,11 @@ def serialize_story(public, viewer: User | None = None):
         'end_ms': public.end_ms, 'photo_id': public.photo_id, 'photo_url': photo_url(public.photo_id),
         'event_id': public.event_id,
         'event_snapshot': event_snapshot(public),
+        'music_selection': selected_music(public),
         'lyric': selected_lyric(card.song, public.lyric_id), 'lyric_id': public.lyric_id,
         'theme_id': public.theme_id, 'is_demo_sample': card.is_demo_sample,
         'published_at': public.published_at.isoformat(),
+        'views': public.read_count,
         'is_mine': viewer is not None and card.owner_id == viewer.id,
     }
 
@@ -76,12 +80,33 @@ def public_search_text(public, catalog):
                for alias in artist.get('aliases', [])]
     event = event_snapshot(public) or next((item for item in catalog['events'] if item['id'] == public.event_id), {})
     fields = [public.excerpt, public.title or '', public.life_time or '', song.title, song.artist,
+              *(track['title'] for track in (selected_music(public) or {}).get('tracks', [])),
               *json.loads(public.tags_json or '[]'), *aliases,
               *(str(event.get(key) or '') for key in ('title', 'artist', 'city', 'venue', 'date'))]
     # The GEM spelling is a documented alias even when an imported catalog omits it.
     if song.artist == '邓紫棋':
         fields.extend(['G.E.M.', 'GEM', '鄧紫棋'])
     return ' '.join(fields)
+
+
+def named_artists(query, candidates, catalog):
+    """Resolve explicit artist names/aliases without treating short Latin aliases as substrings."""
+    labels = {public.memory.song.artist: {public.memory.song.artist} for public in candidates}
+    for artist in catalog['artists']:
+        labels.setdefault(artist['name'], {artist['name']}).update(artist.get('aliases', []))
+    text = query.casefold()
+    matches = set()
+    for name, names in labels.items():
+        for label in names:
+            label = label.casefold()
+            if re.search(r'[a-z0-9]', label):
+                found = re.search(r'(?<![a-z0-9])' + re.escape(label) + r'(?![a-z0-9])', text)
+            else:
+                found = label in text
+            if found:
+                matches.add(name)
+                break
+    return matches
 
 
 def install_stories(app, get_db, get_user, get_optional_user):
@@ -115,9 +140,13 @@ def install_stories(app, get_db, get_user, get_optional_user):
     def search(data: PublicSearch, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
         exact_tag = normalize_tag(data.query) if data.query.startswith('#') else None
         candidates = list(db.scalars(public_query(data.song_id, data.theme_id, data.lyric_id, data.event_id, exact_tag or data.tag, db.get_bind().dialect.name)))
+        catalog = load_catalog()
+        if not exact_tag:
+            artists = named_artists(data.query, candidates, catalog)
+            if artists:
+                candidates = [public for public in candidates if public.memory.song.artist in artists]
         versions = {public.memory_id: public.version for public in candidates}
         # Never pass private originals, reflections, or unshared life metadata to inference.
-        catalog = load_catalog()
         texts = [public_search_text(public, catalog) for public in candidates]
         lexical = [keyword_score(data.query, text) for text in texts]
         mode, notice, scores = ('keyword' if exact_tag else data.mode), '', lexical
@@ -146,7 +175,13 @@ def install_stories(app, get_db, get_user, get_optional_user):
 
     @app.get('/api/stories/{story_id}')
     def get_story(story_id: int, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
-        public = db.get(PublicStory, story_id) if 0 < story_id < 2**63 else None
-        if public is None or not public.published:
+        # Claim a real open atomically while consent is active. Collection/search
+        # reads never execute this update; private and withdrawn IDs count zero.
+        public = db.scalar(update(PublicStory).where(
+            PublicStory.memory_id == story_id, PublicStory.published.is_(True)
+        ).values(read_count=PublicStory.read_count + 1).returning(PublicStory)) if 0 < story_id < 2**63 else None
+        if public is None:
             raise HTTPException(404, '这段故事尚未公开，或已被作者收回。')
-        return serialize_story(public, viewer)
+        result = serialize_story(public, viewer)
+        db.commit()
+        return result

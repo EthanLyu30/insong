@@ -2,6 +2,7 @@ import { ArrowRight, Heart, MusicNote, Pause, Play, Repeat, Shuffle, SkipBack, S
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Song } from "./api";
+import './readingRefinements.css';
 type IntroSong = Pick<Song, 'id' | 'title'>;
 
 type Point = readonly [number, number];

@@ -1,0 +1,105 @@
+/* Reading and search refinements share the established paper palette. */
+.collection-page > .collection-search-surface.is-open {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.collection-page .collection-search-panel {
+  border: 1px solid #e4d7c5;
+  border-radius: 10px;
+  background: #fffdf9;
+}
+.collection-page .collection-search-panel:focus-within { border-color: #b78165; }
+.collection-page .collection-search-preview { padding: 7px 0 12px; }
+.collection-page > .collection-results { width: 100%; padding: 0; }
+
+.unified-story-card .story-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.unified-story-card .story-card-header .story-byline { min-width: 0; }
+.unified-story-card .story-card-header .story-byline > div { gap: 2px; }
+.unified-story-card .story-card-header .story-life {
+  flex: 0 1 48%;
+  margin: 0;
+  line-height: 1.5;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.unified-story-card .story-card-header + .moment-title { margin-top: 0; }
+
+.discover-page .public-search-field { position: relative; }
+.discover-page .public-search-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline: 0;
+  z-index: 20;
+  padding: 5px;
+  border: 1px solid #e4d7c5;
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 8px 20px #51443114;
+}
+.discover-page .public-search-suggestions button {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #80634e;
+  text-align: left;
+  font-size: 12px;
+}
+.discover-page .public-search-suggestions button:hover,
+.discover-page .public-search-suggestions button:focus-visible { background: #f0e7db; outline: 0; }
+.discover-page .search-cancel-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #dfd1c0;
+  border-radius: 50%;
+  background: #fffdf8;
+  color: #80634e;
+  cursor: pointer;
+}
+.discover-page .search-cancel-button:hover { background: #f0e7db; }
+.discover-page .search-cancel-button:focus-visible { outline: 2px solid #a97556; outline-offset: 2px; }
+
+.public-detail .story-trail { margin-top: 26px; padding-top: 18px; border-top: 1px solid #e6d8c6; }
+.story-trail h2 { margin: 0 0 11px; color: #604a39; font: 600 17px/1.5 'Microsoft YaHei',sans-serif; }
+.story-trail > div { display: grid; gap: 9px; }
+.story-trail-link { display: grid; grid-template-columns: 58px minmax(0,1fr) 16px; align-items: center; gap: 11px; min-height: 76px; padding: 8px 11px 8px 8px; border: 1px solid #e8dcca; border-radius: 11px; background: #fffdf7; color: #6d513d; text-decoration: none; }
+.story-trail-link img { display: block; width: 58px; height: 58px; object-fit: cover; border-radius: 6px; }
+.story-trail-link > span { min-width: 0; display: grid; gap: 5px; }
+.story-trail-link strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.story-trail-link small { color: #99816b; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.story-trail-link > svg { color: #ad8064; }
+.story-trail-link:hover { border-color: #cfa98d; background: #fffaf2; }
+.story-trail-link:focus-visible { outline: 2px solid #a97556; outline-offset: 2px; }
+
+.site-shell.intro-shell {
+  display: flex;
+  flex-direction: column;
+}
+.site-shell.intro-shell > .topbar { flex-shrink: 0; }
+.site-shell.intro-shell > .main-content {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.site-shell.intro-shell .home-page,
+.site-shell.intro-shell .collage-intro { margin-top: 0; padding-top: 0; }
+.site-shell.intro-shell .collage-intro .collage-scene {
+  background: #ded1bc url('/collage-scene.webp') center / cover no-repeat;
+}

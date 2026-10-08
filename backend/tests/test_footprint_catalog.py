@@ -1,5 +1,6 @@
 """Data integrity gates for the reviewed concert catalog, without network or DB access."""
 import json
+import hashlib
 import re
 from datetime import date
 from pathlib import Path
@@ -141,3 +142,70 @@ def test_reviewed_liu_stops_and_original_tracks_remain_available(catalog):
         titles = {song['title'] for song in event['songs']}
         assert {'原来那个人', '看着月亮想你', 'REALITY', 'WALLS', '飓', 'Boom Tick Boom',
                 'Of Course', '练习曲', 'Baby I Know', 'Look Into The Mirror'} <= titles
+
+
+def test_reviewed_future_xiamen_dates_are_available_with_event_evidence(catalog):
+    """Upcoming selection must expose the four independently announced dates."""
+    from app.footprints import load_catalog
+
+    current = load_catalog()
+    by_id = {event['id']: event for event in current['events']}
+    expected = {
+        'xue-zhiqian-xiamen-20261031': '2026-10-31',
+        'xue-zhiqian-xiamen-20261101': '2026-11-01',
+        'xue-zhiqian-xiamen-20261107': '2026-11-07',
+        'xue-zhiqian-xiamen-20261108': '2026-11-08',
+    }
+    assert expected.keys() <= by_id.keys()
+    existing_venue = by_id['gem-xiamen-20260501']
+    for event_id, announced_day in expected.items():
+        event = by_id[event_id]
+        assert event['artist_id'] == 'xue-zhiqian'
+        assert event['date'] == announced_day and event['time'] == '19:00'
+        assert event['city'] == '厦门'
+        assert event['venue'] == '厦门奥林匹克体育中心体育场'
+        assert event['event_status'] == 'scheduled'
+        assert event['verified_on'] == '2026-10-08'
+        assert event['source_url'] == 'https://weibo.com/2/detail/5345271188033211'
+        assert event['source_kind'] == 'announcement'
+        assert any(ref['url'] == 'https://www.sina.cn/news/detail/5350718596973159.html'
+                   for ref in event['source_references'])
+        assert event['setlist_kind'] == 'artist_collection'
+        assert '实际' in event['setlist_note'] and '待核实' in event['setlist_note']
+        assert not event.get('setlist_evidence')
+        assert all(not song.get('audio_url') for song in event['songs'])
+        for field in ('venue_lng', 'venue_lat', 'venue_location_source',
+                      'venue_coordinate_system', 'venue_location_kind'):
+            assert event[field] == existing_venue[field]
+
+
+def test_october_enrichment_preserves_all_84_existing_records(catalog):
+    """Adding future choices must not alter IDs or evidence referenced by memories."""
+    legacy = [event for event in catalog['events'] if event['date'] <= '2026-10-08']
+    encoded = json.dumps(legacy, ensure_ascii=False, sort_keys=True,
+                         separators=(',', ':')).encode('utf-8')
+    assert len(legacy) == 84
+    assert hashlib.sha256(encoded).hexdigest() == (
+        '47861ca774d9713f4822837505f0c612d4ba68a7bb39d1f6c1a145479fd382e8')
+
+
+def test_future_enrichment_has_reviewed_field_differences(catalog):
+    history = catalog.get('change_history', [])
+    assert history
+    review = history[-1]
+    assert review['reviewed_on'] == '2026-10-08'
+    assert review['reviewer']
+    assert re.fullmatch(r'[0-9a-f]{64}', review['base_sha256'])
+    changes = {change['id']: change for change in review['changes']}
+    assert set(changes) == {
+        'xue-zhiqian-xiamen-20261031', 'xue-zhiqian-xiamen-20261101',
+        'xue-zhiqian-xiamen-20261107', 'xue-zhiqian-xiamen-20261108',
+    }
+    for event_id, change in changes.items():
+        assert change['kinds'] == ['新增']
+        event = next(event for event in catalog['events'] if event['id'] == event_id)
+        for field, value in event.items():
+            difference = change['fields'][field]
+            assert difference['before_present'] is False
+            assert difference['after_present'] is True
+            assert difference['after'] == value
