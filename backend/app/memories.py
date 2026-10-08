@@ -17,9 +17,11 @@ from .photos import photo_url, validate_owned_photo
 from .event_snapshots import capture_event, event_snapshot, snapshot_json
 from .card_metadata import gallery_ids, memory_tags, normalize_tags, serialize_photos, set_memory_tags
 from .manual_recording import ManualSong, ManualEvent
+from .music_selection import MusicSelection, selected_music, capture_music, selection_matches, primary_song
 
 
 class Coordinates(BaseModel):
+    music_selection: MusicSelection | None = None
     title: str | None = Field(default=None, max_length=80)
     tags: list[StrictStr] = Field(default_factory=list)
     photo_ids: list[StrictStr] = Field(default_factory=list, max_length=9)
@@ -102,8 +104,10 @@ class CreateMemory(Coordinates):
 
     @model_validator(mode='after')
     def one_song(self):
-        if (self.song_id is None) == (self.song_input is None):
+        if sum(value is not None for value in (self.song_id, self.song_input, self.music_selection)) != 1:
             raise ValueError('请选择歌曲或填写歌名与歌手')
+        if self.music_selection and (self.offset_ms is not None or self.end_ms is not None or self.lyric_id is not None):
+            raise ValueError('演出音乐集合不支持单曲片段或歌词位置')
         return self
 
     @field_validator('story')
@@ -173,6 +177,7 @@ def serialize_memory(card):
         'revision', 'lyric_id', 'life_year', 'theme_id', 'title', 'location_name',
     )} | {
         'owner_display_name': card.owner.display_name,
+        'music_selection': selected_music(card),
         'event_snapshot': event_snapshot(card),
         'tags': memory_tags(card), 'photos': serialize_photos(card),
         'created_at': card.created_at.isoformat(), 'updated_at': card.updated_at.isoformat(),
@@ -187,6 +192,7 @@ def serialize_memory(card):
             'offset_ms': card.publication.offset_ms, 'end_ms': card.publication.end_ms,
             'event_id': card.publication.event_id,
             'event_snapshot': event_snapshot(card.publication),
+            'music_selection': selected_music(card.publication),
             'title': card.publication.title, 'tags': json.loads(card.publication.tags_json),
             'photos': serialize_photos(card.publication),
         },
@@ -279,6 +285,7 @@ def set_publication_snapshot(card, excerpt, consent, user):
     public.offset_ms, public.lyric_id, public.theme_id = card.offset_ms, card.lyric_id, card.theme_id
     public.photo_id, public.end_ms, public.event_id = card.photo_id, card.end_ms, card.event_id
     public.event_snapshot_json = card.event_snapshot_json
+    public.music_selection_json = card.music_selection_json
     public.published, public.published_at = True, utc_now()
     public.version += 1
 
@@ -288,8 +295,11 @@ def install_memories(app, get_db, get_user):
         fields = ('story', 'offset_ms', 'end_ms', 'event_id', 'title',
                   'life_time', 'life_precision', 'lyric_id', 'life_year', 'theme_id', 'location_name')
         ids, cover = resolve_gallery(data)
-        song_matches = (existing.song_id == data.song_id if data.song_input is None else
+        song_matches = (selection_matches(selected_music(existing), data.music_selection) if data.music_selection else
+                        existing.song_id == data.song_id if data.song_input is None else
                         existing.song.owner_id == existing.owner_id and existing.song.title == data.song_input.title and existing.song.artist == data.song_input.artist)
+        if not data.music_selection and selected_music(existing):
+            song_matches = False
         saved_event = event_snapshot(existing)
         manual_matches = (saved_event == data.event_input.snapshot() if data.event_input else not saved_event or not saved_event.get('manual'))
         if (not song_matches or not manual_matches or any(getattr(existing, key) != getattr(data, key) for key in fields)
@@ -332,8 +342,9 @@ def install_memories(app, get_db, get_user):
         previous = prior_request(db, data, user)
         if previous is not None:
             return previous
-        song = db.get(Song, data.song_id) if data.song_id is not None else db.scalar(select(Song).where(
-            Song.owner_id == user.id, Song.title == data.song_input.title, Song.artist == data.song_input.artist))
+        music = capture_music(data.event_id, data.music_selection) if data.music_selection else None
+        song = (None if music else db.get(Song, data.song_id) if data.song_id is not None else db.scalar(select(Song).where(
+            Song.owner_id == user.id, Song.title == data.song_input.title, Song.artist == data.song_input.artist)))
         if data.song_id is not None and not can_read_song(db, song, user):
             raise HTTPException(404, '找不到这首歌。')
         if song is not None:
@@ -348,15 +359,18 @@ def install_memories(app, get_db, get_user):
             receipt = MemoryReceipt(owner_id=user.id, request_key=data.request_key)
             db.add(receipt)
             db.flush()
-            if song is None:
+            if music:
+                song = primary_song(db, user, music)
+            elif song is None:
                 song = Song(title=data.song_input.title, artist=data.song_input.artist, owner_id=user.id,
                             version='手动填写', source_label='', is_demo=False, audio_available=False)
                 db.add(song)
                 db.flush()
-            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id', 'publication', 'song_input', 'event_input'})
+            values = data.model_dump(exclude={'tags', 'photo_ids', 'photo_id', 'publication', 'song_input', 'event_input', 'music_selection'})
             values['song_id'] = song.id
             card = MemoryCard(id=receipt.id, **values, photo_id=cover, photo_ids_json=json.dumps(ids),
                               event_snapshot_json=snapshot_json(captured_event),
+                              music_selection_json=snapshot_json(music),
                               owner_id=user.id, visibility='private', is_demo_sample=user.is_demo)
             db.add(card)
             set_memory_tags(db, card, data.tags)
@@ -374,7 +388,21 @@ def install_memories(app, get_db, get_user):
     @app.patch('/api/memories/{memory_id}')
     def edit_memory(memory_id: int, data: EditMemory, db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
         card = owner_card(db, memory_id, user)
-        values = data.model_dump(exclude_unset=True, exclude={'revision', 'tags', 'photo_ids', 'event_input'})
+        values = data.model_dump(exclude_unset=True, exclude={'revision', 'tags', 'photo_ids', 'event_input', 'music_selection'})
+        music = selected_music(card)
+        if data.music_selection:
+            target_event = values.get('event_id', card.event_id)
+            if not (selection_matches(music, data.music_selection) and music['event_id'] == target_event):
+                music = capture_music(target_event, data.music_selection)
+            if data.event_input or any(values.get(key) is not None for key in ('offset_ms', 'end_ms', 'lyric_id')):
+                raise HTTPException(422, '演出音乐集合不支持手动场次或单曲片段。')
+            values.update(music_selection_json=snapshot_json(music), song_id=primary_song(db, user, music).id,
+                          offset_ms=None, end_ms=None, lyric_id=None)
+        elif 'music_selection' in data.model_fields_set:
+            music = None
+            values['music_selection_json'] = None
+        if music and (data.event_input or values.get('event_id', card.event_id) != music['event_id']):
+            raise HTTPException(422, '请为新场次重新选择音乐，或先取消原场次音乐关联。')
         if 'offset_ms' in values:
             if 'lyric_id' not in values and values['offset_ms'] != card.offset_ms:
                 values['lyric_id'] = None

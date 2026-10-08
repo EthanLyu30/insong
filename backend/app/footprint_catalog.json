@@ -1,5 +1,5 @@
 {
-  "verified_on": "2026-10-01",
+  "verified_on": "2026-10-08",
   "artists": [
     {
       "id": "gem",
@@ -6840,6 +6840,382 @@
       "venue_location_kind": "poi",
       "venue_location_verified_on": "2026-09-30",
       "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-xiamen-20261031",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+      "city": "厦门",
+      "venue": "厦门奥林匹克体育中心体育场",
+      "date": "2026-10-31",
+      "time": "19:00",
+      "event_status": "scheduled",
+      "event_status_note": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+      "source_url": "https://weibo.com/2/detail/5345271188033211",
+      "source_title": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-08",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+          "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+          "kind": "announcement",
+          "verified_on": "2026-10-08"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-xiamen-20261101",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+      "city": "厦门",
+      "venue": "厦门奥林匹克体育中心体育场",
+      "date": "2026-11-01",
+      "time": "19:00",
+      "event_status": "scheduled",
+      "event_status_note": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+      "source_url": "https://weibo.com/2/detail/5345271188033211",
+      "source_title": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-08",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+          "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+          "kind": "announcement",
+          "verified_on": "2026-10-08"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-xiamen-20261107",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+      "city": "厦门",
+      "venue": "厦门奥林匹克体育中心体育场",
+      "date": "2026-11-07",
+      "time": "19:00",
+      "event_status": "scheduled",
+      "event_status_note": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+      "source_url": "https://weibo.com/2/detail/5345271188033211",
+      "source_title": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-08",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+          "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+          "kind": "announcement",
+          "verified_on": "2026-10-08"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
+    },
+    {
+      "id": "xue-zhiqian-xiamen-20261108",
+      "artist_id": "xue-zhiqian",
+      "title": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+      "city": "厦门",
+      "venue": "厦门奥林匹克体育中心体育场",
+      "date": "2026-11-08",
+      "time": "19:00",
+      "event_status": "scheduled",
+      "event_status_note": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+      "source_url": "https://weibo.com/2/detail/5345271188033211",
+      "source_title": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+      "source_kind": "announcement",
+      "verified_on": "2026-10-08",
+      "source_references": [
+        {
+          "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+          "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+          "kind": "announcement",
+          "verified_on": "2026-10-08"
+        }
+      ],
+      "setlist_kind": "artist_collection",
+      "setlist_note": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+      "songs": [
+        {
+          "title": "演员",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "刚刚好",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "认真的雪",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "天外来物",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "绅士",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        },
+        {
+          "title": "动物世界",
+          "artist": "薛之谦",
+          "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+          "platform": "QQ音乐",
+          "link_kind": "search",
+          "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+          "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+          "verified_on": "2026-10-01"
+        }
+      ],
+      "venue_lng": 118.19494835,
+      "venue_lat": 24.5667076,
+      "venue_location_source": "https://www.openstreetmap.org/way/1233039694",
+      "venue_location_kind": "building_center",
+      "venue_location_note": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+      "venue_location_verified_on": "2026-10-01",
+      "venue_coordinate_system": "WGS84"
     }
   ],
   "cities": [
@@ -7177,5 +7553,1087 @@
     "title": "阿里云 DataV GeoAtlas",
     "url": "https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json"
   },
-  "coverage_note": "已收录场次为逐条核验的部分巡演记录，不代表全国完整巡演行程；开演时间未核实时留空。"
+  "coverage_note": "已收录场次为逐条核验的部分巡演记录，不代表全国完整巡演行程；开演时间未核实时留空。",
+  "updated_on": "2026-10-08",
+  "change_history": [
+    {
+      "reviewer": "Codex（用户授权，官方来源逐条复核）",
+      "reviewed_on": "2026-10-08",
+      "base_sha256": "c4007648762e01e58f9e35b9811aeac0610ad20049186c6151bf4a16e61270c8",
+      "changes": [
+        {
+          "id": "xue-zhiqian-xiamen-20261031",
+          "kinds": [
+            "新增"
+          ],
+          "fields": {
+            "artist_id": {
+              "before": null,
+              "after": "xue-zhiqian",
+              "before_present": false,
+              "after_present": true
+            },
+            "city": {
+              "before": null,
+              "after": "厦门",
+              "before_present": false,
+              "after_present": true
+            },
+            "date": {
+              "before": null,
+              "after": "2026-10-31",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status": {
+              "before": null,
+              "after": "scheduled",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status_note": {
+              "before": null,
+              "after": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+              "before_present": false,
+              "after_present": true
+            },
+            "id": {
+              "before": null,
+              "after": "xue-zhiqian-xiamen-20261031",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_kind": {
+              "before": null,
+              "after": "artist_collection",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_note": {
+              "before": null,
+              "after": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+              "before_present": false,
+              "after_present": true
+            },
+            "songs": {
+              "before": null,
+              "after": [
+                {
+                  "title": "演员",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "刚刚好",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "认真的雪",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "天外来物",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "绅士",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "动物世界",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_kind": {
+              "before": null,
+              "after": "announcement",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_references": {
+              "before": null,
+              "after": [
+                {
+                  "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+                  "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+                  "kind": "announcement",
+                  "verified_on": "2026-10-08"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_title": {
+              "before": null,
+              "after": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_url": {
+              "before": null,
+              "after": "https://weibo.com/2/detail/5345271188033211",
+              "before_present": false,
+              "after_present": true
+            },
+            "time": {
+              "before": null,
+              "after": "19:00",
+              "before_present": false,
+              "after_present": true
+            },
+            "title": {
+              "before": null,
+              "after": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue": {
+              "before": null,
+              "after": "厦门奥林匹克体育中心体育场",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_coordinate_system": {
+              "before": null,
+              "after": "WGS84",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lat": {
+              "before": null,
+              "after": 24.5667076,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lng": {
+              "before": null,
+              "after": 118.19494835,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_kind": {
+              "before": null,
+              "after": "building_center",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_note": {
+              "before": null,
+              "after": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_source": {
+              "before": null,
+              "after": "https://www.openstreetmap.org/way/1233039694",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_verified_on": {
+              "before": null,
+              "after": "2026-10-01",
+              "before_present": false,
+              "after_present": true
+            },
+            "verified_on": {
+              "before": null,
+              "after": "2026-10-08",
+              "before_present": false,
+              "after_present": true
+            }
+          }
+        },
+        {
+          "id": "xue-zhiqian-xiamen-20261101",
+          "kinds": [
+            "新增"
+          ],
+          "fields": {
+            "artist_id": {
+              "before": null,
+              "after": "xue-zhiqian",
+              "before_present": false,
+              "after_present": true
+            },
+            "city": {
+              "before": null,
+              "after": "厦门",
+              "before_present": false,
+              "after_present": true
+            },
+            "date": {
+              "before": null,
+              "after": "2026-11-01",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status": {
+              "before": null,
+              "after": "scheduled",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status_note": {
+              "before": null,
+              "after": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+              "before_present": false,
+              "after_present": true
+            },
+            "id": {
+              "before": null,
+              "after": "xue-zhiqian-xiamen-20261101",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_kind": {
+              "before": null,
+              "after": "artist_collection",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_note": {
+              "before": null,
+              "after": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+              "before_present": false,
+              "after_present": true
+            },
+            "songs": {
+              "before": null,
+              "after": [
+                {
+                  "title": "演员",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "刚刚好",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "认真的雪",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "天外来物",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "绅士",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "动物世界",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_kind": {
+              "before": null,
+              "after": "announcement",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_references": {
+              "before": null,
+              "after": [
+                {
+                  "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+                  "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+                  "kind": "announcement",
+                  "verified_on": "2026-10-08"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_title": {
+              "before": null,
+              "after": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_url": {
+              "before": null,
+              "after": "https://weibo.com/2/detail/5345271188033211",
+              "before_present": false,
+              "after_present": true
+            },
+            "time": {
+              "before": null,
+              "after": "19:00",
+              "before_present": false,
+              "after_present": true
+            },
+            "title": {
+              "before": null,
+              "after": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue": {
+              "before": null,
+              "after": "厦门奥林匹克体育中心体育场",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_coordinate_system": {
+              "before": null,
+              "after": "WGS84",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lat": {
+              "before": null,
+              "after": 24.5667076,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lng": {
+              "before": null,
+              "after": 118.19494835,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_kind": {
+              "before": null,
+              "after": "building_center",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_note": {
+              "before": null,
+              "after": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_source": {
+              "before": null,
+              "after": "https://www.openstreetmap.org/way/1233039694",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_verified_on": {
+              "before": null,
+              "after": "2026-10-01",
+              "before_present": false,
+              "after_present": true
+            },
+            "verified_on": {
+              "before": null,
+              "after": "2026-10-08",
+              "before_present": false,
+              "after_present": true
+            }
+          }
+        },
+        {
+          "id": "xue-zhiqian-xiamen-20261107",
+          "kinds": [
+            "新增"
+          ],
+          "fields": {
+            "artist_id": {
+              "before": null,
+              "after": "xue-zhiqian",
+              "before_present": false,
+              "after_present": true
+            },
+            "city": {
+              "before": null,
+              "after": "厦门",
+              "before_present": false,
+              "after_present": true
+            },
+            "date": {
+              "before": null,
+              "after": "2026-11-07",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status": {
+              "before": null,
+              "after": "scheduled",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status_note": {
+              "before": null,
+              "after": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+              "before_present": false,
+              "after_present": true
+            },
+            "id": {
+              "before": null,
+              "after": "xue-zhiqian-xiamen-20261107",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_kind": {
+              "before": null,
+              "after": "artist_collection",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_note": {
+              "before": null,
+              "after": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+              "before_present": false,
+              "after_present": true
+            },
+            "songs": {
+              "before": null,
+              "after": [
+                {
+                  "title": "演员",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "刚刚好",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "认真的雪",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "天外来物",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "绅士",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "动物世界",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_kind": {
+              "before": null,
+              "after": "announcement",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_references": {
+              "before": null,
+              "after": [
+                {
+                  "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+                  "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+                  "kind": "announcement",
+                  "verified_on": "2026-10-08"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_title": {
+              "before": null,
+              "after": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_url": {
+              "before": null,
+              "after": "https://weibo.com/2/detail/5345271188033211",
+              "before_present": false,
+              "after_present": true
+            },
+            "time": {
+              "before": null,
+              "after": "19:00",
+              "before_present": false,
+              "after_present": true
+            },
+            "title": {
+              "before": null,
+              "after": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue": {
+              "before": null,
+              "after": "厦门奥林匹克体育中心体育场",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_coordinate_system": {
+              "before": null,
+              "after": "WGS84",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lat": {
+              "before": null,
+              "after": 24.5667076,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lng": {
+              "before": null,
+              "after": 118.19494835,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_kind": {
+              "before": null,
+              "after": "building_center",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_note": {
+              "before": null,
+              "after": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_source": {
+              "before": null,
+              "after": "https://www.openstreetmap.org/way/1233039694",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_verified_on": {
+              "before": null,
+              "after": "2026-10-01",
+              "before_present": false,
+              "after_present": true
+            },
+            "verified_on": {
+              "before": null,
+              "after": "2026-10-08",
+              "before_present": false,
+              "after_present": true
+            }
+          }
+        },
+        {
+          "id": "xue-zhiqian-xiamen-20261108",
+          "kinds": [
+            "新增"
+          ],
+          "fields": {
+            "artist_id": {
+              "before": null,
+              "after": "xue-zhiqian",
+              "before_present": false,
+              "after_present": true
+            },
+            "city": {
+              "before": null,
+              "after": "厦门",
+              "before_present": false,
+              "after_present": true
+            },
+            "date": {
+              "before": null,
+              "after": "2026-11-08",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status": {
+              "before": null,
+              "after": "scheduled",
+              "before_present": false,
+              "after_present": true
+            },
+            "event_status_note": {
+              "before": null,
+              "after": "官方公告确认的计划场次；尚未演出，后续改期或取消以官方公告为准。",
+              "before_present": false,
+              "after_present": true
+            },
+            "id": {
+              "before": null,
+              "after": "xue-zhiqian-xiamen-20261108",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_kind": {
+              "before": null,
+              "after": "artist_collection",
+              "before_present": false,
+              "after_present": true
+            },
+            "setlist_note": {
+              "before": null,
+              "after": "本场尚未演出，实际演出歌单与顺序待核实；此处仅展示歌手关联作品，不代表本场将演唱的曲目。",
+              "before_present": false,
+              "after_present": true
+            },
+            "songs": {
+              "before": null,
+              "after": [
+                {
+                  "title": "演员",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E6%BC%94%E5%91%98",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "刚刚好",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%88%9A%E5%88%9A%E5%A5%BD",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "认真的雪",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E8%AE%A4%E7%9C%9F%E7%9A%84%E9%9B%AA",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "天外来物",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%A4%A9%E5%A4%96%E6%9D%A5%E7%89%A9",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "绅士",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E7%BB%85%E5%A3%AB",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                },
+                {
+                  "title": "动物世界",
+                  "artist": "薛之谦",
+                  "url": "https://y.qq.com/n/ryqq_v2/search?w=%E8%96%9B%E4%B9%8B%E8%B0%A6%20%E5%8A%A8%E7%89%A9%E4%B8%96%E7%95%8C",
+                  "platform": "QQ音乐",
+                  "link_kind": "search",
+                  "source_url": "https://www.beijing.gov.cn/fwcj/calendar/whyc/6a41e5a39405807783d018b8.html",
+                  "source_title": "北京市文化和旅游局 · 薛之谦作品介绍",
+                  "verified_on": "2026-10-01"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_kind": {
+              "before": null,
+              "after": "announcement",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_references": {
+              "before": null,
+              "after": [
+                {
+                  "url": "https://www.sina.cn/news/detail/5350718596973159.html",
+                  "title": "认证大麦官方微博 · 厦门站四场预售公告（2026年10月5日）",
+                  "kind": "announcement",
+                  "verified_on": "2026-10-08"
+                }
+              ],
+              "before_present": false,
+              "after_present": true
+            },
+            "source_title": {
+              "before": null,
+              "after": "厦门市文化和旅游局官方微博 · 薛之谦厦门站四场官宣（2026年9月20日）",
+              "before_present": false,
+              "after_present": true
+            },
+            "source_url": {
+              "before": null,
+              "after": "https://weibo.com/2/detail/5345271188033211",
+              "before_present": false,
+              "after_present": true
+            },
+            "time": {
+              "before": null,
+              "after": "19:00",
+              "before_present": false,
+              "after_present": true
+            },
+            "title": {
+              "before": null,
+              "after": "薛之谦“万兽之王”巡回演唱会 · 厦门站",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue": {
+              "before": null,
+              "after": "厦门奥林匹克体育中心体育场",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_coordinate_system": {
+              "before": null,
+              "after": "WGS84",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lat": {
+              "before": null,
+              "after": 24.5667076,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_lng": {
+              "before": null,
+              "after": 118.19494835,
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_kind": {
+              "before": null,
+              "after": "building_center",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_note": {
+              "before": null,
+              "after": "OSM白鹭体育场建筑轮廓的经纬边界中心；轮廓附有厦门白鹭体育场维基条目标识，不是入场口。",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_source": {
+              "before": null,
+              "after": "https://www.openstreetmap.org/way/1233039694",
+              "before_present": false,
+              "after_present": true
+            },
+            "venue_location_verified_on": {
+              "before": null,
+              "after": "2026-10-01",
+              "before_present": false,
+              "after_present": true
+            },
+            "verified_on": {
+              "before": null,
+              "after": "2026-10-08",
+              "before_present": false,
+              "after_present": true
+            }
+          }
+        }
+      ],
+      "structure_changes": {
+        "artists": [],
+        "cities": []
+      },
+      "metadata_changes": {
+        "verified_on": {
+          "before": "2026-10-01",
+          "after": "2026-10-08",
+          "before_present": true,
+          "after_present": true
+        }
+      },
+      "order_changes": {
+        "events": {
+          "before": [
+            "gem-sanya-20251207",
+            "gem-sanya-20251206",
+            "gem-ganzhou-20250803",
+            "gem-ganzhou-20250802",
+            "liu-yuxin-guangzhou-20251018",
+            "liu-yuxin-beijing-20250920",
+            "gem-shenzhen-20260911",
+            "gem-shenzhen-20260912",
+            "gem-shenzhen-20260913",
+            "gem-shenzhen-20260919",
+            "gem-shenzhen-20260920",
+            "gem-shenzhen-20260925",
+            "gem-shenzhen-20260926",
+            "gem-shenzhen-20260927",
+            "gem-shenzhen-20261001",
+            "gem-shenzhen-20261002",
+            "gem-shenzhen-20261004",
+            "gem-shenzhen-20261005",
+            "gem-hangzhou-20260710",
+            "gem-hangzhou-20260711",
+            "gem-hangzhou-20260712",
+            "gem-tianjin-20260724",
+            "gem-tianjin-20260725",
+            "gem-tianjin-20260726",
+            "gem-nanchang-20260808",
+            "gem-chongqing-20260822",
+            "gem-xiamen-20260501",
+            "gem-xiamen-20260502",
+            "gem-xiamen-20260503",
+            "phoenix-jinan-20260925",
+            "phoenix-jinan-20260926",
+            "phoenix-jinan-20260927",
+            "phoenix-jinan-20261002",
+            "phoenix-jinan-20261003",
+            "phoenix-jinan-20261004",
+            "luo-tianyi-jinan-20261005",
+            "tnt-shanghai-20260802",
+            "tnt-shanghai-20260803",
+            "tnt-shanghai-20260805",
+            "tnt-shanghai-20260806",
+            "liu-yuxin-shanghai-20250705",
+            "liu-yuxin-suzhou-20260131",
+            "liu-yuxin-shenzhen-20260801",
+            "gem-jinan-20241013",
+            "gem-nanchang-20241109",
+            "gem-nanchang-20241110",
+            "gem-hangzhou-20241115",
+            "gem-hangzhou-20241116",
+            "gem-hangzhou-20241117",
+            "gem-shanghai-20240524",
+            "gem-shanghai-20240525",
+            "gem-shanghai-20240526",
+            "gem-shanghai-20240527",
+            "gem-shanghai-20240528",
+            "gem-nanchang-20260807",
+            "gem-nanchang-20260809",
+            "gem-chongqing-20260821",
+            "gem-chongqing-20260823",
+            "phoenix-tianjin-20250627",
+            "phoenix-tianjin-20250628",
+            "phoenix-tianjin-20250629",
+            "phoenix-shenzhen-20241115",
+            "phoenix-shenzhen-20241116",
+            "phoenix-shenzhen-20241117",
+            "tnt-shanghai-20250820",
+            "tnt-shanghai-20250821",
+            "tnt-shanghai-20250823",
+            "tnt-shanghai-20250824",
+            "zhang-jie-nanchang-20240412",
+            "zhang-jie-nanchang-20240413",
+            "zhang-jie-nanchang-20240414",
+            "zhang-jie-hangzhou-20240502",
+            "zhang-jie-hangzhou-20240503",
+            "zhang-jie-hangzhou-20240504",
+            "zhang-jie-shenzhen-20241018",
+            "zhang-jie-shenzhen-20241019",
+            "zhang-jie-shenzhen-20241020",
+            "xue-zhiqian-shenzhen-20260821",
+            "xue-zhiqian-shenzhen-20260822",
+            "xue-zhiqian-shenzhen-20260823",
+            "xue-zhiqian-shenzhen-20260827",
+            "xue-zhiqian-shenzhen-20260828",
+            "xue-zhiqian-shenzhen-20260829",
+            "xue-zhiqian-shenzhen-20260830"
+          ],
+          "after": [
+            "gem-sanya-20251207",
+            "gem-sanya-20251206",
+            "gem-ganzhou-20250803",
+            "gem-ganzhou-20250802",
+            "liu-yuxin-guangzhou-20251018",
+            "liu-yuxin-beijing-20250920",
+            "gem-shenzhen-20260911",
+            "gem-shenzhen-20260912",
+            "gem-shenzhen-20260913",
+            "gem-shenzhen-20260919",
+            "gem-shenzhen-20260920",
+            "gem-shenzhen-20260925",
+            "gem-shenzhen-20260926",
+            "gem-shenzhen-20260927",
+            "gem-shenzhen-20261001",
+            "gem-shenzhen-20261002",
+            "gem-shenzhen-20261004",
+            "gem-shenzhen-20261005",
+            "gem-hangzhou-20260710",
+            "gem-hangzhou-20260711",
+            "gem-hangzhou-20260712",
+            "gem-tianjin-20260724",
+            "gem-tianjin-20260725",
+            "gem-tianjin-20260726",
+            "gem-nanchang-20260808",
+            "gem-chongqing-20260822",
+            "gem-xiamen-20260501",
+            "gem-xiamen-20260502",
+            "gem-xiamen-20260503",
+            "phoenix-jinan-20260925",
+            "phoenix-jinan-20260926",
+            "phoenix-jinan-20260927",
+            "phoenix-jinan-20261002",
+            "phoenix-jinan-20261003",
+            "phoenix-jinan-20261004",
+            "luo-tianyi-jinan-20261005",
+            "tnt-shanghai-20260802",
+            "tnt-shanghai-20260803",
+            "tnt-shanghai-20260805",
+            "tnt-shanghai-20260806",
+            "liu-yuxin-shanghai-20250705",
+            "liu-yuxin-suzhou-20260131",
+            "liu-yuxin-shenzhen-20260801",
+            "gem-jinan-20241013",
+            "gem-nanchang-20241109",
+            "gem-nanchang-20241110",
+            "gem-hangzhou-20241115",
+            "gem-hangzhou-20241116",
+            "gem-hangzhou-20241117",
+            "gem-shanghai-20240524",
+            "gem-shanghai-20240525",
+            "gem-shanghai-20240526",
+            "gem-shanghai-20240527",
+            "gem-shanghai-20240528",
+            "gem-nanchang-20260807",
+            "gem-nanchang-20260809",
+            "gem-chongqing-20260821",
+            "gem-chongqing-20260823",
+            "phoenix-tianjin-20250627",
+            "phoenix-tianjin-20250628",
+            "phoenix-tianjin-20250629",
+            "phoenix-shenzhen-20241115",
+            "phoenix-shenzhen-20241116",
+            "phoenix-shenzhen-20241117",
+            "tnt-shanghai-20250820",
+            "tnt-shanghai-20250821",
+            "tnt-shanghai-20250823",
+            "tnt-shanghai-20250824",
+            "zhang-jie-nanchang-20240412",
+            "zhang-jie-nanchang-20240413",
+            "zhang-jie-nanchang-20240414",
+            "zhang-jie-hangzhou-20240502",
+            "zhang-jie-hangzhou-20240503",
+            "zhang-jie-hangzhou-20240504",
+            "zhang-jie-shenzhen-20241018",
+            "zhang-jie-shenzhen-20241019",
+            "zhang-jie-shenzhen-20241020",
+            "xue-zhiqian-shenzhen-20260821",
+            "xue-zhiqian-shenzhen-20260822",
+            "xue-zhiqian-shenzhen-20260823",
+            "xue-zhiqian-shenzhen-20260827",
+            "xue-zhiqian-shenzhen-20260828",
+            "xue-zhiqian-shenzhen-20260829",
+            "xue-zhiqian-shenzhen-20260830",
+            "xue-zhiqian-xiamen-20261031",
+            "xue-zhiqian-xiamen-20261101",
+            "xue-zhiqian-xiamen-20261107",
+            "xue-zhiqian-xiamen-20261108"
+          ]
+        }
+      }
+    }
+  ]
 }

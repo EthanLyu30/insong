@@ -18,6 +18,10 @@
 .composer-event-context .event-note strong { font-size:13px;line-height:1.6;color:#644e3b;overflow-wrap:anywhere; }
 .composer-event-context .event-note small { font-size:11px;color:#91745c; }
 .composer-event-context .event-note div>span { font-size:12px;line-height:1.7;color:#806b57; }
+.composer-event-context .event-note .event-note-artist { font-size:13px;line-height:1.6;color:#644e3b;font-weight:500; }
+.composer-event-context .event-note .event-note-concert { white-space:normal;overflow-wrap:anywhere; }
+.composer-event-context .event-note .event-note-station { display:inline-block;white-space:nowrap;overflow-wrap:normal; }
+.composer-event-context .event-note .event-note-date-venue { white-space:normal;overflow-wrap:anywhere; }
 .composer-event-remove { position:absolute;top:4px;right:4px;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:#8d745e;cursor:pointer; }
 .composer-event-remove:hover,.composer-event-remove:focus-visible { background:#e8d9c6; }
 .composer-event-remove:disabled { opacity:.5;cursor:default; }
@@ -72,7 +76,13 @@
 .memory-exit-dialog h2{margin:0 0 10px;font-size:19px;font-weight:500;}
 .memory-exit-dialog p{margin:0 0 18px;font-size:13px;line-height:1.7;color:#8b7966;}
 .memory-exit-dialog>button{width:100%;min-height:44px;margin-top:8px;font:inherit;font-size:14px;}
-.memory-exit-dialog .unsaved-discard{color:#a36952;}
+.memory-exit-dialog .unsaved-continue{box-shadow:none;border:0;}
+.memory-exit-dialog .unsaved-discard{color:#a36952;border:1px solid #e4d7c5;border-radius:10px;}
+.memory-exit-dialog>button:focus-visible{outline:2px solid #b38665;outline-offset:3px;}
+.composer-modal .composer-sheet>header{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;min-height:44px;}
+.composer-modal .composer-sheet>header>button{grid-column:1;width:44px;height:44px;display:grid;place-items:center;margin-left:-6px;padding:0;}
+.composer-modal .composer-sheet>header>h2{grid-column:2;min-width:0;margin:0;text-align:center;}
+.composer-modal .composer-sheet>header>button:focus-visible{outline:2px solid #b38665;outline-offset:2px;}
 .composer-event-select{display:block;min-height:44px;margin:5px 0 8px;padding:5px 0;border:0;background:none;color:#9a7054;font:inherit;font-size:13px;text-align:left}
 .concert-picker-list{max-height:45dvh;overflow:auto;overscroll-behavior:contain}
 .concert-picker h3{font-size:14px;font-weight:500;margin:16px 0 8px}

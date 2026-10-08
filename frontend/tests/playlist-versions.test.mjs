@@ -134,32 +134,27 @@ test('changing identity aborts refresh and a late response cannot populate the o
   }finally{await app.close();}
 });
 
-test('saved concert control gives the same manual update and ignores a response after choosing another event',async()=>{
-  let finish,signal,payload;const app=await mount({collector:true,initial:'/footprints?event=night-a',request:async(url,options)=>{
-    if(url==='/api/playlists')return Response.json([snapshot()]);
-    assert.equal(url,'/api/playlists/7/refresh');payload=JSON.parse(options.body);
-    return new Promise(resolve=>{signal=options.signal;finish=()=>resolve(Response.json(updated()));});
+test('compact concert control ignores a late saved-state read after choosing another event',async()=>{
+  let finish,signal,reads=0;const app=await mount({collector:true,initial:'/footprints?event=night-a',request:async(url,options)=>{
+    assert.equal(url,'/api/playlists');assert.equal(options.method,undefined);
+    if(++reads>1)return Response.json([snapshot()]);
+    return new Promise(resolve=>{signal=options.signal;finish=()=>resolve(Response.json([snapshot()]));});
   }});
   try{
-    assert.match(app.document.querySelector('.concert-collect').textContent,/关联作品|已有更新/);
-    await app.click('更新这张歌单');assert.deepEqual(payload,{expected_snapshot_version:'saved-v1',expected_current_version:'catalog-v2'});
+    assert.equal(app.document.querySelector('.concert-collect button').disabled,true);
     await app.navigate('/footprints?event=night-b');assert.equal(signal.aborted,true);await app.act(async()=>finish());
     assert.match(app.document.querySelector('.concert-collect').textContent,/收藏为歌单/);
     assert.doesNotMatch(app.document.querySelector('.concert-collect').textContent,/已收藏|已核实现场歌单/);
   }finally{await app.close();}
 });
 
-test('saved concert control retains its original type until an explicit refresh succeeds',async()=>{
-  let finish;
-  const app=await mount({collector:true,initial:'/footprints?event=night-a',request:async(url)=>url==='/api/playlists'?Response.json([snapshot()]):new Promise(resolve=>{finish=()=>resolve(Response.json(updated()));})});
+test('saved concert control displays status only and cannot silently refresh its stored snapshot',async()=>{
+  const requests=[];
+  const app=await mount({collector:true,initial:'/footprints?event=night-a',request:async(url,options)=>{requests.push([url,options.method]);assert.equal(url,'/api/playlists');return Response.json([snapshot()]);}});
   try{
-    await app.click('更新这张歌单');
-    assert.match(app.document.querySelector('.concert-collect').textContent,/关联作品/);
-    assert.doesNotMatch(app.document.querySelector('.concert-collect').textContent,/已核实现场歌单/);
-    await app.act(async()=>finish());
-    assert.match(app.document.querySelector('.concert-collect').textContent,/已核实现场歌单/);
-    assert.doesNotMatch(app.document.querySelector('.concert-collect').textContent,/关联作品|已有更新/);
-    assert.equal(app.document.querySelector('.concert-collect a').getAttribute('href'),'/playlists?list=7');
+    assert.equal(app.document.querySelector('.concert-collect').textContent,'已收藏');
+    assert.equal(app.document.querySelector('.concert-collect a,.playlist-update-button,.playlist-version-summary'),null);
+    assert.deepEqual(requests,[['/api/playlists',undefined]]);
   }finally{await app.close();}
 });
 

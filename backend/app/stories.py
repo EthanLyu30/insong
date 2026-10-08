@@ -3,7 +3,7 @@ import json
 
 from fastapi import Depends, HTTPException, Query
 from pydantic import Field, field_validator
-from sqlalchemy import exists, func, select
+from sqlalchemy import exists, func, select, update
 from sqlalchemy.orm import Session as OrmSession
 
 from .content import THEMES, selected_lyric
@@ -15,6 +15,7 @@ from .photos import photo_url
 from .card_metadata import gallery_ids, normalize_tag, serialize_photos
 from .footprints import load_catalog
 from .event_snapshots import event_snapshot
+from .music_selection import selected_music
 
 
 class PublishInput(PublicationConsent):
@@ -44,9 +45,11 @@ def serialize_story(public, viewer: User | None = None):
         'end_ms': public.end_ms, 'photo_id': public.photo_id, 'photo_url': photo_url(public.photo_id),
         'event_id': public.event_id,
         'event_snapshot': event_snapshot(public),
+        'music_selection': selected_music(public),
         'lyric': selected_lyric(card.song, public.lyric_id), 'lyric_id': public.lyric_id,
         'theme_id': public.theme_id, 'is_demo_sample': card.is_demo_sample,
         'published_at': public.published_at.isoformat(),
+        'views': public.read_count,
         'is_mine': viewer is not None and card.owner_id == viewer.id,
     }
 
@@ -75,6 +78,7 @@ def public_search_text(public, catalog):
                for alias in artist.get('aliases', [])]
     event = event_snapshot(public) or next((item for item in catalog['events'] if item['id'] == public.event_id), {})
     fields = [public.excerpt, public.title or '', public.life_time or '', song.title, song.artist,
+              *(track['title'] for track in (selected_music(public) or {}).get('tracks', [])),
               *json.loads(public.tags_json or '[]'), *aliases,
               *(str(event.get(key) or '') for key in ('title', 'artist', 'city', 'venue', 'date'))]
     # The GEM spelling is a documented alias even when an imported catalog omits it.
@@ -145,7 +149,13 @@ def install_stories(app, get_db, get_user, get_optional_user):
 
     @app.get('/api/stories/{story_id}')
     def get_story(story_id: int, db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
-        public = db.get(PublicStory, story_id) if 0 < story_id < 2**63 else None
-        if public is None or not public.published:
+        # Claim a real open atomically while consent is active. Collection/search
+        # reads never execute this update; private and withdrawn IDs count zero.
+        public = db.scalar(update(PublicStory).where(
+            PublicStory.memory_id == story_id, PublicStory.published.is_(True)
+        ).values(read_count=PublicStory.read_count + 1).returning(PublicStory)) if 0 < story_id < 2**63 else None
+        if public is None:
             raise HTTPException(404, '这段故事尚未公开，或已被作者收回。')
-        return serialize_story(public, viewer)
+        result = serialize_story(public, viewer)
+        db.commit()
+        return result

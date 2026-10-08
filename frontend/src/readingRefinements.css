@@ -1,0 +1,78 @@
+/* Reading and search refinements share the established paper palette. */
+.collection-page > .collection-search-surface.is-open {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+.collection-page .collection-search-panel {
+  border: 1px solid #e4d7c5;
+  border-radius: 10px;
+  background: #fffdf9;
+}
+.collection-page .collection-search-panel:focus-within { border-color: #b78165; }
+.collection-page .collection-search-preview { padding: 7px 0 12px; }
+.collection-page > .collection-results { width: 100%; padding: 0; }
+
+.unified-story-card .story-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.unified-story-card .story-card-header .story-byline { min-width: 0; }
+.unified-story-card .story-card-header .story-byline > div { gap: 2px; }
+.unified-story-card .story-card-header .story-life {
+  flex: 0 1 48%;
+  margin: 0;
+  line-height: 1.5;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.unified-story-card .story-card-header + .moment-title { margin-top: 0; }
+
+.discover-page .public-search-field { position: relative; }
+.discover-page .public-search-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline: 0;
+  z-index: 20;
+  padding: 5px;
+  border: 1px solid #e4d7c5;
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 8px 20px #51443114;
+}
+.discover-page .public-search-suggestions button {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #80634e;
+  text-align: left;
+  font-size: 12px;
+}
+.discover-page .public-search-suggestions button:hover,
+.discover-page .public-search-suggestions button:focus-visible { background: #f0e7db; outline: 0; }
+
+.site-shell.intro-shell {
+  display: flex;
+  flex-direction: column;
+}
+.site-shell.intro-shell > .topbar { flex-shrink: 0; }
+.site-shell.intro-shell > .main-content {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.site-shell.intro-shell .home-page,
+.site-shell.intro-shell .collage-intro { margin-top: 0; padding-top: 0; }
+.site-shell.intro-shell .collage-intro .collage-scene {
+  background: #ded1bc url('/collage-scene.webp') center / cover no-repeat;
+}

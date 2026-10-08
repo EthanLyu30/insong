@@ -1,5 +1,6 @@
 import type {Song} from './api';
 import type {EventSnapshot,Photo} from './memoryClient';
+import {validConcertMusic} from './concertMusic.ts';
 
 export type ManualSong={title:string;artist:string};
 export type ManualEvent={title:string;artist:string;date:string;city:string;venue:string};
@@ -7,7 +8,7 @@ export type MemoryDraftData={version:number;story:string;title?:string;tagText?:
 export type MemoryDraft={id:string;ownerId:number;storageKey:string;serialized:string;data:MemoryDraftData;updatedAt:string|null};
 const legacyKey=(owner:number)=>`memory-draft:${owner}`;
 const key=(owner:number,id:string)=>id==='legacy'?legacyKey(owner):`${legacyKey(owner)}:${id}`;
-const fields=['version','story','title','tagText','lifeTime','lifeYear','locationName','markedDate','song','photos','cover','position','timeText','endText','lyricId','visibility','eventId','eventSnapshot','autoEventFields','themeId','anonymous','shareLife','manualSong','manualEvent','pendingSong','pendingEvent'];
+const fields=['version','story','title','tagText','lifeTime','lifeYear','locationName','markedDate','song','concertMusic','photos','cover','position','timeText','endText','lyricId','visibility','eventId','eventSnapshot','autoEventFields','themeId','anonymous','shareLife','manualSong','manualEvent','pendingSong','pendingEvent'];
 function fingerprint(text:string){let value=14695981039346656037n;for(let index=0;index<text.length;index++)value=BigInt.asUintN(64,(value^BigInt(text.charCodeAt(index)))*1099511628211n);return value.toString(16);}
 export function validPending(value:unknown,names:string[]):boolean{return !!value&&typeof value==='object'&&!Array.isArray(value)&&names.every(name=>typeof (value as Record<string,unknown>)[name]==='string');}
 
@@ -41,6 +42,7 @@ export function hasDraftContent(data:Record<string,unknown>){
   const automatic=Array.isArray(data.autoEventFields)?data.autoEventFields:[];
   return ['title','story','tagText','lifeTime','lifeYear','locationName'].some(name=>!automatic.includes(name)&&typeof data[name]==='string'&&data[name].trim())
     ||Array.isArray(data.photos)&&data.photos.length>0
+    ||validConcertMusic(data.concertMusic,data.eventId)
     ||['manualSong','manualEvent','pendingSong','pendingEvent'].some(name=>!!data[name]&&typeof data[name]==='object'&&Object.values(data[name]).some(value=>typeof value==='string'&&value.trim()));
 }
 function parse(raw:string|null):MemoryDraftData|null{
@@ -49,6 +51,7 @@ function parse(raw:string|null):MemoryDraftData|null{
     if(!data||typeof data!=='object'||Array.isArray(data)||data.version!==1||typeof data.story!=='string')return null;
     if(['title','tagText','lifeTime','lifeYear','locationName','markedDate','cover','timeText','endText','lyricId','visibility','eventId','themeId'].some(name=>data[name]!=null&&typeof data[name]!=='string'))return null;
     if(data.song!=null&&!validDraftSong(data.song))return null;
+    if(data.concertMusic!=null&&!validConcertMusic(data.concertMusic,data.eventId))return null;
     if(data.eventSnapshot!=null&&!validEventSnapshot(data.eventSnapshot,data.eventId))return null;
     if(data.manualSong!=null&&!validManualSong(data.manualSong))return null;
     if(data.manualEvent!=null&&!validManualEvent(data.manualEvent))return null;

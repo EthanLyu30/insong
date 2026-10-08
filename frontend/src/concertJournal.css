@@ -1,0 +1,45 @@
+/* Concert page containers only. Card internals use their existing styles. */
+.concert-journal.journal-page{padding: max(12px,env(safe-area-inset-top)) 18px calc(96px + env(safe-area-inset-bottom));min-height:100dvh;background:#fbf7ef}
+.concert-journal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.concert-journal-toolbar button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;border:0;background:none;color:#8e7058;font:inherit;font-size:13px;cursor:pointer}
+.concert-journal-toolbar a{display:grid;place-items:center;min-width:44px;min-height:44px;color:#8e7058}
+.concert-summary{padding:0 0 12px;border-bottom:1px solid #e6d9ca;margin-bottom:14px}
+.concert-summary>small{display:block;color:#9a806a;font-size:12px;margin-bottom:6px}
+.concert-summary>h1{margin:0 0 3px;color:#514431;font:500 24px/1.4 'Noto Serif SC','Songti SC',serif;overflow-wrap:anywhere}
+.concert-summary>.concert-tour{font:400 17px/1.6 'Noto Serif SC','Songti SC',serif;color:#66523e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 5px}
+.concert-summary>.concert-dateline{font-size:11px;line-height:1.8;color:#9a8670}
+.concert-summary>p{margin:4px 0;color:#8e7058;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.concert-summary .atlas-attendance{margin-top:10px}
+.concert-summary .atlas-attendance>button,.concert-summary .atlas-attendance>a{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border:1px solid #e4d7c5;border-radius:18px;background:#f3ebdf;color:#8e7058;font:inherit;font-size:12px;cursor:pointer;text-decoration:none}
+.concert-summary .atlas-attendance>button:disabled{opacity:.5;cursor:default}
+.concert-summary .atlas-attendance>button.is-mine{border-color:#c3cdb9;background:#eef0e7;color:#586650}
+.atlas-personal-evidence{display:block;color:#8e7058;font-size:11px;line-height:1.5}
+.concert-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 8px}
+.concert-section-heading h2{margin:0;color:#514431;font:500 20px/1.5 'Noto Serif SC','Songti SC',serif}
+.concert-section-heading small{color:#9a8670;font-size:11px;overflow-wrap:anywhere}
+.concert-my-memories,.concert-public-memories{margin-bottom:26px}
+.concert-supplement{margin:0 0 26px}
+.concert-memory-document{margin:0 0 12px}
+.concert-memory-edit{display:inline-flex;align-items:center;min-height:40px;font-size:12px}
+.concert-memory-actions{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin:12px 0 20px}
+.concert-memory-actions .memory-edit-link{width:100%}
+.concert-older-memories{margin-top:12px}
+.concert-older-memories>summary{cursor:pointer;min-height:44px;color:#9a806a;font-size:12px;display:flex;align-items:center;list-style:none}
+.concert-older-memories>summary::after{content:'＋';margin-left:auto}
+.concert-older-memories[open]>summary::after{content:'−'}
+.concert-journal .concert-my-memories .concert-memory-stack{margin:0;padding:0}
+.concert-journal .concert-my-memories .concert-memory-stack::before{display:none}
+.concert-resource-note,.concert-empty p{margin:0 0 12px;color:#9a8670;font-size:13px;line-height:1.8}
+.concert-resource-error{font-size:13px;line-height:1.8;color:#a36545}
+.concert-resource-error button{margin-left:8px}
+.concert-write-link{min-height:46px;display:flex;align-items:center;justify-content:center;margin:0 0 20px}
+.concert-info{border-top:1px solid #e6d9ca;border-bottom:1px solid #e6d9ca;padding:4px 0}
+.concert-info>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:space-between;color:#8e7058;font-size:13px;list-style:none}
+.concert-info>summary::-webkit-details-marker{display:none}
+.concert-info>summary::after{content:'＋';font-size:18px}
+.concert-info[open]>summary::after{content:'−'}
+.concert-info-content{padding:4px 0 14px}
+.concert-info-content>h3{font-size:15px;color:#514431;font-weight:500;margin:14px 0 8px}
+.concert-info-content>p{color:#9a8670;font-size:12px;line-height:1.8;margin:6px 0}
+.concert-info-content .concert-song-list{max-height:260px;overflow-y:auto}
+@media(max-width:360px){.concert-journal.journal-page{padding-inline:16px}.concert-summary>h1{font-size:24px}}

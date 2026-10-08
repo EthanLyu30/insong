@@ -1,7 +1,7 @@
 .map-source-entry{position:absolute;z-index:12;left:12px;bottom:calc(var(--atlas-sheet-height,285px) + 80px);display:flex;align-items:center;gap:5px;max-width:calc(100% - 82px)}
 .map-source-entry>button{display:grid;place-items:center;flex:none;width:40px;height:40px;padding:0;border:1px solid #e4d7c5;border-radius:50%;background:#fffaf0ed;color:#685644;box-shadow:0 2px 7px #403d3220;cursor:pointer}
-.map-source-brief{padding:6px 8px;border-radius:8px;background:#fffaf0ed;color:#685644;font:11px/1.5 "Microsoft YaHei",sans-serif;white-space:nowrap}
-.map-source-brief a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.map-source-attribution{position:absolute;z-index:8;left:12px;bottom:calc(var(--atlas-sheet-height,285px) + var(--atlas-nav-height,70px) + 5px);padding:2px 4px;color:#685644;background:#fffaf0e6;border-radius:3px;font:10px/1.5 "Microsoft YaHei",sans-serif;white-space:nowrap}
+.map-source-attribution a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .map-credits-overlay{position:fixed;inset:0;z-index:160;display:flex;align-items:flex-end;justify-content:center;isolation:isolate;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#514431}
 .map-credits-scrim{position:absolute;inset:0;z-index:-1;border:0;background:#232d2c66;cursor:pointer}
 .map-credits-panel{width:min(100%,520px);max-height:80dvh;display:flex;flex-direction:column;padding:16px 20px max(20px,env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:#faf6ec;box-shadow:0 -8px 40px #28302726}

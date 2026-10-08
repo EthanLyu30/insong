@@ -165,6 +165,7 @@ def test_metadata_catalog_and_showcase_upgrade_do_not_overwrite_or_resurrect(tmp
         assert {(song['title'], song['artist']) for song in metadata} == {
             ('稻香', '周杰伦'), ('光年之外', '邓紫棋'), ('泡沫', '邓紫棋'),
             ('REALITY', '刘雨昕'), ('倔强', '五月天'),
+            ('奢香夫人', '凤凰传奇'), ('相遇', '时代少年团'), ('演员', '薛之谦'),
         }
         assert all(song['audio_url'] is None and not song['audio_available'] and not song['is_demo'] for song in metadata)
         assert all(song['lyrics'] == [] and song['cover_url'].startswith('/photos/') for song in metadata)

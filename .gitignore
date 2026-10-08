@@ -13,4 +13,5 @@ dist/
 *.pyc
 backend/data/*.db
 backend/data/*.db-*
+backend/data/backups-20261008/
 backend/models/

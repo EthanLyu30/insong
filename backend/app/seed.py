@@ -67,7 +67,7 @@ def seed_fandom_showcase(db: OrmSession) -> None:
         songs[sample['id']] = song
     owners = list(db.scalars(select(User).where(User.is_demo.is_(True), User.display_name.in_(['小林', '阿远'])).order_by(User.id)))
     if not owners:
-        owner = User(display_name='演示歌迷', is_demo=True)
+        owner = User(display_name='听风小麦', is_demo=True)
         db.add(owner)
         db.flush()
         owners = [owner]
@@ -83,8 +83,28 @@ def seed_fandom_showcase(db: OrmSession) -> None:
         set_memory_tags(db, card, sample['tags'])
         card.publication = PublicStory(memory_id=card.id, excerpt=sample['story'], title=sample['title'],
                                        tags_json=json.dumps(sample['tags'], ensure_ascii=False),
-                                       photo_ids_json='[]', author_name='虚构歌迷 · 演示故事',
-                                       anonymous=True, theme_id=sample['theme_id'], published=True)
+                                       photo_ids_json='[]', author_name=owner.display_name,
+                                       anonymous=False, theme_id=sample['theme_id'], published=True)
+    db.add(SeedMigration(key=marker))
+
+
+def refresh_sample_usernames(db: OrmSession) -> None:
+    """Rename only recognizable machine-authored sample bylines, never user consent."""
+    marker = 'sample-usernames-v2'
+    if db.get(SeedMigration, marker) is not None:
+        return
+    for public in db.scalars(select(PublicStory).join(MemoryCard).join(User).where(
+            PublicStory.published.is_(True), MemoryCard.is_demo_sample.is_(True), User.is_demo.is_(True))):
+        card = public.memory
+        receipt = db.get(MemoryReceipt, card.id)
+        request = receipt.request_key if receipt and receipt.owner_id == card.owner_id else card.request_key
+        request = request or ''
+        if (request.startswith('fandom-showcase-v1-') and public.author_name == '虚构歌迷 · 演示故事'
+                or request.startswith(('event-records-showcase-v1-', 'event-records-expanded-v2-'))
+                and public.author_name == f'{card.owner.display_name} · 虚构样例'):
+            public.author_name = card.owner.display_name
+            public.anonymous = False
+            public.version += 1
     db.add(SeedMigration(key=marker))
 
 

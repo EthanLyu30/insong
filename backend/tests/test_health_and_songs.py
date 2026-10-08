@@ -20,7 +20,7 @@ def test_home_can_load_five_clearly_labeled_demo_songs(tmp_path):
     assert response.status_code == 200
     catalog = response.json()
     songs = [song for song in catalog if song['is_demo']]
-    assert len(catalog) == 10 and len(songs) == 5
+    assert len(catalog) == 13 and len(songs) == 5
     assert songs[0]["title"] == "散场以后"
     assert all(song["is_demo"] is True for song in songs)
     assert all(song["audio_available"] is True for song in songs)
@@ -43,4 +43,5 @@ def test_real_song_links_open_exact_qq_tracks_and_demo_does_not_impersonate_one(
     expected = {101: '003aAYrm3GE0Ac', 102: '002E3MtF0IAMMY', 103: '001X0PDf0W4lBq',
                 104: '000h6xTe1LRGfl', 105: '004HyLC74RYiBC'}
     for song in songs:
-        assert song['qq_music_url'] == (f"https://y.qq.com/n/ryqq/songDetail/{expected[song['id']]}" if not song['is_demo'] else None)
+        expected_url = f"https://y.qq.com/n/ryqq/songDetail/{expected[song['id']]}" if song['id'] in expected else None
+        assert song['qq_music_url'] == expected_url

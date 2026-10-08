@@ -1,6 +1,8 @@
 import type { Song, Lyric } from './api';
+import {memoryYear} from './memoryDates.ts';
 
 export type Photo = { id:string; url:string };
+export type ConcertMusicSelection={event_id:string;mode:'tracks'|'playlist';tracks:{title:string;artist:string;url:string;platform?:string;link_kind?:string}[];setlist_kind:string;note:string};
 export type EventSnapshot = {id:string;title:string;artist:string;date:string;city:string;venue:string;manual?:boolean};
 export type Reflection = { id: string; text: string; created_at: string; mood?:string|null;photo_id?:string|null;photo_url?:string|null };
 export type Memory = {
@@ -12,19 +14,20 @@ export type Memory = {
   photo_id?:string|null; photo_url?:string|null; end_ms?:number|null; event_id?:string|null;
   location_name?:string|null;
   event_snapshot?:EventSnapshot|null;
+  music_selection?:ConcertMusicSelection|null;owner_display_name?:string;
   publication?: { published: boolean; excerpt: string; share_life_time: boolean; anonymous: boolean } | null;
 };
 export type PublicStory = { id: number; excerpt: string; song_id: number; song: Song; author_name: string; title?:string|null; tags?:string[]; photos?:Photo[];
   life_time: string | null; life_year: number | null; offset_ms: number | null; lyric: Lyric | null;
   lyric_id: string | null; theme_id: string | null; is_demo_sample: boolean; published_at: string;
-  photo_id?:string|null;photo_url?:string|null;end_ms?:number|null;event_id?:string|null;event_snapshot?:EventSnapshot|null;is_mine?:boolean };
+  photo_id?:string|null;photo_url?:string|null;end_ms?:number|null;event_id?:string|null;event_snapshot?:EventSnapshot|null;is_mine?:boolean;music_selection?:ConcertMusicSelection|null };
 export type PublicSearchResult = { items: { story: PublicStory; evidence: string; match_label: string }[]; mode: 'keyword' | 'semantic'; notice: string };
 export type Theme = { id: string; title: string; prompt: string; description: string; image_url?:string };
 
 export function timelineGroups(cards: Memory[]): { year: number | null; cards: Memory[] }[] {
-  const years = [...new Set(cards.flatMap(card => card.life_year == null ? [] : [card.life_year]))].sort((a,b) => b-a);
-  const groups = years.map(year => ({year: year as number | null, cards: cards.filter(card => card.life_year === year)}));
-  const undated = cards.filter(card => card.life_year == null);
+  const years = [...new Set(cards.flatMap(card => memoryYear(card) == null ? [] : [memoryYear(card)!]))].sort((a,b) => b-a);
+  const groups = years.map(year => ({year: year as number | null, cards: cards.filter(card => memoryYear(card) === year)}));
+  const undated = cards.filter(card => memoryYear(card) == null);
   if (undated.length) groups.push({year:null, cards:undated});
   return groups;
 }

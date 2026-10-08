@@ -36,7 +36,7 @@ test('national catalog preserves old links and publishes provenance without fore
   assert.ok(geography.features.some(f=>f.properties.adcode==='100000_JD'));
 });
 
-test('atlas searches artists, opens venues and stars, saves attendance and ignores obsolete writes', async () => {
+test('atlas searches artists, opens concert journals, collects songs and never infers attendance', async () => {
   const ActualDate=globalThis.Date;const fixedTime=ActualDate.parse('2026-09-30T10:00:00Z');
   globalThis.Date=class extends ActualDate{constructor(...args){super(...(args.length?args:[fixedTime]));}static now(){return fixedTime;}};
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost:5173'});
@@ -62,8 +62,10 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     if(url==='/api/me')return Response.json({user});if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/footprints')return expired?Response.json({detail:'请先登录，再操作你的记忆。'},{status:401}):Response.json(saved);
     if(url==='/api/playlists')return expired?Response.json({detail:'请先登录，再操作你的记忆。'},{status:401}):Response.json(playlists);
     if(url==='/api/footprints/interests')return Response.json(interestValue);
+    if(url==='/api/memories'||String(url).startsWith('/api/memories?'))return Response.json([]);
     if(url==='/api/playlists/concerts/gem-test' && options.method==='PUT'){collections++;return new Promise(resolve=>{finishCollection=()=>{const item={id:7,event_id:'gem-test',name:'深圳现场',songs:catalog.events[0].songs};playlists=[item];resolve(Response.json(item));};});}
     if(String(url).startsWith('/api/stories?'))return Response.json([]);
+    if(String(url).startsWith('/api/public-feed?'))return Response.json({items:[],next_cursor:null});
     if(url==='/api/footprints/gem-test' && options.method==='PUT'){writes++;return new Promise(resolve=>{finishWrite=()=>{saved=JSON.parse(options.body).attended?['gem-test']:[];resolve(Response.json(saved));};});}
     throw new Error('Unexpected request '+url);
   };
@@ -75,7 +77,7 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
   try{
     await React.act(async()=>root.render(React.createElement(MemoryRouter,null,React.createElement(AtlasWithNavigation))));
     assert.ok(document.querySelector('[aria-label="中国演唱会地图"]'));
-    await search('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8); await click('返回上一页'); assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,6.4);
+    await search('拉萨'); assert.match(document.body.textContent,/暂无已核实/); assert.ok(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom<7,'an explicit city retains the approved province-scale overview'); await click('返回上一页'); assert.deepEqual(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).center,[114.06,22.54],'the default overview returns to a region with genuine recent concerts');
     await search('邓紫棋'); assert.equal(writes,0);
     assert.ok(!document.querySelector('.map-primary-action'),'the schedule row is the single approach action');
     assert.ok(document.querySelector('[aria-label="日程时期"]'));
@@ -88,24 +90,23 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('未来');
     await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
     assert.ok(document.querySelector('[data-scene="sky"]'),'a known concert opens the night directly');
-    assert.deepEqual(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).center,[114.2123,22.697]);
+    assert.match(document.querySelector('.concert-summary').textContent,/2026.10.01/,'the exact concert is shown without a decorative camera scene');
     assert.ok(!document.querySelector('.cinematic-enter'));
     assert.equal(document.querySelectorAll('.cinematic-controls button').length,0);
-    assert.match(document.querySelector('.atlas-night-event h2').textContent,/相关作品/);
-    assert.ok([...document.querySelectorAll('button')].some(b=>b.disabled && b.textContent.includes('演出后')));
+    assert.match(document.querySelector('.concert-info h3').textContent,/相关作品/);
+    assert.equal(document.querySelector('.atlas-attendance'),null,'the removed attendance button must not return');
     await click('返回上一页');assert.ok(document.querySelector('.atlas-itinerary'),'one back returns to the original national itinerary');
     await click('往期'); await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
-    await click('泡沫'); assert.ok(document.querySelector('.concert-song-list'));assert.equal(document.querySelector('a[data-qq-song]'),null);assert.equal(document.querySelector('.atlas-event-source'),null);
-    assert.equal(playCalls,1,'clicking the song star starts its audio');
+    await React.act(async()=>document.querySelector('.concert-info summary').click());
+    await click('泡沫'); assert.ok(document.querySelector('.concert-song-list'));assert.equal(document.querySelector('a[data-qq-song]'),null);
+    assert.equal(playCalls,1,'clicking the existing song row starts its audio');
     await React.act(async()=>document.querySelector('.concert-song-list button').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
     assert.match(document.querySelector('.concert-player').className,/is-paused/,'clicking the same row toggles the shared player');
     await React.act(async()=>document.querySelector('.concert-song-list button').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
     assert.equal(playCalls,2,'clicking the row resumes audio through the same player');
-    await click('收藏为歌单');await click('正在收藏');assert.equal(collections,1);await React.act(async()=>finishCollection());assert.match(document.querySelector('.concert-collect').textContent,/已收藏/);assert.equal(document.querySelector('.concert-collect a').getAttribute('href'),'/playlists?list=7');
-    await click('我去过'); await click('保存中'); assert.equal(writes,1);
-    await React.act(async()=>finishWrite());assert.match(document.body.textContent,/取消到场/);
-    await click('取消到场'); await React.act(async()=>finishWrite());
-    await click('我去过'); await click('返回上一页'); await click('未来'); await search('刘雨昕'); await React.act(async()=>finishWrite());
+    await click('收藏为歌单');await click('保存中');assert.equal(collections,1);await React.act(async()=>finishCollection());assert.match(document.querySelector('.concert-collect').textContent,/已收藏/);assert.equal(document.querySelector('.concert-collect a'),null,'saving adds no view-list or metadata block');
+    assert.equal(writes,0,'collecting a playlist must not mark attendance');
+    await click('返回上一页'); await click('未来'); await search('刘雨昕');
     assert.match(document.querySelector('.atlas-itinerary').textContent,/暂无待演/,'past-only artists should offer the past tab without promising a future stop');
     await click('往期');
     await React.act(async()=>document.querySelector('.atlas-month-filter button').click());
@@ -121,35 +122,33 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     if([...document.querySelectorAll('.atlas-city-sheet button')].some(button=>button.textContent.includes('全部场次')))await click('全部场次');
     assert.ok(!document.querySelector('.atlas-city-sheet').textContent.includes('10.01'),'a direct past-night link defaults to its own past period rather than mixing in upcoming shows');
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'city-link',initialEntries:['/footprints?artist=gem&city=shenzhen']},React.createElement(AtlasWithNavigation))));
-    assert.equal(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom,10.8);
+    assert.ok(JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).zoom<7,'city deep links open at a static regional scale rather than street level');
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'inconsistent-link',initialEntries:['/footprints?artist=liu&city=beijing&event=gem-test']},React.createElement(AtlasWithNavigation))));
     await click('返回上一页');assert.ok(document.querySelector('[data-scene="map"]'));assert.match(document.body.textContent,/大运体育场/);
     catalog.events[0].songs=Array.from({length:12},(_,i)=>({title:'曲目'+(i+1),artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w='+i}));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'twelve-songs',initialEntries:['/footprints?event=gem-test']},React.createElement(AtlasWithNavigation))));
-    assert.ok(document.querySelector('.atlas-star-space'),'long lists keep a scrollable scatter field');
-    assert.equal(new Set([...document.querySelectorAll('.atlas-song-star')].map(star=>star.style.left+':'+star.style.top)).size,12,'every song has its own position, rather than repeating eight coordinates');
+    assert.equal(document.querySelectorAll('.concert-song-list li').length,12,'all real songs remain in the optional list');
+    assert.equal(document.querySelectorAll('.atlas-song-star').length,0,'floating song titles no longer displace memories');
     catalog.events[0].songs=Array.from({length:16},(_,i)=>({title:'曲目'+(i+1),artist:'邓紫棋',url:'https://y.qq.com/n/ryqq_v2/search?w='+i}));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'long-setlist',initialEntries:['/footprints?event=gem-test']},React.createElement(AtlasWithNavigation))));
-    assert.equal(document.querySelectorAll('.atlas-song-star').length,16);
+    assert.equal(document.querySelectorAll('.concert-song-list li').length,16);
     expired=true;user={id:3,display_name:'听友',is_demo:false};
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'expired',initialEntries:['/footprints?event=gem-test']},React.createElement(AtlasWithNavigation))));
-    assert.ok([...document.querySelectorAll('.atlas-attendance a')].some(a=>decodeURIComponent(a.href).includes('gem-test')));
+    assert.ok([...document.querySelectorAll('.concert-collect a')].some(a=>decodeURIComponent(a.href).includes('gem-test')));
     expired=false;saved=['gem-test'];catalog.events[0].event_status='cancelled';
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'cancelled',initialEntries:['/footprints?event=gem-test']},React.createElement(AtlasWithNavigation))));
-    const remove=[...document.querySelectorAll('.atlas-attendance button')].find(button=>button.textContent.includes('取消到场'));
-    assert.ok(remove && !remove.disabled,'a previously recorded cancelled event can still be removed');
-    assert.match(document.querySelector('.cinematic-night-title').textContent,/已取消/);
-    await click('取消到场');await React.act(async()=>finishWrite());
-    assert.ok([...document.querySelectorAll('.atlas-attendance button')].some(button=>button.disabled&&button.textContent==='演出已取消'));
+    assert.equal(document.querySelector('.atlas-attendance'),null);
+    assert.match(document.querySelector('.concert-summary').textContent,/已取消/);
+    assert.equal(writes,0,'an existing attendance flag is not silently removed by opening a cancelled event');
     catalog.events[0].event_status='scheduled';
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'filtered-night',initialEntries:['/footprints?artist=gem&period=past&month=2026-09']},React.createElement(AtlasWithNavigation))));
     await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
-    assert.match(document.querySelector('.cinematic-night-title').textContent,/2026.09.11/,'the selected past night opens directly');
+    assert.match(document.querySelector('.concert-summary').textContent,/2026.09.11/,'the selected past night opens directly');
     await click('返回上一页');
     assert.ok(!document.querySelector('.atlas-itinerary').textContent.includes('10.01'),'month and period remain applied after returning');
     catalog.events.push({...catalog.events[1],id:'gem-other',venue:'另一座体育馆'});
     catalog.events.push({...catalog.events[1],id:'liu-future',artist_id:'liu',venue:'刘雨昕体育馆'});
-    await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'all-map',initialEntries:['/footprints']},React.createElement(AtlasWithNavigation))));
+    await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'all-map',initialEntries:['/footprints?scope=all']},React.createElement(AtlasWithNavigation))));
     await React.act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
     await click('返回上一页');
     assert.deepEqual(new Set([...document.querySelectorAll('.atlas-map-fallback button img')].map(photo=>photo.alt)),new Set(['邓紫棋','刘雨昕']),'an approached event does not become an implicit artist filter');
@@ -163,20 +162,22 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('搜索场次');
     await React.act(async()=>{const input=document.querySelector('input[aria-label="搜索当地场次"]');const setter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;setter.call(input,'09.12');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
     await click('2026.09.12');
-    assert.ok(document.querySelector('[data-scene="sky"]'));assert.match(document.querySelector('.cinematic-night-title').textContent,/2026.09.12/,'choosing a night must not silently open the first night');
-    const recordEntry=new URL(document.querySelector('.atlas-night-actions > a').href);
+    assert.ok(document.querySelector('[data-scene="sky"]'));assert.match(document.querySelector('.concert-summary').textContent,/2026.09.12/,'choosing a night must not silently open the first night');
+    const recordEntry=new URL(document.querySelector('.concert-write-link').href);
     assert.equal(recordEntry.pathname,'/create','recording a night opens the composer directly');
     assert.equal(recordEntry.searchParams.get('event'),'gem-second-night','consecutive shows retain the exact selected night');
     assert.equal(document.querySelectorAll('.atlas-night-dates button,.atlas-run-dates button').length,0,'no horizontal date chips in the venue or night');
     assert.ok(!document.body.textContent.includes('核验'));
     assert.ok(!document.querySelector('.song-list-toggle'),'the top-right song count is not a disclosure');
-    await click('收起歌单');
-    assert.ok(document.querySelector('.atlas-night-panel').classList.contains('is-collapsed'));
-    assert.equal(document.querySelector('.atlas-night-content').hidden,true,'the complete panel content hides, including collection and personal actions');
-    await click('展开歌单');assert.equal(document.querySelector('.atlas-night-content').hidden,false);
+    const supplement=document.querySelector('.concert-info');
+    assert.equal(supplement.open,false,'supplemental songs do not crowd out the memory by default');
+    await React.act(async()=>supplement.querySelector('summary').click());assert.equal(supplement.open,true);
+    await React.act(async()=>supplement.querySelector('summary').click());assert.equal(supplement.open,false);
+    assert.ok(document.querySelector('.concert-public-memories'),'collapsing song information does not hide the public content');
+    assert.ok(!document.querySelector('.concert-my-memories'),'an empty personal record module remains absent');
     await click('返回上一页');
     await React.act(async()=>{const input=document.querySelector('input[aria-label="搜索当地场次"]');const setter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;setter.call(input,'9月11日');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
-    await click('2026.09.11');assert.match(document.querySelector('.cinematic-night-title').textContent,/2026.09.11/,'date search keeps an exact night without a date chip');
+    await click('2026.09.11');assert.match(document.querySelector('.concert-summary').textContent,/2026.09.11/,'date search keeps an exact night without a date chip');
     catalog.events.push(...['2026-09-18','2026-09-24','2026-09-29','2026-10-01'].map(date=>({...catalog.events[0],id:`residency-${date}`,date})));
     await React.act(async()=>root.render(React.createElement(MemoryRouter,{key:'filtered-residency',initialEntries:['/footprints?artist=gem&period=past&month=2026-09&event=gem-second-night']},React.createElement(AtlasWithNavigation))));
     assert.equal(document.querySelectorAll('.atlas-night-dates button').length,0,'night date strips remain removed after deep links');
@@ -190,6 +191,6 @@ test('atlas searches artists, opens venues and stars, saves attendance and ignor
     await click('搜索场次');
     await React.act(async()=>{const input=document.querySelector('input[aria-label="搜索当地场次"]');const setter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;setter.call(input,'10/1');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
     assert.match(document.querySelector('.atlas-city-sheet').textContent,/10.01/,'an explicitly linked night outside the filters remains searchable');
-    await click('2026.10.01');assert.match(document.querySelector('.cinematic-night-title').textContent,/2026.10.01/);
+    await click('2026.10.01');assert.match(document.querySelector('.concert-summary').textContent,/2026.10.01/);
   }finally{await React.act(async()=>root.unmount());await server.close();globalThis.fetch=previousFetch;globalThis.Date=ActualDate;dom.window.close();}
 });

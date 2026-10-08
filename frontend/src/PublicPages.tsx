@@ -14,6 +14,9 @@ import {venuePhotograph} from './photoSources';
 import {BackLink} from './Navigation';
 import {useSession} from './SessionContext';
 import {rankRecommendedStories} from './revisionBehavior';
+import {discoverySearchMode} from './discoverySearch';
+import {PublicFeed} from './PublicFeed';
+import './readingRefinements.css';
 
 export function ThemeLinks() {
   const {value:themes,error}=useData<Theme[]>('/api/themes');
@@ -92,26 +95,29 @@ export function DiscoverPage({home=false}:{home?:boolean}) {
   const [params,setParams]=useSearchParams();
   const song=params.get('song'),lyric=params.get('lyric'),tag=params.get('tag');
   const submitted=params.get('q')?.trim()??'';
-  const submittedMode=params.get('mode')==='semantic'?'semantic':'keyword';
+  const submittedMode=discoverySearchMode(submitted,params.get('mode'));
   const [query,setQuery]=useState(submitted||(tag?`#${tag}`:''));
-  const [mode,setMode]=useState<'semantic'|'keyword'>(submittedMode);
+  const [suggestionsOpen,setSuggestionsOpen]=useState(false);
+  const searchInput=useRef<HTMLInputElement>(null),composing=useRef(false);
   const [result,setResult]=useState<PublicSearchResult|null>(null);
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   useEffect(()=>{
     const control=new AbortController();
-    setQuery(submitted||(tag?`#${tag}`:''));setMode(submittedMode);
+    setQuery(submitted||(tag?`#${tag}`:''));
     setResult(null);setError('');setBusy(Boolean(submitted));
     if(submitted)void apiRequest<PublicSearchResult>(apiBaseUrl,'/api/stories/search',{
-      method:'POST',signal:control.signal,body:JSON.stringify({query:submitted,mode:submitted.startsWith('#')?'keyword':submittedMode,...(song?{song_id:Number(song)}:{}),...(lyric?{lyric_id:lyric}:{}),...(tag?{tag}:{})}),
+      method:'POST',signal:control.signal,body:JSON.stringify({query:submitted,mode:submittedMode,...(song?{song_id:Number(song)}:{}),...(lyric?{lyric_id:lyric}:{}),...(tag?{tag}:{})}),
     }).then(response=>{if(!control.signal.aborted)setResult(response);})
       .catch(reason=>{if(!control.signal.aborted)setError((reason as Error).message);})
       .finally(()=>{if(!control.signal.aborted)setBusy(false);});
     return()=>control.abort();
   },[song,lyric,tag,submitted,submittedMode,retry]);
   function search(event:FormEvent){
-    event.preventDefault();if(!query.trim())return;
+    event.preventDefault();if(composing.current||!query.trim())return;
     const next=new URLSearchParams(params);next.set('q',query.trim());
-    if(mode==='semantic')next.set('mode',mode);else next.delete('mode');
+    if(tag&&query.trim()!==`#${tag}`)next.delete('tag');
+    if(query.trim()!==submitted)next.delete('mode');
+    setSuggestionsOpen(false);
     if(next.toString()===params.toString())setRetry(value=>value+1);else setParams(next);
   }
   function clearSearch(){const next=new URLSearchParams(params);next.delete('q');next.delete('mode');setParams(next);}
@@ -120,11 +126,11 @@ export function DiscoverPage({home=false}:{home?:boolean}) {
   return <section className={`journal-page discover-page${home?' fan-home':''}`}>
     {(song||lyric||tag)&&<BackLink fallback="/discover"/>}
     <header className="discover-intro"><div><span className="journal-eyebrow">追过的现场 · 爱过的歌</span><h1>{home?'把喜欢，听成生活。':'在歌里，遇见同路人。'}</h1></div><MusicNote className="discover-doodle" size={30} weight="light" aria-hidden="true"/></header>
-    <form className="recall-form public-search" onSubmit={search}><label className="sr-only" htmlFor="public-query">{mode==='keyword'?'找歌手、歌曲、演出或 #标签':'用一句经历，找一段共鸣'}</label><div className="recall-input"><input id="public-query" value={query} maxLength={200} onChange={event=>setQuery(event.target.value)} placeholder={mode==='keyword'?'歌手、歌曲、演出或 #标签':'第一次听完现场后，舍不得回家'}/><button disabled={busy||!query.trim()}>{busy?'寻找中…':'找共鸣'}</button></div><div className="recall-tools"><div className="segmented-control small"><button type="button" aria-pressed={mode==='keyword'} onClick={()=>setMode('keyword')}>歌曲 / 歌手 / 标签</button><button type="button" aria-pressed={mode==='semantic'} onClick={()=>setMode('semantic')}>AI 经历匹配</button></div></div></form>
+    <form className="recall-form public-search" onSubmit={search}><label className="sr-only" htmlFor="public-query">找歌手、歌曲、演出、标签，或用一句经历找共鸣</label><div className="public-search-field" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setSuggestionsOpen(false);}}><div className="recall-input"><input id="public-query" ref={searchInput} value={query} maxLength={200} autoComplete="off" onChange={event=>setQuery(event.target.value)} onFocus={()=>setSuggestionsOpen(true)} onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={()=>{composing.current=false;}} onKeyDown={event=>{if(event.nativeEvent.isComposing||composing.current||event.keyCode===229){if(event.key==='Enter')event.preventDefault();return;}if(event.key==='Escape')setSuggestionsOpen(false);}} placeholder="歌手、歌曲、#标签，或一句经历"/><button disabled={busy||!query.trim()}>{busy?'寻找中…':'找共鸣'}</button></div>{suggestionsOpen&&<div className="public-search-suggestions" aria-label="搜索建议">{['周杰伦','#散场','第一次听完现场后，舍不得回家'].map(value=><button type="button" key={value} onMouseDown={event=>event.preventDefault()} onClick={()=>{setQuery(value);setSuggestionsOpen(false);searchInput.current?.focus();}}>{value}</button>)}</div>}</div></form>
     {recommended&&<ThemeLinks/>}
-    {(song||lyric||tag)&&<div className="active-filter"><span>{tag?`#${tag}`:lyric?'同一句词下的卡片':'同一首歌里的卡片'}</span><button className="text-button" onClick={()=>setParams({})}>看全部共鸣 ×</button></div>}
+    {(song||lyric)&&<div className="active-filter"><span>{lyric?'同一句词下的卡片':'同一首歌里的卡片'}</span><button className="text-button" onClick={()=>setParams({})}>看全部共鸣 ×</button></div>}
     {busy&&<p className="inline-status" role="status">正在公开卡片里寻找…</p>}{error&&<p className="form-error" role="alert">{error}<button className="text-button" onClick={()=>setRetry(value=>value+1)}>重试</button></p>}
-    {submitted?result&&<section aria-live="polite"><div className="list-heading"><h2>关于“{submitted}”</h2><button className="text-button" onClick={clearSearch}>回看故事</button></div><p className="resource-note">{result.notice||(result.mode==='semantic'?'这些经历可能与你有关，下面是作者的公开原文。':`${result.items.length} 张相关卡片`)}</p>{result.items.length?<div className="story-masonry">{result.items.map(item=><StoryEntry key={item.story.id} story={item.story} matchLabel={result.mode==='semantic'?item.match_label:undefined}/>)}</div>:<div className="empty-paper"><h3>还没有找到相关卡片。</h3><p>试试歌手、歌名或标签，也可以切换经历匹配。</p></div>}</section>:<PublicStoryList path={`/api/stories?${filters}`} recommended={recommended} heading={tag?`关于 #${tag}`:lyric?'同一句词，不同的我们':song?'这首歌里的我们':'这些歌，唱进了生活'}/>}
+    {submitted?result&&<section aria-live="polite"><div className="list-heading"><h2>关于“{submitted}”</h2><button className="text-button" onClick={clearSearch}>回看故事</button></div><p className="resource-note">{result.notice||(result.mode==='semantic'?'这些经历可能与你有关，下面是作者的公开原文。':`${result.items.length} 张相关卡片`)}</p>{result.items.length?<div className="story-masonry">{result.items.map(item=><StoryEntry key={item.story.id} story={item.story} matchLabel={result.mode==='semantic'?item.match_label:undefined}/>)}</div>:<div className="empty-paper"><h3>还没有找到相关卡片。</h3><p>试试歌手、歌名或标签，也可以写一句自己的经历。</p></div>}</section>:<PublicStoryList path={`/api/stories?${filters}`} recommended={recommended} heading={tag?`关于 #${tag}`:lyric?'同一句词，不同的我们':song?'这首歌里的我们':'这些歌，唱进了生活'}/>}
     {recommended&&<RecentConcerts/>}
   </section>;
 }
@@ -135,7 +141,7 @@ export function StoryPage() {
   if(!story)return <section className="journal-page"><BackLink fallback="/discover"/>{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
   return <section className="journal-page public-detail"><BackLink fallback="/discover"/>
-    <StoryCard author={story.author_name} sample={story.is_demo_sample} title={story.title} year={story.life_year} time={story.life_time} song={story.song} photos={cardPhotos(story)} text={story.excerpt} tags={story.tags} anchor={story.offset_ms} end={story.end_ms} lyric={story.lyric}/>
+    <StoryCard author={story.author_name} sample={story.is_demo_sample} title={story.title} year={story.life_year} time={story.life_time} song={story.song} photos={cardPhotos(story)} text={story.excerpt} tags={story.tags} anchor={story.offset_ms} end={story.end_ms} lyric={story.lyric} musicSelection={story.music_selection}/>
     {(story.event_id||story.event_snapshot)&&<EventNote id={story.event_id??''} snapshot={story.event_snapshot}/>}
     <Link className="primary-button" to={`/songs/${story.song_id}/write?${capture}`}>我也想留下这一刻 ↗</Link>
   </section>;
@@ -144,5 +150,5 @@ export function StoryPage() {
 export function ThemePage() {
   const {themeId}=useParams();const {value,error}=useData<Theme[]>('/api/themes');
   const theme=value?.find(item=>item.id===themeId);
-  return <section className="journal-page theme-page"><BackLink fallback="/discover"/>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><h1>{theme.title}</h1>{theme.image_url&&<img className="theme-hero" src={theme.image_url} alt=""/>}<p className="theme-question">{theme.prompt}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><PublicStoryList path={`/api/stories?theme_id=${theme.id}`} heading="这个主题里的我们"/></>}</section>;
+  return <section className="journal-page theme-page"><BackLink fallback="/discover"/>{!theme?<p role={error?'alert':'status'}>{error||(value?'这个主题还没有开启。':'正在打开主题…')}</p>:<><h1>{theme.title}</h1>{theme.image_url&&<img className="theme-hero" src={theme.image_url} alt=""/>}<p className="theme-question">{theme.prompt}</p><Link className="primary-button" to={`/?theme=${theme.id}`}>选一首歌，写我的这一刻 ↗</Link><PublicFeed themeId={theme.id} sort="popular" renderStories={stories=><StoryGrid stories={stories}/>}/></>}</section>;
 }

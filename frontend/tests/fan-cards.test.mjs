@@ -142,15 +142,14 @@ test('concert records separate private owner records from other listeners public
     if(url==='/api/footprints/catalog')return Response.json({...revisionCatalog,events:[event]});
     if(url==='/api/playlists')return Response.json([]);
     if(url==='/api/memories?event_id=records-night')return Response.json([{...card,event_id:event.id,title:'我的这一晚'}]);
+    if(url.startsWith('/api/public-feed?'))return Response.json({items:[{...card,event_id:event.id,id:7,excerpt:'公开原文',author_name:'听友',title:'听友分享的这一晚',is_mine:false},{...card,event_id:event.id,id:8,title:'只属于我的公开稿',excerpt:'原文',is_mine:true}],next_cursor:null});
     throw new Error(url);
   },async({act,until})=>{
-    await until('.atlas-night-panel');
-    const button=[...document.querySelectorAll('.atlas-night-actions button')].find(item=>item.textContent==='现场记录');assert.ok(button);
-    await act(async()=>button.click());await until('.event-record-list');
-    assert.ok(document.querySelector('.atlas-story-drawer').textContent.includes('我的这一晚'));
-    await act(async()=>document.querySelector('[data-record-tab="public"]').click());
-    assert.ok(document.querySelector('.atlas-story-drawer').textContent.includes('听友分享的这一晚'));
-    assert.ok(!document.querySelector('.atlas-story-drawer').textContent.includes('只属于我的公开稿'));
+    await until('.concert-my-memories .unified-story-card');
+    assert.ok(document.querySelector('.concert-my-memories').textContent.includes(card.story));
+    assert.equal(document.querySelector('.concert-my-memories .concert-memory-edit').getAttribute('href'),'/memories/88/edit');
+    assert.ok(document.querySelector('.concert-public-memories').textContent.includes('听友分享的这一晚'));
+    assert.ok(!document.querySelector('.concert-public-memories').textContent.includes('只属于我的公开稿'));
   },{stories:[{...card,id:7,excerpt:'公开原文',author_name:'听友',title:'听友分享的这一晚',is_mine:false},{...card,id:8,title:'只属于我的公开稿',excerpt:'原文',is_mine:true}]});
 });
 
@@ -343,8 +342,16 @@ async function harness(path,respond,work,fixtures={}){
   const act=React.act;
   const until=async selector=>{const deadline=Date.now()+15000;while(!document.querySelector(selector)&&Date.now()<deadline)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});assert.ok(document.querySelector(selector),selector);};
   const fill=async(id,text)=>act(async()=>{const input=document.getElementById(id);assert.ok(input,`missing ${id}`);const proto=input.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,text);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
-  const router=createMemoryRouter([{path:'*',element:React.createElement(React.Fragment,null,React.createElement(App),React.createElement(Probe))}],{initialEntries:[path]});
-  try{await act(async()=>root.render(React.createElement(RouterProvider,{router})));await work({act,fill,until,go:async to=>act(async()=>navigate(to)),location:()=>current});}
+  // These catalog/collection regressions browse All explicitly. Personal
+  // experience behavior is exercised with scope=mine in concert-journal.test.mjs.
+  const catalogEntry=to=>{
+    if(typeof to!=='string'||to.split('?')[0]!=='/footprints')return to;
+    const query=new URLSearchParams(to.split('?')[1]??'');
+    if(!query.has('scope'))query.set('scope','all');
+    return `/footprints?${query}`;
+  };
+  const router=createMemoryRouter([{path:'*',element:React.createElement(React.Fragment,null,React.createElement(App),React.createElement(Probe))}],{initialEntries:[catalogEntry(path)]});
+  try{await act(async()=>root.render(React.createElement(RouterProvider,{router})));await work({act,fill,until,go:async to=>act(async()=>navigate(catalogEntry(to))),location:()=>current});}
   finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;globalThis.FormData=priorFormData;delete globalThis.ResizeObserver;dom.window.close();}
 }
 
@@ -449,6 +456,8 @@ test('a city portrait exposes a top map return and preserves its original overvi
     if(url==='/api/playlists')return Response.json([]);throw new Error(url);
   },async({act,until,location})=>{
     await act(async()=>document.querySelector('.timeline-toggle button:last-child').click());
+    await until('.atlas-artist-pills');
+    await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').click());
     await until('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');
     const overview=location().pathname+location().search;
     await act(async()=>document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]').click());
@@ -484,7 +493,7 @@ test('saved playlist details and their night link retain the original map and My
     assert.equal(query.get('return'),'/memories?view=cards&tag=散场');
     assert.equal(query.get('event'),'sh');
     await act(async()=>night.click());
-    await until('.atlas-night-panel');
+    await until('.concert-journal');
     await act(async()=>document.querySelector('[aria-label="返回全国地图"]').click());
     assert.ok(document.querySelector('.atlas-return-mine'));
     await act(async()=>document.querySelector('.atlas-return-mine').click());
@@ -720,10 +729,10 @@ test('My shortcuts filter real saved concerts and followed artists without chang
   },async({act,until})=>{
     await until('.atlas-itinerary');
     const buttons=[...document.querySelectorAll('.atlas-artist-pills button')];
-    assert.deepEqual(buttons.map(button=>button.textContent),['全部','我的收藏','我的歌手']);
-    await act(async()=>buttons[1].click());
+    assert.deepEqual(buttons.map(button=>button.textContent),['全部','我的经历','我的收藏','我的歌手']);
+    await act(async()=>buttons.find(button=>button.textContent==='我的收藏').click());
     assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button img')].map(img=>img.alt),['邓紫棋']);
-    await act(async()=>buttons[2].click());
+    await act(async()=>buttons.find(button=>button.textContent==='我的歌手').click());
     assert.deepEqual([...document.querySelectorAll('.atlas-schedule-row strong')].map(label=>label.textContent),['北京 · 刘雨昕']);
     assert.equal(document.querySelector('.atlas-scroll-hint').textContent,'下滑查看更多');
     await act(async()=>document.querySelector('.atlas-schedule-filters button:last-child').click());
@@ -879,7 +888,7 @@ test('empty personal concert filters can restore all itineraries without leaving
       assert.match(empty.textContent,scope==='我的收藏'?/还没有收藏演出/:/还没有关注歌手/);
       const clear=[...empty.querySelectorAll('button')].find(button=>button.textContent==='查看全部行程');assert.ok(clear);
       await act(async()=>clear.click());
-      assert.equal(location().pathname,'/footprints');assert.equal(new URLSearchParams(location().search).get('scope'),null);
+      assert.equal(location().pathname,'/footprints');assert.equal(new URLSearchParams(location().search).get('scope'),'all');
       assert.equal(new URLSearchParams(location().search).get('return'),'/memories?view=cards');
       assert.ok(document.querySelectorAll('.atlas-schedule-row').length>0);
       assert.ok(document.querySelector('.atlas-return-mine'));
@@ -908,7 +917,7 @@ test('artist portraits open that artist and city across months instead of an emp
   });
 });
 
-test('a known concert opens its starry night in one step and returns to the same filtered itinerary',async()=>{
+test('a known concert opens its memory journal in one step and returns to the same filtered itinerary',async()=>{
   const path='/footprints?from=mine&return=%2Fmemories%3Ftag%3D%E6%BC%94%E5%94%B1%E4%BC%9A&period=past&month=all';
   await harness(path,async url=>{
     if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
@@ -917,9 +926,9 @@ test('a known concert opens its starry night in one step and returns to the same
     await until('.atlas-itinerary .atlas-schedule-row');
     const original=location().search;
     await act(async()=>document.querySelector('.atlas-itinerary .atlas-schedule-row').click());
-    assert.equal(document.querySelector('.atlas-page').dataset.scene,'sky');
+    assert.equal(document.querySelector('[data-scene]').dataset.scene,'sky');
     assert.ok(!document.querySelector('[aria-label="夕阳场馆"]'));
-    assert.ok(document.querySelector('.atlas-night-panel'));
+    assert.ok(document.querySelector('.concert-journal'));
     await act(async()=>document.querySelector('[aria-label="返回上一页"]').click());
     assert.equal(location().search,original);
     assert.ok(document.querySelector('.atlas-itinerary'));
@@ -938,7 +947,7 @@ test('an artist portrait opens local concert rows directly and the selected nigh
   },async({act,until,location})=>{
     await until('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');
     await act(async()=>document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]').click());
-    assert.equal(document.querySelector('.atlas-page').dataset.scene,'map');
+    assert.equal(document.querySelector('[data-scene]').dataset.scene,'map');
     assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,2);
     assert.ok(!document.querySelector('.atlas-venue-row'),'no venue-selection step precedes the concert list');
     await act(async()=>document.querySelector('[aria-label="搜索场次"]').click());
@@ -947,7 +956,7 @@ test('an artist portrait opens local concert rows directly and the selected nigh
     const original=location().search;
     await act(async()=>{const list=document.querySelector('.atlas-city-sheet .atlas-schedule-list');list.scrollTop=72;list.dispatchEvent(new window.Event('scroll',{bubbles:true}));});
     await act(async()=>document.querySelector('.atlas-city-sheet .atlas-schedule-row').click());
-    assert.equal(document.querySelector('.atlas-page').dataset.scene,'sky');
+    assert.equal(document.querySelector('[data-scene]').dataset.scene,'sky');
     assert.equal(new URLSearchParams(location().search).get('event'),'old-sh');
     await act(async()=>document.querySelector('[aria-label="返回上一页"]').click());
     assert.equal(location().search,original);
@@ -964,11 +973,11 @@ test('an old sunset scene link opens the selected night and its fallback returns
     if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
     if(url==='/api/playlists'||url==='/api/footprints')return Response.json([]);throw new Error(url);
   },async({act,until})=>{
-    await until('.atlas-night-panel');
-    assert.equal(document.querySelector('.atlas-page').dataset.scene,'sky');
+    await until('.concert-journal');
+    assert.equal(document.querySelector('[data-scene]').dataset.scene,'sky');
     assert.ok(!document.querySelector('[aria-label="夕阳场馆"]'));
     await act(async()=>document.querySelector('[aria-label="返回上一页"]').click());
-    assert.equal(document.querySelector('.atlas-page').dataset.scene,'map');
+    assert.equal(document.querySelector('[data-scene]').dataset.scene,'map');
     assert.ok(document.querySelector('.atlas-city-sheet .atlas-schedule-row'));
   });
 });
@@ -1105,8 +1114,7 @@ test('artist search removes unrelated photo markers and clearing the artist rest
     await act(async()=>{const input=document.querySelector('[aria-label="搜索歌手或城市"]');Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(input,'邓紫棋');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
     await act(async()=>[...document.querySelectorAll('.atlas-search-results button')].find(button=>button.textContent.startsWith('邓紫棋')).click());
     assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button img')].map(img=>img.alt),['邓紫棋']);
-    await act(async()=>document.querySelector('.atlas-artist-pills button').click());
-    await act(async()=>document.querySelector('.atlas-artist-pills button').click());
+    await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').click());
     assert.equal(document.querySelectorAll('.atlas-map-fallback button').length,2);
   });
 });
@@ -1155,10 +1163,10 @@ test('saved schedule heart toggles off and can be collected again',async()=>{
     assert.equal(heart.disabled,false,'a saved heart is still actionable');
     await act(async()=>heart.click());
     assert.equal(saved,false);
-    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'false');
-    await act(async()=>document.querySelector('.atlas-schedule-heart').click());
+    assert.equal(document.querySelector('[aria-label="收藏 上海 邓紫棋"]').getAttribute('aria-pressed'),'false');
+    await act(async()=>document.querySelector('[aria-label="收藏 上海 邓紫棋"]').click());
     assert.equal(saved,true);
-    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'true');
+    assert.equal(document.querySelector('[aria-label="取消收藏 上海 邓紫棋"]').getAttribute('aria-pressed'),'true');
   });
 });
 
@@ -1189,7 +1197,7 @@ test('saved concert panel supports cancel and synchronizes the schedule when ret
     assert.ok(cancel);
     await act(async()=>cancel.click());
     await go('/footprints?month=2026-10');
-    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'false');
+    assert.equal(document.querySelector('[aria-label="收藏 上海 邓紫棋"]').getAttribute('aria-pressed'),'false');
   });
 });
 
@@ -1206,9 +1214,8 @@ test('cancelling a saved concert cannot start a conflicting snapshot refresh',as
   },async({act,until})=>{
     await until('.concert-collect .is-saved');
     await act(async()=>document.querySelector('.concert-collect button[aria-label="取消收藏歌单"]').click());
-    const update=document.querySelector('.concert-collect .playlist-update-button');
-    assert.equal(update.disabled,true,'a cancellation in progress blocks a conflicting refresh');
-    await act(async()=>update.click());
+    assert.equal(document.querySelector('.concert-collect .playlist-update-button'),null,'version updates belong in the saved playlist page, not this compact control');
+    assert.equal(document.querySelector('.concert-collect .collect-button').disabled,true,'a pending cancellation remains locked');
     assert.equal(refreshes,0);
     await act(async()=>finishDelete());
     assert.equal(document.querySelector('.concert-collect .is-saved'),null);
@@ -1255,18 +1262,18 @@ for(const origin of ['schedule','concert'])test(`pending ${origin} cancellation 
     await act(async()=>document.querySelector(origin==='schedule'?'.atlas-schedule-heart.is-saved':'.concert-collect button[aria-label="取消收藏歌单"]').click());
     if(origin==='schedule'){
       await go('/footprints?event=sh&scene=sky&month=2026-10');
-      await until('.playlist-update-button');
-      assert.equal(document.querySelector('.playlist-update-button').disabled,true);
-      await act(async()=>document.querySelector('.playlist-update-button').click());
+      await until('.concert-collect .collect-button');
+      assert.equal(document.querySelector('.concert-collect .collect-button').disabled,true);
+      assert.equal(document.querySelector('.concert-collect .playlist-update-button'),null);
     }else{
       await go('/footprints?month=2026-10');
-      assert.equal(document.querySelector('.atlas-schedule-heart').disabled,true);
+      assert.equal(document.querySelector('[aria-label="取消收藏 上海 邓紫棋"]').disabled,true);
     }
     assert.equal(refreshes,0,'refresh cannot compete with a cancellation started in another panel');
     await act(async()=>finishDelete());
     await go('/footprints?month=2026-10');
-    assert.equal(document.querySelector('.atlas-schedule-heart').getAttribute('aria-pressed'),'false');
-    assert.equal(document.querySelector('.atlas-schedule-heart').disabled,false);
+    assert.equal(document.querySelector('[aria-label="收藏 上海 邓紫棋"]').getAttribute('aria-pressed'),'false');
+    assert.equal(document.querySelector('[aria-label="收藏 上海 邓紫棋"]').disabled,false);
   });
 });
 
@@ -1388,7 +1395,7 @@ test('marking a new listening position preserves loaded controls and survives a 
   });
 });
 
-test('artist search preserves the visible tag constraint',async()=>{
+test('a new artist search clears the former tag when the tag banner is no longer displayed',async()=>{
   let sent;
   await harness('/discover?tag=散场',async(url,options)=>{
     if(url==='/api/stories/search'){sent=JSON.parse(options.body);return Response.json({mode:'keyword',items:[]});}throw new Error(url);
@@ -1396,7 +1403,7 @@ test('artist search preserves the visible tag constraint',async()=>{
     await fill('public-query','周杰伦');
     await act(async()=>document.querySelector('form.public-search').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
   });
-  assert.equal(sent.tag,'散场');assert.equal(sent.query,'周杰伦');
+  assert.equal(sent.tag,undefined);assert.equal(sent.query,'周杰伦');
 });
 
 test('discovery connects current catalog concerts and excludes cancelled dates',async()=>{
@@ -2067,17 +2074,15 @@ test('legacy song links remain visibly constrained and switching experiences cle
   },{memories:[card,other]});
 });
 
-test('private memory tags retrieve personal experiences while public story tags discover shared stories',async()=>{
+test('private and public memory tags both discover shared stories without exposing private originals',async()=>{
   const story={...card,excerpt:card.story,author_name:'听友'};
   await harness('/memories/88',async url=>{if(url==='/api/stories/88')return Response.json(story);throw new Error(url);},async({act,go,location})=>{
     const tag=document.querySelector('.memory-detail .story-tags a');
-    assert.equal(new URL(tag.href).pathname,'/memories');
+    assert.equal(new URL(tag.href).pathname,'/discover');
     await act(async()=>tag.click());
     assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
-    assert.equal(document.querySelectorAll('.memory-entry').length,1);
-    await act(async()=>document.querySelector('.memory-entry').click());
-    await act(async()=>document.querySelector('.memory-detail .back-link').click());
-    assert.equal(new URLSearchParams(location().search).get('tag'),'演唱会');
+    assert.ok(document.querySelector('.discover-page'));
+    assert.equal(document.querySelectorAll('.memory-entry').length,0,'private memories are not public search results');
     await go('/stories/88');
     assert.equal(new URL(document.querySelector('.public-detail .story-tags a').href).pathname,'/discover');
   });
@@ -2115,12 +2120,14 @@ test('night creation shows its exact city, venue and date immediately and saves 
     for(const text of ['深圳','深圳大运中心体育场','2026-09-12'])assert.ok(context.textContent.includes(text));
     assert.ok(!context.textContent.includes('2026-09-11'));
     assert.equal(songCatalogs,0,'no arbitrary music recommendations are requested');
-    assert.equal(document.querySelector('.composer-song-trigger').getAttribute('aria-label'),'添加配乐');
+    assert.equal(document.querySelector('.composer-song-trigger').getAttribute('aria-label'),'选择演出音乐');
     assert.equal(new URL(document.querySelector('.memory-composer .back-link').href).searchParams.get('scene'),'sky','direct links return safely to their own night');
     await fill('memory-story','这一晚在深圳，和朋友一起合唱。');
-    await act(async()=>document.querySelector('[aria-label="添加配乐"]').click());
+    await act(async()=>document.querySelector('[aria-label="选择演出音乐"]').click());
+    await act(async()=>[...document.querySelectorAll('button')].find(button=>button.textContent==='选择其他歌曲').click());
     await fill('create-song-query','散场以后');
     await act(async()=>document.querySelector('[aria-label="选用散场以后"]').click());
+    assert.ok(document.querySelector('.composer-song-trigger').textContent.includes('散场以后'),'returning from the ordinary picker still shows the chosen song');
     await act(async()=>document.querySelector('form.memory-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true})));
     assert.equal(location().pathname,'/memories/88');
   });

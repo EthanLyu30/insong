@@ -127,6 +127,14 @@
 .event-note strong,.event-note small,.event-note div > span { display: block; line-height: 1.8; }
 .event-note small,.event-note div > span,.event-note a { font-size: 10px; }
 .event-note strong { font-size: 12px; font-weight: 500; }
+.event-note-linked { text-decoration: none; }
+.event-note-linked:focus-visible { outline: 2px solid #8e7058; outline-offset: 2px; }
+.event-note-pending-link { color: inherit; font-size: 28px; text-decoration: none; }
+.event-note-pending-link:focus-visible { outline: 2px solid #8e7058; outline-offset: 2px; }
+.event-note .event-note-artist { font-size: 12px; font-weight: 500; }
+.event-note .event-note-concert { white-space: normal; overflow-wrap: anywhere; }
+.event-note .event-note-station { display: inline-block; white-space: nowrap; overflow-wrap: normal; }
+.event-note .event-note-date-venue { overflow-wrap: anywhere; }
 .capture-music-tools { margin: 18px 0; border-block: 1px solid #e3d6c2; color: #987958; font-size: 12px; }
 .capture-music-tools > summary { padding: 14px 0; cursor: pointer; }
 .capture-music-tools > summary > span { float: right; font-size: 10px; }

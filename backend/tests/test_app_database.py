@@ -38,7 +38,7 @@ def test_fresh_database_directory_and_restart(tmp_path):
     first_app = create_app(db_url)
     with TestClient(first_app) as client:
         assert db_path.is_file()
-        assert len(client.get("/api/songs").json()) == 10
+        assert len(client.get("/api/songs").json()) == 13
         with first_app.state.session_factory() as db:
             db.get(Song, 1).title = "保存后的名字"
             db.commit()
@@ -48,8 +48,8 @@ def test_fresh_database_directory_and_restart(tmp_path):
         assert client.get("/api/songs/1").json()["title"] == "保存后的名字"
         with second_app.state.session_factory() as db:
             assert db.scalar(select(func.count()).select_from(User)) == 2
-            assert db.scalar(select(func.count()).select_from(Song)) == 10
-            assert db.scalar(select(func.count()).select_from(MemoryCard)) == 16
+            assert db.scalar(select(func.count()).select_from(Song)) == 13
+            assert db.scalar(select(func.count()).select_from(MemoryCard)) == 30
 
 
 @pytest.mark.parametrize("song_id", ["9223372036854775808", "-9223372036854775809"])
@@ -73,4 +73,4 @@ def test_in_memory_database_can_serve_songs(db_url):
         response = client.get("/api/songs")
 
     assert response.status_code == 200
-    assert len(response.json()) == 10
+    assert len(response.json()) == 13

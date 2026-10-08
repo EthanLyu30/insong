@@ -13,7 +13,7 @@ test('a year-only memory matches a month range only when its whole year is insid
   const card={life_year:2025,life_time:'夏天'};
   assert.equal(matchesMemoryTime(card,{startYear:'2024',startMonth:'5',endYear:'2026',endMonth:'6'}),true);
   assert.equal(matchesMemoryTime(card,{startYear:'2025',startMonth:'5',endYear:'2025',endMonth:'6'}),false);
-  assert.equal(matchesMemoryTime({life_year:null,life_time:'2025-05-03'},{startYear:'2025',startMonth:'',endYear:'2025',endMonth:''}),false,'only explicit life years define the timeline');
+  assert.equal(matchesMemoryTime({life_year:null,life_time:'2025-05-03'},{startYear:'2025',startMonth:'',endYear:'2025',endMonth:''}),true,'a valid complete date supplies its year without a duplicate display field');
 });
 
 test('memory category and city filters use saved metadata without confusing unknown years for dates',()=>{
