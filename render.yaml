@@ -7,11 +7,14 @@ services:
     plan: free
     region: singapore
     branch: main
-    autoDeployTrigger: checksPass
+    # Retained only as a frozen migration fallback; production runs in Hong Kong.
+    autoDeployTrigger: off
     healthCheckPath: /api/health
     envVars:
       - key: APP_ENV
         value: production
+      - key: MIGRATION_READ_ONLY
+        value: '1'
       - key: DATABASE_URL
         sync: false
       - key: DATABASE_SCHEMA

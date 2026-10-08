@@ -4,6 +4,14 @@
   "installCommand": "corepack pnpm install --frozen-lockfile",
   "buildCommand": "corepack pnpm test && corepack pnpm build",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{"type": "host", "value": "insong.vercel.app"}],
+      "destination": "https://insong.me/:path*",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/assets/:path*",
@@ -17,7 +25,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://insong-backend.onrender.com/api/:path*"
+      "destination": "https://insong.me/api/:path*"
     },
     {
       "source": "/:path*",
