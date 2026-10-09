@@ -4,19 +4,21 @@ import {apiRequest,ApiError,type PublicStory} from './memoryClient';
 import {useSession} from './SessionContext';
 import './publicFeed.css';
 
-type Scope={eventId?:string;themeId?:string;sort?:'recent'|'popular';excludeMine?:boolean};
+type Scope={eventId?:string;eventIds?:string[];themeId?:string;sort?:'recent'|'popular';excludeMine?:boolean};
 type Page={items:PublicStory[];next_cursor:string|null};
 type FeedState={key:string;items:PublicStory[];cursor:string|null;loaded:boolean;busy:boolean;error:string};
 
-export function usePublicFeed({eventId,themeId,sort='recent',excludeMine=false}:Scope){
+export function usePublicFeed({eventId,eventIds,themeId,sort='recent',excludeMine=false}:Scope){
   const {user,loading,error:sessionError,refresh}=useSession();
   const enabled=!loading&&!sessionError;
-  const key=JSON.stringify([eventId,themeId,sort,excludeMine,user?.id??null,enabled]);
+  const activityScope=JSON.stringify([...new Set(eventIds??[])].sort());
+  const key=JSON.stringify([eventId,activityScope,themeId,sort,excludeMine,user?.id??null,enabled]);
   const [state,setState]=useState<FeedState>({key,items:[],cursor:null,loaded:false,busy:enabled,error:''});
   const loader=useRef<()=>void>(()=>{});
   const loadMore=useCallback(()=>loader.current(),[]);
   useEffect(()=>{
     const control=new AbortController();
+    const activityIds=JSON.parse(activityScope) as string[];
     let cursor:string|null=null,loaded=false,busy=false;
     setState({key,items:[],cursor:null,loaded:false,busy:enabled,error:''});
     async function load(){
@@ -24,7 +26,8 @@ export function usePublicFeed({eventId,themeId,sort='recent',excludeMine=false}:
       busy=true;
       setState(previous=>({...previous,busy:true,error:''}));
       const query=new URLSearchParams({limit:'12',sort,exclude_mine:String(excludeMine)});
-      if(eventId)query.set('event_id',eventId);
+      if(activityIds.length>1)activityIds.forEach(id=>query.append('event_ids',id));
+      else if(eventId)query.set('event_id',eventId);
       if(themeId)query.set('theme_id',themeId);
       if(cursor)query.set('cursor',cursor);
       try{
@@ -33,7 +36,7 @@ export function usePublicFeed({eventId,themeId,sort='recent',excludeMine=false}:
         if(!Array.isArray(page.items)||(page.next_cursor!==null&&typeof page.next_cursor!=='string')||(cursor&&page.next_cursor===cursor))throw new Error('这页内容暂时无法继续加载，请重试。');
         // Scope is enforced by the server; these checks also protect rendering
         // against an accidentally mismatched response. Originals are never read.
-        const items=page.items.filter(story=>(!eventId||story.event_id===eventId)&&(!themeId||story.theme_id===themeId)&&(!excludeMine||!story.is_mine));
+        const items=page.items.filter(story=>(activityIds.length>1?activityIds.includes(story.event_id??''):!eventId||story.event_id===eventId)&&(!themeId||story.theme_id===themeId)&&(!excludeMine||!story.is_mine));
         cursor=page.next_cursor;loaded=true;
         setState(previous=>{
           if(previous.key!==key)return previous;
@@ -52,7 +55,7 @@ export function usePublicFeed({eventId,themeId,sort='recent',excludeMine=false}:
     loader.current=()=>{void load();};
     void load();
     return()=>{control.abort();loader.current=()=>{};};
-  },[key,eventId,themeId,sort,excludeMine,enabled]);
+  },[key,eventId,activityScope,themeId,sort,excludeMine,enabled]);
   const current=state.key===key?state:{key,items:[],cursor:null,loaded:false,busy:enabled,error:''};
   return {...current,error:sessionError||current.error,hasMore:current.loaded&&current.cursor!==null,loadMore,retry:sessionError?refresh:loadMore};
 }

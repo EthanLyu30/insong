@@ -18,6 +18,7 @@ from .event_snapshots import capture_event, event_snapshot, snapshot_json
 from .card_metadata import gallery_ids, memory_tags, normalize_tags, serialize_photos, set_memory_tags
 from .manual_recording import ManualSong, ManualEvent
 from .music_selection import MusicSelection, selected_music, capture_music, selection_matches, primary_song
+from .event_scope import selected_event_ids
 
 
 class Coordinates(BaseModel):
@@ -327,7 +328,9 @@ def install_memories(app, get_db, get_user):
 
     @app.get('/api/memories')
     def list_memories(song_id: int | None = None, event_id: str | None = None,
+                      event_ids: list[str] | None = Query(default=None),
                       db: OrmSession = Depends(get_db), user: User = Depends(get_user)):
+        activity_ids = selected_event_ids(event_id, event_ids)
         query = select(MemoryCard).where(MemoryCard.owner_id == user.id)
         if song_id is not None:
             if not 0 < song_id < 2**63:
@@ -335,6 +338,8 @@ def install_memories(app, get_db, get_user):
             query = query.where(MemoryCard.song_id == song_id)
         if event_id is not None:
             query = query.where(MemoryCard.event_id == event_id)
+        if activity_ids is not None:
+            query = query.where(MemoryCard.event_id.in_(activity_ids))
         return [serialize_memory(card) for card in db.scalars(query.order_by(MemoryCard.created_at.desc(), MemoryCard.id.desc()))]
 
     @app.post('/api/memories', status_code=201)

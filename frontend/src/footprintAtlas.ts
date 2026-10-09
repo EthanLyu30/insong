@@ -2,7 +2,7 @@ export type AtlasArtist = { id: string; name: string; initial?: string; color?: 
 export type AtlasCity = { id: string; name: string; lng: number; lat: number; capital?: boolean };
 export type AtlasSong = { title: string; artist: string; url: string; platform?: string; link_kind?: 'search' | 'song'; audio_url?: string; audio_label?: string };
 export type AtlasEvent = {
-  id: string; artist_id: string; title: string; city: string; venue: string; date: string; time?: string;
+  id: string; activity_id?:string; artist_id: string; title: string; city: string; venue: string; date: string; time?: string;
   source_url: string; source_title: string; source_kind?: 'report' | 'announcement';
   setlist_kind?: 'confirmed' | 'partial' | 'artist_collection'; setlist_note?: string;
   event_status?: 'scheduled' | 'cancelled'; event_status_note?: string; verified_on?: string;

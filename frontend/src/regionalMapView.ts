@@ -1,6 +1,7 @@
 import type {Map as GLMap} from 'maplibre-gl';
 import {overviewFocus} from './atlasCamera.ts';
 import type {PersonalRegion} from './personalMap';
+import type {ExplorationArea} from './mapExploration';
 
 type CityPoint={lng:number;lat:number};
 export type RegionalMapView={center:[number,number];bounds:[[number,number],[number,number]];zoom:number;maxZoom:number;duration:0;pitch:0;bearing:0};
@@ -17,6 +18,15 @@ export function regionalMapView(city?:CityPoint|null,region?:PersonalRegion|null
 }
 
 type Camera=Pick<GLMap,'stop'|'setPadding'|'setTransformCameraUpdate'|'setCenterElevation'|'setVerticalFieldOfView'|'cameraForBounds'|'jumpTo'>;
+export function explorationMapView(area:ExplorationArea):RegionalMapView{
+  return {...area,maxZoom:area.zoom,duration:0,pitch:0,bearing:0};
+}
+export function applyExplorationMapView(map:Camera,area:ExplorationArea,layout:{height:number;header:number;sheet:number;nav:number}){
+  map.stop();map.setPadding({top:0,bottom:0,left:0,right:0});
+  map.setTransformCameraUpdate(null);map.setCenterElevation(0);map.setVerticalFieldOfView(36.87);
+  const top=Math.min(layout.header+12,layout.height*.4),bottom=Math.min(layout.sheet+layout.nav+12,layout.height-top-80);
+  map.jumpTo({center:area.center,zoom:area.zoom,pitch:0,bearing:0,padding:{top,bottom:Math.max(0,bottom),left:0,right:0}});
+}
 export function applyRegionalMapView(map:Camera,view:RegionalMapView,layout:{height:number;header:number;sheet:number;nav:number}){
   map.stop();map.setPadding({top:0,bottom:0,left:0,right:0});
   map.setTransformCameraUpdate(null);map.setCenterElevation(0);map.setVerticalFieldOfView(36.87);

@@ -38,26 +38,120 @@ async function harness(run,geolocation={getCurrentPosition(){}},data={}){
   globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.HTMLElement=dom.window.HTMLElement;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
   globalThis.FormData=dom.window.FormData;
   window.scrollTo=()=>{};
-  const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter}=await import('react-router');
+  const React=await import('react'),{createRoot}=await import('react-dom/client'),{MemoryRouter,useLocation}=await import('react-router');
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {FootprintsPage}=await server.ssrLoadModule('/src/FootprintsPage.tsx'),{SessionProvider}=await server.ssrLoadModule('/src/SessionContext.tsx'),{NavigationProvider}=await server.ssrLoadModule('/src/Navigation.tsx');
   const catalog={today:'2026-10-08',verified_on:'2026-10-08',cities,artists:[{id:'gem',name:'邓紫棋',aliases:[]}],events:shows,...data.catalog};
   globalThis.fetch=async(url,options={})=>{
+    data.onRequest?.(url);
     assert.ok(!options.method||options.method==='GET','viewing/locating must not write attendance or collections');
     if(url==='/api/me')return Response.json({user:{id:3,display_name:'小林',is_demo:false}});
-    if(url==='/api/footprints/catalog')return Response.json(catalog);
+    if(url==='/api/footprints/catalog')return data.catalogResponse?data.catalogResponse():Response.json(catalog);
     if(url==='/api/footprints/photos')return data.photos?data.photos(options):Response.json({photos:[]});
-    if(url==='/api/footprints'||url==='/api/playlists')return Response.json([]);
+    if(url==='/api/footprints')return Response.json([]);
+    if(url==='/api/playlists')return data.playlistsResponse?data.playlistsResponse():Response.json([]);
     if(url==='/api/memories')return data.memories?data.memories(options):Response.json([{id:1,event_id:'sz'}]);
     if(url==='/api/footprints/interests')return Response.json({artist_ids:[],wish_event_ids:[]});
+    if(String(url).startsWith('/api/memories?'))return Response.json([]);
+    if(String(url).startsWith('/api/public-feed?'))return Response.json({items:[],next_cursor:null});
     throw Error('Unexpected request '+url);
   };
   const root=createRoot(document.getElementById('root'));
-  const render=async(entry='/footprints',key='start')=>React.act(async()=>root.render(React.createElement(MemoryRouter,{key,initialEntries:[entry]},React.createElement(NavigationProvider,null,React.createElement(SessionProvider,null,React.createElement(FootprintsPage))))));
+  let route;function Probe(){route=useLocation();return null;}
+  const render=async(entry='/footprints',key='start')=>React.act(async()=>root.render(React.createElement(MemoryRouter,{key,initialEntries:[entry]},React.createElement(NavigationProvider,null,React.createElement(SessionProvider,null,React.createElement(FootprintsPage),React.createElement(Probe))))));
   const click=async label=>React.act(async()=>{const button=[...document.querySelectorAll('button')].find(button=>button.getAttribute('aria-label')===label||button.textContent===label);assert.ok(button,label);button.click();});
-  try{await render();await run({React,render,click,dom});}
+  const tap=async(lng,lat)=>React.act(async()=>{
+    const map=document.querySelector('.atlas-map-fallback');assert.ok(map);map.getBoundingClientRect=()=>new window.DOMRect(0,0,400,300);
+    const [[west,south],[east,north]]=JSON.parse(document.querySelector('.real-map-canvas').dataset.camera).bounds;
+    const mercator=value=>Math.log(Math.tan(Math.PI/4+value*Math.PI/360));
+    map.dispatchEvent(new window.MouseEvent('click',{bubbles:true,clientX:(lng-west)/(east-west)*400,clientY:(mercator(north)-mercator(lat))/(mercator(north)-mercator(south))*300}));
+  });
+  try{await render();await run({React,render,click,tap,dom,location:()=>route});}
   finally{await React.act(async()=>root.unmount());await server.close();globalThis.fetch=oldFetch;globalThis.FormData=oldFormData;if(oldNavigator)Object.defineProperty(globalThis,'navigator',oldNavigator);else delete globalThis.navigator;dom.window.close();}
 }
+
+test('clicking an approximate map region moves without forced zoom, lists nearby activities and keeps Back context',async()=>{
+  await harness(async({React,render,tap,click,location})=>{
+    await render('/footprints?month=all&artist=gem','explore');
+    const before=JSON.parse(document.querySelector('.real-map-canvas').dataset.camera);
+    await tap(114.1,22.6);
+    const after=JSON.parse(document.querySelector('.real-map-canvas').dataset.camera);
+    assert.deepEqual(after.center,[114.1,22.6]);assert.equal(after.zoom,before.zoom);
+    assert.match(document.querySelector('.atlas-schedule-list').textContent,/深圳场馆/);
+    assert.match(document.querySelector('.atlas-schedule-list').textContent,/广州场馆/);
+    assert.ok(!document.querySelector('.atlas-schedule-list').textContent.includes('北京场馆'));
+    const origin=location().search;assert.equal(new URLSearchParams(origin).get('artist'),'gem');
+    const list=document.querySelector('.atlas-schedule-list');list.scrollTop=63;await React.act(async()=>list.dispatchEvent(new window.Event('scroll',{bubbles:true})));
+    await React.act(async()=>document.querySelector('.atlas-schedule-row').click());await click('返回上一页');
+    assert.equal(location().search,origin);assert.equal(document.querySelector('.atlas-schedule-list').scrollTop,63);
+  });
+});
+test('a map click stays on the list even for one activity; only its row opens the complete memory collection',async()=>{
+  const requests=[],events=['2026-08-01','2026-08-02','2026-08-03'].map((date,i)=>({...shows[0],id:'night-'+i,date}));
+  await harness(async({React,render,tap,location})=>{
+    await render('/footprints?month=all&artist=gem&city=sz','single-activity');await tap(114.1,22.6);
+    assert.equal(document.querySelector('.concert-journal'),null,'a map click never opens an activity, even when it is the sole result');
+    assert.equal(document.querySelectorAll('.atlas-schedule-row').length,1);
+    assert.equal(new URLSearchParams(location().search).get('event'),null);
+    assert.equal(new URLSearchParams(location().search).get('scene'),null);
+    assert.ok(!requests.some(url=>String(url).startsWith('/api/memories?')),'map exploration must not read concert detail');
+    await tap(114.1,22.6);
+    assert.equal(document.querySelector('.concert-journal'),null,'repeated map clicks still only select the area');
+    await React.act(async()=>document.querySelector('.atlas-schedule-row').click());
+    assert.ok(document.querySelector('.concert-journal'));
+    assert.match(document.querySelector('.concert-dateline').textContent,/2026.08.01.*2026.08.03/);
+    const privateRead=requests.find(url=>url.startsWith('/api/memories?'));
+    assert.deepEqual(new URL(privateRead,'http://localhost').searchParams.getAll('event_ids'),['night-0','night-1','night-2']);
+    assert.equal(new URLSearchParams(location().search).get('scene'),'sky');
+  },undefined,{catalog:{events},onRequest:url=>requests.push(url)});
+});
+test('month-filtered rows keep the whole cross-month date range and the original simple list fields',async()=>{
+  const events=['2026-08-31','2026-09-01','2026-09-02'].map((date,i)=>({...shows[0],id:'night-'+i,date}));
+  await harness(async({render})=>{
+    await render('/footprints?month=2026-08&artist=gem&city=sz','cross-month');
+    assert.equal(document.querySelectorAll('.atlas-schedule-row').length,1);
+    const row=document.querySelector('.atlas-schedule-row');assert.match(row.querySelector('time').textContent,/08.31.*09.02.*2026/);
+    assert.equal(row.querySelector('strong').textContent,'深圳 · 邓紫棋');assert.equal(row.querySelector('span>small').textContent,'深圳场馆');
+    assert.ok(document.querySelector('.atlas-schedule-heart'));assert.equal(document.querySelector('.atlas-personal-evidence'),null);
+  },undefined,{catalog:{events}});
+});
+test('catalog failure has a real retry and is never presented as an empty concert region',async()=>{
+  let failed=true;
+  await harness(async({click})=>{
+    assert.match(document.querySelector('[role="alert"]').textContent,/目录读取失败/);
+    assert.equal(document.querySelector('.atlas-schedule-empty'),null);failed=false;await click('重新展开地图');
+    assert.ok(document.querySelector('.atlas-schedule-row'));
+  },undefined,{catalogResponse:()=>failed?Response.json({detail:'目录读取失败'},{status:503}):Response.json({today:'2026-10-08',cities,artists:[{id:'gem',name:'邓紫棋'}],events:shows})});
+});
+test('a no-data map region stays empty rather than substituting concerts from a distant city',async()=>{
+  await harness(async({render})=>{
+    await render('/footprints?month=all&area=80,30,5,79,29,81,31','empty-region');
+    assert.equal(document.querySelectorAll('.atlas-schedule-row').length,0);
+    assert.match(document.querySelector('.atlas-schedule-empty').textContent,/暂无/);
+    assert.equal(document.querySelector('[role="alert"]'),null);
+  });
+});
+test('a late saved-data response cannot navigate away from map exploration',async()=>{
+  let finish;
+  await harness(async({React,render,tap,click})=>{
+    await render('/footprints?month=all&area=114,22.6,6,113,22,115,24','pending-saved');
+    await click('我的收藏');await tap(114,22.6);await click('全部');
+    assert.equal(document.querySelector('.concert-journal'),null,'a superseding manual filter must not navigate to a concert');
+    await React.act(async()=>finish(Response.json([{event_id:'sz'}])));
+    assert.equal(document.querySelector('.concert-journal'),null);
+    assert.ok(document.querySelector('.atlas-schedule-row'));
+  },undefined,{catalog:{events:[shows[0]]},playlistsResponse:()=>new Promise(resolve=>{finish=resolve;})});
+});
+
+test('map entry defaults to all months while an explicitly chosen month remains filtered',async()=>{
+  await harness(async({render})=>{
+    assert.equal(document.querySelector('[aria-label="筛选演出月份"]').textContent,'全部月份');
+    assert.match(document.querySelector('.atlas-schedule-list').textContent,/旧北京场馆/,'the default does not silently exclude previous years or months');
+    await render('/footprints?month=2026-10','explicit-month');
+    assert.ok(!document.querySelector('.atlas-schedule-list').textContent.includes('旧北京场馆'),'a user-selected month still applies');
+    assert.match(document.querySelector('.atlas-schedule-list').textContent,/深圳场馆/);
+  });
+});
 
 test('map entry starts with All and never requests a device position until the locate click',async()=>{
   let calls=0;
@@ -229,7 +323,7 @@ test('fallback visibility refreshes after Locate and keeps partially overlapping
     };
     try{
       await render('/footprints?scope=all&period=past&month=all','projection');
-      const visibleNeighbors=()=>[...document.querySelectorAll('.atlas-map-fallback button')].filter(button=>['bj','tj'].includes(button.dataset.photoEvent)&&button.style.visibility!=='hidden');
+      const visibleNeighbors=()=>[...document.querySelectorAll('.atlas-map-fallback .real-city-pin')].filter(button=>['bj','tj'].includes(button.dataset.photoEvent)&&button.style.visibility!=='hidden');
       assert.equal(visibleNeighbors().length,0,'northern photos are outside the original southern frame');
       await click('查看附近演唱会');await React.act(async()=>resolved({coords:{longitude:116.4,latitude:39.9}}));
       const neighboring=visibleNeighbors();

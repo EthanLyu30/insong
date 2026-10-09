@@ -19,7 +19,7 @@ export function scheduleMonths(events:Dated[],period:SchedulePeriod,today:string
   const months=[...new Set(selectSchedule(events,period,'',today).map(event=>event.date.slice(0,7)))].sort();
   return period==='past'?months.reverse():months;
 }
-type RunEvent=Dated&{artist_id:string;city:string;venue:string;title:string};
+type RunEvent=Dated&{activity_id?:string;artist_id:string;city:string;venue:string;title:string};
 export type ConcertRun<T extends RunEvent=RunEvent>={id:string;events:T[]};
 
 // Complete dates are exact calendar matches, so 9/1 cannot open a 9/11 show.
@@ -33,13 +33,14 @@ export function matchesConcertSearch(event:Pick<RunEvent,'date'|'title'>,query:s
   return text.normalize('NFKC').toLocaleLowerCase().replace(/\s/g,'').includes(normalized);
 }
 
-// Only adjacent calendar dates at the same venue form a run. A day without a
-// show starts a new run; individual IDs remain intact for personal records.
+// A reliable activity ID wins. Without one, matching station dates may include
+// a one-day rest; larger breaks remain separate rounds, as do different tours/years.
 export function groupConcertRuns<T extends RunEvent>(events:T[]):ConcertRun<T>[] {
   const buckets=new Map<string,T[]>(),runs:ConcertRun<T>[]=[];
   for(const event of events){
     const title=event.title.normalize('NFKC').replace(/\s|[·•]/g,'').toLocaleLowerCase();
-    const key=JSON.stringify([event.artist_id,event.city,event.venue,title]);
+    const date=Date.parse(event.date),known=!!event.artist_id&&!!event.city&&!!event.venue&&!!title&&Number.isFinite(date)&&new Date(date).toISOString().slice(0,10)===event.date;
+    const key=JSON.stringify([event.artist_id,event.city,event.date.slice(0,4),event.venue,title,known?event.activity_id??'inferred':event.id]);
     const bucket=buckets.get(key)??[];bucket.push(event);buckets.set(key,bucket);
   }
   for(const bucket of buckets.values()){
@@ -47,11 +48,16 @@ export function groupConcertRuns<T extends RunEvent>(events:T[]):ConcertRun<T>[]
     let run:ConcertRun<T>|undefined;
     for(const event of sorted){
       const previous=run?.events.at(-1);
-      if(!previous||Date.parse(event.date)-Date.parse(previous.date)>86400000){run={id:event.id,events:[]};runs.push(run);}
+      if(!previous||!event.activity_id&&Date.parse(event.date)-Date.parse(previous.date)>2*86400000){run={id:event.id,events:[]};runs.push(run);}
       run!.events.push(event);
     }
   }
   return runs;
+}
+/** Filtering chooses activities; it must not erase the other nights in them. */
+export function selectConcertRuns<T extends RunEvent>(catalog:T[],visible:T[]):ConcertRun<T>[] {
+  const identities=new Set(visible.map(event=>event.id));
+  return groupConcertRuns(catalog).filter(run=>run.events.some(event=>identities.has(event.id)));
 }
 export function eventChangeNote(event:Dated,history:CatalogChange[]=[]):string{
   if(event.event_status==='cancelled')return event.event_status_note||'演出已取消，请留意后续公告。';

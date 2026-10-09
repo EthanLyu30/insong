@@ -69,7 +69,7 @@ test('concert journal directly shows the complete memory while preserving privat
 
     await render('/footprints?event=two','empty');
     assert.equal(document.querySelectorAll('.concert-my-memories .unified-story-card').length,0);
-    assert.ok(!document.querySelector('.concert-my-memories'),'empty private headings no longer precede actual public content');
+    assert.match(document.querySelector('.concert-my-memories').textContent,/还没有.*个人记忆/,'an empty private state is distinct from the public collection');
     assert.equal(document.querySelector('.concert-write-link').getAttribute('href'),'/create?event=two');
     assert.ok(document.querySelector('.concert-public-memories .story-card'),'non-attended performances still show public memories');
     assert.ok(document.querySelector('.concert-public-memories a[href="/stories/21"]'),'without My notes all public memories still use the existing music cards');
@@ -128,7 +128,7 @@ test('My shows linked memories and explicit attendance, while All and artist dee
     assert.equal([...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='我的经历')?.getAttribute('aria-pressed'),'true');
     assert.match(itinerary(),/记忆场馆/);assert.match(itinerary(),/到场场馆/);
     assert.ok(!itinerary().includes('只收藏场馆'),'saved and followed events are not inferred as personal experiences');
-    assert.match(document.querySelector('.atlas-itinerary').textContent,/1 张记忆/);
+    assert.equal(document.querySelector('.atlas-personal-evidence'),null,'the compact list does not add memory counts');
     await React.act(async()=>[...document.querySelectorAll('.atlas-schedule-filters button')].find(button=>button.textContent==='未来').click());
     await React.act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='我的经历').click());
     assert.equal([...document.querySelectorAll('.atlas-schedule-filters button')].find(button=>button.textContent==='往期').getAttribute('aria-pressed'),'true','entering My experiences defaults to past memories even after browsing future public itineraries');

@@ -29,7 +29,14 @@
 .atlas-page.atlas-map .atlas-wordmark>a{width:40px;height:36px}
 .atlas-page.atlas-map .atlas-artist-pills{margin-top:9px;gap:7px}
 .atlas-page.atlas-map .atlas-artist-pills button{min-height:34px;padding:6px 12px;font-size:13px}
-.atlas-page.atlas-map :is(.atlas-itinerary,.atlas-itinerary.is-expanded,.atlas-local-itinerary){height:clamp(210px,33dvh,285px);max-height:calc(100dvh - 365px)}
+/* Keep at least one third of the page visible as map; short lists never fill a fixed sheet. */
+.atlas-page.atlas-map :is(.atlas-itinerary,.atlas-itinerary.is-expanded,.atlas-local-itinerary){height:auto;max-height:max(0px,calc(66.666667dvh - var(--atlas-header-height,185px) - var(--atlas-nav-height,70px)));padding-block:6px}
+.atlas-page.atlas-map .atlas-itinerary::before{margin-bottom:6px}
+.atlas-page.atlas-map .atlas-itinerary>header{min-height:31px;margin-bottom:2px}
+.atlas-page.atlas-map .atlas-itinerary .atlas-schedule-filters{margin-bottom:4px}
+.atlas-page.atlas-map :is(.atlas-itinerary,.atlas-local-itinerary) .atlas-schedule-list{flex:0 1 auto;min-height:0;max-height:none}
+.atlas-page.atlas-map .atlas-scroll-hint{margin-top:4px}
+.atlas-page.atlas-map .atlas-itinerary .atlas-schedule-empty{position:static;max-height:none;overflow:auto}
 .atlas-page.atlas-map .atlas-sky-canopy{height:150px;opacity:.45}
 .atlas-page.atlas-map .atlas-location-status{margin:7px 0 0;max-width:calc(100% - 45px);font-size:11px;line-height:17px;color:#725a42;background:#faf7f0e6;border-radius:6px;padding:3px 6px;pointer-events:none}
 .atlas-page.atlas-map:has(.atlas-search-results) .map-source-attribution{visibility:hidden}
@@ -47,6 +54,7 @@
 .atlas-page.atlas-map .real-city-pin img{transition:none;animation:none}
 .atlas-page.atlas-map .real-map-canvas[data-frame-ready=false]{visibility:hidden}
 .atlas-map-preparing{position:absolute;z-index:3;top:calc(var(--atlas-header-height,185px) + 35px);left:20px;right:20px;margin:0;color:#8a7661;font-size:12px;text-align:center;pointer-events:none}
-.atlas-page.atlas-map .atlas-map-fallback{top:calc(var(--atlas-header-height,185px) + 12px);bottom:calc(var(--atlas-sheet-height,285px) + var(--atlas-nav-height,70px) + 28px);overflow:hidden;background:#cde3e3}
+.atlas-page.atlas-map .atlas-map-fallback{top:var(--atlas-header-height,185px);bottom:calc(var(--atlas-sheet-height,285px) + var(--atlas-nav-height,70px));overflow:hidden;background:#cde3e3}
 .atlas-page.atlas-map .atlas-map-fallback path{fill:#f7f2e8;stroke:#a78670;stroke-width:.5}
-.atlas-page.atlas-map .atlas-map-fallback .real-city-pin{padding:0;transform:translate(-50%,-50%)}
+.atlas-page.atlas-map .atlas-map-fallback .real-city-pin{position:absolute;padding:0;transform:translate(-50%,-50%)}
+.atlas-page.atlas-map :is(.real-city-pin,.real-venue-pin){pointer-events:none;cursor:default}

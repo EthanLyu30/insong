@@ -2,6 +2,7 @@
 import base64
 import binascii
 import json
+import hashlib
 from datetime import datetime
 from collections import OrderedDict
 from secrets import token_urlsafe
@@ -15,6 +16,7 @@ from sqlalchemy.orm import Session as OrmSession
 
 from .models import MemoryCard, PublicStory, User
 from .stories import public_query, serialize_story
+from .event_scope import selected_event_ids
 
 
 def encode_cursor(public, scope):
@@ -94,15 +96,21 @@ def install_public_feed(app, get_db, get_optional_user):
 
     @app.get('/api/public-feed')
     def feed(event_id: str | None = Query(default=None, min_length=1, max_length=100),
+             event_ids: list[str] | None = Query(default=None),
              theme_id: str | None = Query(default=None, min_length=1, max_length=40),
              sort: Literal['recent', 'popular'] = 'recent',
              exclude_mine: bool = False,
              limit: int = Query(default=12, ge=1, le=30),
              cursor: str | None = Query(default=None, min_length=1, max_length=2000),
              db: OrmSession = Depends(get_db), viewer: User | None = Depends(get_optional_user)):
+        activity_ids = selected_event_ids(event_id, event_ids)
         scope = {'event': event_id, 'theme': theme_id, 'sort': sort,
                  'exclude_mine': exclude_mine, 'viewer': viewer.id if exclude_mine and viewer else None}
+        if activity_ids is not None:
+            scope['events'] = hashlib.sha256(json.dumps(activity_ids, separators=(',', ':')).encode()).hexdigest()
         query = public_query(theme_id=theme_id, event_id=event_id).order_by(None)
+        if activity_ids is not None:
+            query = query.where(PublicStory.event_id.in_(activity_ids))
         if exclude_mine and viewer:
             query = query.where(MemoryCard.owner_id != viewer.id)
         if sort == 'popular':

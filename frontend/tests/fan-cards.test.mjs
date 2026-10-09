@@ -9,6 +9,11 @@ const song={id:1,title:'散场以后',artist:'Demo Artist',is_demo:true,audio_av
 const photos=[{id:'a',url:'/api/photos/a'},{id:'b',url:'/api/photos/b'}];
 const card={id:88,owner_id:3,song_id:1,song,title:'把这一晚带回家',story:'第一行。\n最后一行也必须完整。',life_time:'散场的晚上',life_year:2025,revision:1,reflections:[],tags:['演唱会','散场'],photos,photo_id:'a',photo_url:'/api/photos/a',created_at:'2026-01-01',updated_at:'2026-01-01',offset_ms:10000,end_ms:14000};
 
+async function chooseMapSearch(act,label){
+  await act(async()=>{const input=document.querySelector('[aria-label="搜索歌手或城市"]');Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(input,label);input.dispatchEvent(new window.Event('input',{bubbles:true}));});
+  await act(async()=>{const result=[...document.querySelectorAll('.atlas-search-results button')].find(button=>button.textContent.startsWith(label));assert.ok(result,label);result.click();});
+}
+
 test('leaving song search protects the composer and saves its draft before leaving',async()=>{
   await harness('/create',async url=>{if(url==='/api/songs')return Response.json([song]);throw new Error(url);},async({act,fill,location})=>{
     await fill('memory-story','选歌时也不能丢');
@@ -453,7 +458,7 @@ test('an empty playlist returns to its original map and keeps the My entry filte
   });
 });
 
-test('a city portrait exposes a top map return and preserves its original overview before My',async()=>{
+test('manual city search exposes a top map return and preserves its original overview before My',async()=>{
   await harness('/memories?view=cards',async url=>{
     if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);
     if(url==='/api/playlists')return Response.json([]);throw new Error(url);
@@ -461,9 +466,9 @@ test('a city portrait exposes a top map return and preserves its original overvi
     await act(async()=>document.querySelector('.timeline-toggle button:last-child').click());
     await until('.atlas-artist-pills');
     await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').click());
-    await until('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');
+    await until('.atlas-map-fallback .real-city-pin[aria-label="上海 · 邓紫棋"]');
     const overview=location().pathname+location().search;
-    await act(async()=>document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]').click());
+    await chooseMapSearch(act,'上海');
     const back=document.querySelector('.atlas-return-map');assert.ok(back,'top back must target the map level');
     assert.ok(!document.querySelector('.atlas-return-mine'),'city does not show an exit-to-My as its top back');
     await act(async()=>back.click());
@@ -798,7 +803,7 @@ test('My shortcuts filter real saved concerts and followed artists without chang
     const buttons=[...document.querySelectorAll('.atlas-artist-pills button')];
     assert.deepEqual(buttons.map(button=>button.textContent),['全部','我的经历','我的收藏','我的歌手']);
     await act(async()=>buttons.find(button=>button.textContent==='我的收藏').click());
-    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button img')].map(img=>img.alt),['邓紫棋']);
+    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback .real-city-pin img')].map(img=>img.alt),['邓紫棋']);
     await act(async()=>buttons.find(button=>button.textContent==='我的歌手').click());
     assert.deepEqual([...document.querySelectorAll('.atlas-schedule-row strong')].map(label=>label.textContent),['北京 · 刘雨昕']);
     assert.equal(document.querySelector('.atlas-scroll-hint').textContent,'下滑查看更多');
@@ -921,12 +926,12 @@ test('following an artist is distinct from saving a concert and remains availabl
     await act(async()=>follow.click());
     assert.equal(document.querySelector('[aria-label="已关注邓紫棋"]').getAttribute('aria-pressed'),'true');
     await go('/memories');await go('/footprints?month=all&scope=followed');
-    await until('.atlas-map-fallback button');
-    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button img')].map(img=>img.alt),['邓紫棋']);
-    await act(async()=>document.querySelector('.atlas-map-fallback button').click());
+    await until('.atlas-map-fallback .real-city-pin');
+    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback .real-city-pin img')].map(img=>img.alt),['邓紫棋']);
+    await go('/footprints?month=all&scope=followed&artist=gem');
     await act(async()=>document.querySelector('[aria-label="已关注邓紫棋"]').click());
     assert.ok(document.querySelector('[aria-label="关注邓紫棋"]'));
-    assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,0);
+    assert.equal(document.querySelectorAll('.atlas-itinerary .atlas-schedule-row').length,0);
   },{interests});
   assert.deepEqual(writes,[{url:'/api/footprints/follows/gem',body:{followed:true}},{url:'/api/footprints/follows/gem',body:{followed:false}}]);
 });
@@ -963,23 +968,28 @@ test('empty personal concert filters can restore all itineraries without leaving
   },{interests:{artist_ids:[],wish_event_ids:[]}});
 });
 
-test('artist portraits open that artist and city across months instead of an empty default month',async()=>{
+test('map clicks do not enter a concert or remove an explicitly selected month',async()=>{
   const catalog={...revisionCatalog,events:[
     {...revisionCatalog.events[0],id:'old-sh',date:'2026-09-19'},
     {...revisionCatalog.events[1],id:'other-sh',city:'上海',venue:'另一座体育馆',date:'2026-10-02'},
     {...revisionCatalog.events[0],id:'too-far',city:'北京',date:'2026-12-20'},
   ]};
-  await harness('/footprints?from=mine&return=%2Fmemories',async url=>{
+  await harness('/footprints?from=mine&return=%2Fmemories&month=2026-10',async url=>{
     if(url==='/api/footprints/catalog')return Response.json(catalog);
     if(url==='/api/playlists')return Response.json([]);throw new Error(url);
   },async({act,until,location})=>{
     await until('.atlas-map-fallback');
-    assert.ok(![...document.querySelectorAll('.atlas-map-fallback button')].some(button=>button.getAttribute('aria-label')==='北京 · 邓紫棋'),'past map does not show a distant future-only portrait');
-    const marker=document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');assert.ok(marker);
-    await act(async()=>marker.click());
+    assert.ok(![...document.querySelectorAll('.atlas-map-fallback .real-city-pin')].some(button=>button.getAttribute('aria-label')==='北京 · 邓紫棋'),'past map does not show a distant future-only portrait');
+    const marker=document.querySelector('.atlas-map-fallback .real-city-pin[aria-label="上海 · 邓紫棋"]');assert.ok(marker);
+    assert.notEqual(marker.tagName,'BUTTON');
+    await act(async()=>{
+      const map=document.querySelector('.atlas-map-fallback');map.getBoundingClientRect=()=>new window.DOMRect(0,0,400,300);
+      map.dispatchEvent(new window.MouseEvent('click',{bubbles:true,clientX:200,clientY:150}));
+    });
     const query=new URLSearchParams(location().search);
-    assert.equal(query.get('artist'),'gem');assert.equal(query.get('city'),'shanghai');assert.equal(query.get('month'),'all');
-    assert.deepEqual([...document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row>span small')].map(item=>item.textContent),['上海体育场']);
+    assert.equal(query.has('artist'),false);assert.equal(query.get('event'),null);assert.equal(query.get('month'),'2026-10');
+    assert.equal(document.querySelector('.concert-journal'),null);
+    assert.match(document.querySelector('.atlas-schedule-list').textContent,/另一座体育馆/);
     assert.ok(!document.querySelector('.atlas-empty-city'));
   });
 });
@@ -1002,7 +1012,7 @@ test('a known concert opens its memory journal in one step and returns to the sa
   });
 });
 
-test('an artist portrait opens local concert rows directly and the selected night returns to that local search',async()=>{
+test('manual artist and city search shows local concert rows and the selected night returns to that local search',async()=>{
   const catalog={...revisionCatalog,events:[
     {...revisionCatalog.events[0],id:'old-sh',date:'2026-09-19'},
     {...revisionCatalog.events[0],id:'another-venue',venue:'另一座体育馆',date:'2026-09-21'},
@@ -1012,8 +1022,8 @@ test('an artist portrait opens local concert rows directly and the selected nigh
     if(url==='/api/footprints/catalog')return Response.json(catalog);
     if(url==='/api/playlists'||url==='/api/footprints')return Response.json([]);throw new Error(url);
   },async({act,until,location})=>{
-    await until('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]');
-    await act(async()=>document.querySelector('.atlas-map-fallback button[aria-label="上海 · 邓紫棋"]').click());
+    await until('.atlas-map-fallback .real-city-pin[aria-label="上海 · 邓紫棋"]');
+    await chooseMapSearch(act,'邓紫棋');await chooseMapSearch(act,'上海');
     assert.equal(document.querySelector('[data-scene]').dataset.scene,'map');
     assert.equal(document.querySelectorAll('.atlas-city-sheet .atlas-schedule-row').length,2);
     assert.ok(!document.querySelector('.atlas-venue-row'),'no venue-selection step precedes the concert list');
@@ -1049,14 +1059,14 @@ test('an old sunset scene link opens the selected night and its fallback returns
   });
 });
 
-test('a saved night pinned outside the period remains reachable from its artist portrait',async()=>{
+test('a saved night pinned outside the period remains reachable from its schedule row',async()=>{
   const future={...revisionCatalog.events[0],id:'pinned-future',date:'2026-12-20'};
   await harness('/footprints?scope=saved&period=past&event=pinned-future&scene=map',async url=>{
     if(url==='/api/footprints/catalog')return Response.json({...revisionCatalog,events:[future]});
     if(url==='/api/playlists')return Response.json([{event_id:future.id,songs:[]}]);throw new Error(url);
   },async({act,until,location})=>{
-    await until('.atlas-map-fallback button');
-    await act(async()=>document.querySelector('.atlas-map-fallback button').click());
+    await until('.atlas-map-fallback .real-city-pin');
+    assert.notEqual(document.querySelector('.atlas-map-fallback .real-city-pin').tagName,'BUTTON');
     const query=new URLSearchParams(location().search);
     assert.equal(query.get('scope'),'saved');assert.equal(query.get('event'),future.id);
     assert.ok(document.querySelector('.atlas-city-sheet .atlas-schedule-row'),'the intentionally pinned night stays in the local concert list');
@@ -1177,12 +1187,12 @@ test('failed editor publication preserves the writing and retries from the saved
 test('artist search removes unrelated photo markers and clearing the artist restores them',async()=>{
   await harness('/footprints',async url=>{if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,until})=>{
     await until('.atlas-map-fallback');
-    assert.equal(document.querySelectorAll('.atlas-map-fallback button').length,2);
+    assert.equal(document.querySelectorAll('.atlas-map-fallback .real-city-pin').length,2);
     await act(async()=>{const input=document.querySelector('[aria-label="搜索歌手或城市"]');Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(input,'邓紫棋');input.dispatchEvent(new window.Event('input',{bubbles:true}));});
     await act(async()=>[...document.querySelectorAll('.atlas-search-results button')].find(button=>button.textContent.startsWith('邓紫棋')).click());
-    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback button img')].map(img=>img.alt),['邓紫棋']);
+    assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback .real-city-pin img')].map(img=>img.alt),['邓紫棋']);
     await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='全部').click());
-    assert.equal(document.querySelectorAll('.atlas-map-fallback button').length,2);
+    assert.equal(document.querySelectorAll('.atlas-map-fallback .real-city-pin').length,2);
   });
 });
 
@@ -1190,7 +1200,7 @@ test('verified concert imagery replaces text circles without visible city labels
   const catalog={...revisionCatalog,artists:[{id:'phoenix',name:'凤凰传奇'}],events:[{...revisionCatalog.events[0],artist_id:'phoenix'}]};
   await harness('/footprints?artist=phoenix',async url=>{if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({until})=>{
     await until('.atlas-map-fallback');
-    const marker=document.querySelector('.atlas-map-fallback button');
+    const marker=document.querySelector('.atlas-map-fallback .real-city-pin');
     assert.match(marker.getAttribute('aria-label'),/凤凰传奇/);
     assert.ok(!marker.querySelector('.map-artist-fallback'));
     assert.equal(marker.querySelector('img').getAttribute('src'),'/artist-map/phoenix.jpg');
@@ -1201,8 +1211,8 @@ test('verified concert imagery replaces text circles without visible city labels
 test('fallback map sizes photo markers for its camera zoom',async()=>{
   const catalog={...revisionCatalog,artists:[{id:'phoenix',name:'凤凰传奇'}],events:[{...revisionCatalog.events[0],artist_id:'phoenix'}]};
   await harness('/footprints?artist=phoenix',async url=>{if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({until})=>{
-    await until('.atlas-map-fallback button');
-    const marker=document.querySelector('.atlas-map-fallback button');
+    await until('.atlas-map-fallback .real-city-pin');
+    const marker=document.querySelector('.atlas-map-fallback .real-city-pin');
     assert.equal(marker.style.getPropertyValue('--map-photo-size'),'50px','fallback should use its 5.8 camera zoom, not a fixed default');
   });
 });

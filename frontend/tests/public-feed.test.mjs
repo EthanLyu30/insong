@@ -17,7 +17,7 @@ async function harness(run){
   const server=await createServer({server:{middlewareMode:true,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,include:[]},appType:'custom'});
   const {EventRecords}=await server.ssrLoadModule('/src/EventRecords.tsx'),{ThemePage}=await server.ssrLoadModule('/src/PublicPages.tsx'),{SessionProvider}=await server.ssrLoadModule('/src/SessionContext.tsx');
   const root=createRoot(document.getElementById('root')),originalFetch=globalThis.fetch;
-  const render=async(path='/events/one',key=path)=>React.act(async()=>root.render(React.createElement(MemoryRouter,{key,initialEntries:[path]},React.createElement(SessionProvider,null,React.createElement(Routes,null,React.createElement(Route,{path:'/events/:id',element:React.createElement(EventRecords,{eventId:path.split('/').at(-1),next:path},React.createElement('div',null,'补充资料'))}),React.createElement(Route,{path:'/themes/:themeId',element:React.createElement(ThemePage)}))))));
+  const render=async(path='/events/one',key=path,eventIds)=>React.act(async()=>root.render(React.createElement(MemoryRouter,{key,initialEntries:[path]},React.createElement(SessionProvider,null,React.createElement(Routes,null,React.createElement(Route,{path:'/events/:id',element:React.createElement(EventRecords,{eventId:path.split('/').at(-1),eventIds,next:path},React.createElement('div',null,'补充资料'))}),React.createElement(Route,{path:'/themes/:themeId',element:React.createElement(ThemePage)}))))));
   const intersect=async()=>React.act(async()=>{for(const observer of [...observers])observer.callback([{isIntersecting:true,target:observer.target}]);});
   try{await run({React,render,intersect});}finally{await React.act(async()=>root.unmount());await server.close();globalThis.fetch=originalFetch;delete globalThis.IntersectionObserver;dom.window.close();}
 }
@@ -41,7 +41,7 @@ test('empty event prioritizes public feed, auto-appends unique real pages and en
     throw Error('Unexpected '+url);
   };
   await render();
-  assert.ok(!document.querySelector('.concert-my-memories'),'an empty My heading must not push actual content down');
+  assert.match(document.querySelector('.concert-my-memories')?.textContent??'',/还没有.*个人记忆/,'an empty personal collection remains honest without hiding public cards');
   assert.equal(document.querySelector('.concert-write-link').getAttribute('href'),'/create?event=one');
   assert.ok(document.querySelector('.concert-write-link').classList.contains('primary-button'));
   const feed=document.querySelector('.concert-public-memories');
@@ -58,6 +58,32 @@ test('empty event prioritizes public feed, auto-appends unique real pages and en
   assert.equal(feed.querySelectorAll('a[href="/stories/23"]').length,1);
   assert.match(feed.textContent,/已经看完/);
   const requests=feedRequests;await intersect();await intersect();assert.equal(feedRequests,requests,'true exhaustion never cycles pages');
+}));
+
+test('a multi-night activity reads all personal nights and paginates one public card collection',async()=>harness(async({React,render,intersect})=>{
+  globalThis.fetch=async url=>{
+    if(url==='/api/me')return Response.json({user:{id:3,display_name:'我',is_demo:false}});
+    const query=new URL(url,'http://localhost').searchParams;
+    if(String(url).startsWith('/api/memories?')){
+      assert.deepEqual(query.getAll('event_ids'),['one','two']);assert.equal(query.has('event_id'),false);
+      return Response.json([memory,{...memory,id:12,event_id:'two',story:'第三晚的原始文字',life_time:'2026-08-03'}]);
+    }
+    if(String(url).startsWith('/api/public-feed?')){
+      assert.deepEqual(query.getAll('event_ids'),['one','two']);assert.equal(query.get('exclude_mine'),'true');
+      return Response.json(query.get('cursor')?{items:[{...story(23),event_id:'two'}, {...story(24),event_id:'wrong'}],next_cursor:null}:
+        {items:[story(21),{...story(22),event_id:'two'}],next_cursor:'next-night'});
+    }
+    throw Error('Unexpected '+url);
+  };
+  await render('/events/one','activity',['two','one']);
+  assert.ok(document.querySelector('a[href="/memories/11"]'));
+  assert.ok(document.querySelector('a[href="/memories/12"]'));
+  assert.ok(document.querySelector('a[href="/stories/21"]'));
+  assert.ok(document.querySelector('a[href="/stories/22"]'));
+  await intersect();
+  assert.ok(document.querySelector('a[href="/stories/23"]'));
+  assert.equal(document.querySelector('a[href="/stories/24"]'),null);
+  assert.equal(document.querySelectorAll('.concert-public-memories').length,1);
 }));
 
 test('record errors do not offer duplicate creation, multiple memories form a directly visible private card collection',async()=>harness(async({render})=>{

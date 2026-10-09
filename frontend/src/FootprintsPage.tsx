@@ -12,7 +12,7 @@ import {loadAtlasMapEngine} from './atlasMapEngine';
 import type {SceneController} from './sceneInteraction';
 import { CollectConcert, SongList, usePlaylistRefresh, type SavedPlaylist } from './ConcertPlaylist';
 import {ConcertPlayer,useConcertPlayer} from './ConcertPlayer';
-import {selectSchedule,eventChangeNote,groupConcertRuns,matchesConcertSearch,futureRangeLabels,type FutureRange,type ConcertRun,type SchedulePeriod} from './concertSchedule';
+import {selectSchedule,eventChangeNote,groupConcertRuns,selectConcertRuns,matchesConcertSearch,futureRangeLabels,type FutureRange,type ConcertRun,type SchedulePeriod} from './concertSchedule';
 import { chinaToday, dateLabel, filterArtists, type AtlasCatalog, type AtlasCity, type AtlasEvent, type AtlasSong } from './footprintAtlas';
 import './footprints.css';
 import './concertJournal.css';
@@ -24,6 +24,7 @@ import {scheduleOverview} from './personalMap';
 import {nearbyConcertOverview,recentConcertOverview} from './concertMapFocus';
 import {useMapLocation} from './useMapLocation';
 import {ChoicePicker} from './ChoicePicker';
+import {explorationFromParam,explorationParam,eventsInExploration,type ExplorationArea} from './mapExploration';
 import './personalMap.css';
 
 function ScheduleFacts({event,catalog}:{event:AtlasEvent;catalog:AtlasCatalog}){
@@ -40,6 +41,7 @@ export function FootprintsPage() {
   const requestedReturn=params.get('return')??'';
   const returnToMine=params.get('from')==='mine'&&/^\/memories(?:\?[^#]*)?$/.test(requestedReturn)?requestedReturn:null;
   const mapLocation=useMapLocation();const [locationMode,setLocationMode]=useState(false);
+  const areaValue=params.get('area'),area=useMemo(()=>explorationFromParam(areaValue),[areaValue]);
   const [holdCamera,setHoldCamera]=useState(false),[focusRequest,setFocusRequest]=useState(0);
   const [savedPlaylists,setSavedPlaylists]=useState<SavedPlaylist[]|null>(null);
   const [playlistRetry,setPlaylistRetry]=useState(0),[playlistLoading,setPlaylistLoading]=useState(false);
@@ -63,16 +65,17 @@ export function FootprintsPage() {
   const scope=['mine','all','saved','followed'].includes(requestedScope??'')?requestedScope!:'all';
   const personal=usePersonalConcerts(user?.id??null,!linkedEvent||params.get('scene')==='map');
   const personalIds=useMemo(()=>new Set([...(personal.value?.attendedIds??[]),...(personal.value?.memories.flatMap(memory=>memory.event_id?[memory.event_id]:[])??[])]),[personal.value]);
-  const events=useMemo(()=>catalog?.events.filter(event=>(!artist||event.artist_id===artist.id)&&(scope!=='mine'||personalIds.has(event.id))&&(scope!=='saved'||savedPlaylists?.some(playlist=>playlist.event_id===event.id))&&(scope!=='followed'||interests.value?.artist_ids.includes(event.artist_id)))??[],[catalog,artist,scope,personalIds,savedPlaylists,interests.value]);
+  const activeCatalogEvents=useMemo(()=>catalog?.events.filter(event=>event.event_status!=='cancelled')??[],[catalog]);
+  const events=useMemo(()=>activeCatalogEvents.filter(event=>(!artist||event.artist_id===artist.id)&&(scope!=='mine'||personalIds.has(event.id))&&(scope!=='saved'||savedPlaylists?.some(playlist=>playlist.event_id===event.id))&&(scope!=='followed'||interests.value?.artist_ids.includes(event.artist_id))),[activeCatalogEvents,artist,scope,personalIds,savedPlaylists,interests.value]);
   const today=catalog?.today??chinaToday();
   const period:SchedulePeriod=params.get('period')==='upcoming'?'upcoming':'past';
   const futureRange:FutureRange=params.get('range')==='month'?'month':params.get('range')==='two-months'?'two-months':'week';
-  const month=period==='upcoming'||params.get('month')==='all'?'':/^\d{4}-(?:0[1-9]|1[0-2])$/.test(params.get('month')??'')?params.get('month')!:scope==='mine'?'':chinaToday().slice(0,7);
+  const month=period==='past'&&/^\d{4}-(?:0[1-9]|1[0-2])$/.test(params.get('month')??'')?params.get('month')!:'';
   const recent=useMemo(()=>selectSchedule(events,period,month,today,futureRange),[events,period,month,today,futureRange]);
   // A direct saved-night link may be outside today's default period. Keep that
   // explicitly selected night without adding unrelated dates or venues.
   // An explicit night still overrides a stale artist link, never personal membership.
-  const scopedLinkedEvent=linkedEvent&&(scope!=='mine'||personalIds.has(linkedEvent.id))&&(scope!=='saved'||savedPlaylists?.some(playlist=>playlist.event_id===linkedEvent.id))&&(scope!=='followed'||interests.value?.artist_ids.includes(linkedEvent.artist_id))?linkedEvent:undefined;
+  const scopedLinkedEvent=linkedEvent&&linkedEvent.event_status!=='cancelled'&&(scope!=='mine'||personalIds.has(linkedEvent.id))&&(scope!=='saved'||savedPlaylists?.some(playlist=>playlist.event_id===linkedEvent.id))&&(scope!=='followed'||interests.value?.artist_ids.includes(linkedEvent.artist_id))?linkedEvent:undefined;
   const visibleEvents=useMemo(()=>scopedLinkedEvent&&!recent.some(event=>event.id===scopedLinkedEvent.id)?[scopedLinkedEvent,...recent]:recent,[scopedLinkedEvent,recent]);
   const mapSchedule=useMemo(()=>selectSchedule(events,period,'',today,futureRange),[events,period,today,futureRange]);
   const mapEvents=useMemo(()=>scopedLinkedEvent&&!mapSchedule.some(event=>event.id===scopedLinkedEvent.id)?[scopedLinkedEvent,...mapSchedule]:mapSchedule,[scopedLinkedEvent,mapSchedule]);
@@ -80,8 +83,10 @@ export function FootprintsPage() {
   const nearbyRegion=useMemo(()=>mapLocation.position?nearbyConcertOverview(mapEvents,cities,mapLocation.position):null,[mapEvents,cities,mapLocation.position]);
   const recentRegion=useMemo(()=>recentConcertOverview(mapEvents,cities,today),[mapEvents,cities,today]);
   const overviewRegion=useMemo(()=>locationMode?(nearbyRegion??recentRegion):scheduleOverview(scope,period,mapEvents,cities)??(scope==='all'?recentRegion:null),[locationMode,nearbyRegion,recentRegion,scope,period,mapEvents,cities]);
-  const focusedRecent=locationMode&&overviewRegion?recent.filter(event=>overviewRegion.eventIds.includes(event.id)):recent;
-  const displayRuns=groupConcertRuns(focusedRecent).sort((a,b)=>period==='past'?b.events.at(-1)!.date.localeCompare(a.events.at(-1)!.date):a.events[0].date.localeCompare(b.events[0].date));
+  const focusedRecent=area?eventsInExploration(recent,cities,area):locationMode&&overviewRegion?recent.filter(event=>overviewRegion.eventIds.includes(event.id)):recent;
+  const displayRuns=selectConcertRuns(activeCatalogEvents,focusedRecent).sort((a,b)=>period==='past'?b.events.at(-1)!.date.localeCompare(a.events.at(-1)!.date):a.events[0].date.localeCompare(b.events[0].date));
+  const activity=useMemo(()=>linkedEvent?groupConcertRuns(catalog?.events??[]).find(run=>run.events.some(event=>event.id===linkedEvent.id)):undefined,[catalog,linkedEvent]);
+  const activityIds=useMemo(()=>activity?.events.map(event=>event.id)??[],[activity]);
   // Legacy exterior links with an event now go straight to that concert.
   const scene=linkedEvent&&params.get('scene')!=='map'?'sky':'map';
   const player=useConcertPlayer(scene==='sky'?linkedEvent?.id??null:null);
@@ -95,7 +100,7 @@ export function FootprintsPage() {
     const panel=mapPanel.current,page=panel?.closest<HTMLElement>('.atlas-page');if(scene==='sky'||!panel||!page)return;
     const measure=()=>{page.style.setProperty('--atlas-sheet-height',`${panel.getBoundingClientRect().height}px`);page.style.setProperty('--atlas-header-height',`${page.querySelector('.atlas-searchbar')?.getBoundingClientRect().height??185}px`);};
     measure();if(typeof ResizeObserver==='undefined')return;
-    const observer=new ResizeObserver(measure);observer.observe(panel);return()=>observer.disconnect();
+    const observer=new ResizeObserver(measure);observer.observe(panel);const header=page.querySelector('.atlas-searchbar');if(header)observer.observe(header);return()=>observer.disconnect();
   },[!!catalog,scene,city?.id,searchOpen,venueSearch,expanded]);
   function playSong(song:AtlasSong){setSelectedSong(song);player.select(song);}
   const recentHeading=scope==='mine'?'我的现场经历':locationMode&&nearbyRegion?'附近的现场':locationMode&&recentRegion?'近期演出较多的区域':'最近的现场';
@@ -120,11 +125,17 @@ export function FootprintsPage() {
     void playlistUpdate.refresh(playlist,value=>setSavedPlaylists(items=>items?.map(item=>item.event_id===value.event_id?value:item)??null),reloadPlaylists);
   }
   function retryPlaylists(){if(!collectionRequest.current&&!playlistUpdate.inFlight())setPlaylistRetry(value=>value+1);}
-  function filters(extra:Record<string,string>={}){return Object.fromEntries(Object.entries({...(returnToMine?{from:'mine',return:returnToMine}:{}),...(scope?{scope}:{}),period,...(params.has('range')?{range:futureRange}:{}),...(params.get('month')==='all'?{month:'all'}:month?{month}:{}),...extra}).filter(([,value])=>value));}
+  function filters(extra:Record<string,string>={}){return Object.fromEntries(Object.entries({...(returnToMine?{from:'mine',return:returnToMine}:{}),...(scope?{scope}:{}),period,...(area?{area:explorationParam(area)}:{}),...(params.has('range')?{range:futureRange}:{}),...(params.get('month')==='all'?{month:'all'}:month?{month}:{}),...extra}).filter(([,value])=>value));}
   function chooseScope(value:'mine'|'all'|'saved'|'followed'){mapLocation.cancel();setLocationMode(false);setHoldCamera(value!=='mine');if(value==='mine')setFocusRequest(value=>value+1);setParams(filters({scope:value,...(value==='mine'?{month:'all',period:'past'}:{})}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);}
   function locate(){
     setSearchOpen(false);setQuery('');
-    mapLocation.request(()=>{setLocationMode(true);setHoldCamera(false);setFocusRequest(value=>value+1);setParams(filters({scope:'all',month:'all'}),{replace:true});setExpanded(false);});
+    mapLocation.request(()=>{setLocationMode(true);setHoldCamera(false);setFocusRequest(value=>value+1);setParams(filters({scope:'all',month:'all',area:''}),{replace:true});setExpanded(false);});
+  }
+  function chooseArea(value:ExplorationArea){
+    mapLocation.cancel();setLocationMode(false);setHoldCamera(false);
+    const selection=filters({...(artist?{artist:artist.id}:{}),area:explorationParam(value)});
+    setParams(selection);
+    setSearchOpen(false);setQuery('');setVenueSearch(false);setVenueQuery('');setExpanded(false);
   }
   function filterLocation(){return {...(artist?{artist:artist.id}:{}),...(city?{city:city.id}:{})};}
   function changePeriod(value:SchedulePeriod){mapLocation.cancel();setLocationMode(false);setParams(filters({...filterLocation(),period:value}),{replace:true});setExpanded(false);}
@@ -136,7 +147,7 @@ export function FootprintsPage() {
     mapLocation.cancel();setLocationMode(false);
     setHoldCamera(false);
     const pinned:Record<string,string>=artistId&&scopedLinkedEvent?.artist_id===artistId&&scopedLinkedEvent.city===value.name?{event:scopedLinkedEvent.id,venue:`${scopedLinkedEvent.city}:${scopedLinkedEvent.venue}`,scene:'map'}:{};
-    setParams(filters({...(searchOpen?{scope:'all'}:{}),...(artistId?{artist:artistId,month:'all'}:artist?{artist:artist.id}:{}),city:value.id,...pinned}));setSearchOpen(false);setQuery('');setVenueSearch(false);setVenueQuery('');
+    setParams(filters({area:'',...(searchOpen?{scope:'all'}:{}),...(artistId?{artist:artistId,month:'all'}:artist?{artist:artist.id}:{}),city:value.id,...pinned}));setSearchOpen(false);setQuery('');setVenueSearch(false);setVenueQuery('');
   }
   function openEvent(value:AtlasEvent){const matchingCity=cities.find(item=>item.name===value.city);setParams(filters({...(artist?{artist:value.artist_id}:{}),...(matchingCity?{city:matchingCity.id}:{}),event:value.id,scene:'sky'}));setExpanded(false);setSearchOpen(false);}
   function back(){
@@ -155,22 +166,21 @@ export function FootprintsPage() {
   function matchesLocalEvent(event:AtlasEvent){
     return matchesConcertSearch(event,venueQuery,loadedCatalog.artists.find(item=>item.id===event.artist_id));
   }
-  const localRuns=groupConcertRuns(localEvents).filter(run=>!venueSearch||run.events.some(matchesLocalEvent)).sort((a,b)=>period==='past'?b.events.at(-1)!.date.localeCompare(a.events.at(-1)!.date):a.events[0].date.localeCompare(b.events[0].date));
+  const localRuns=selectConcertRuns(activeCatalogEvents,localEvents).filter(run=>!venueSearch||run.events.some(matchesLocalEvent)).sort((a,b)=>period==='past'?b.events.at(-1)!.date.localeCompare(a.events.at(-1)!.date):a.events[0].date.localeCompare(b.events[0].date));
   function runEvent(run:ConcertRun<AtlasEvent>,searching=false){
-    const candidates=searching&&venueQuery.trim()?run.events.filter(matchesLocalEvent):run.events;
+    const candidates=searching&&venueQuery.trim()?run.events.filter(matchesLocalEvent):run.events.filter(event=>visibleEvents.some(item=>item.id===event.id));
     return candidates.find(event=>event.id===linkedEvent?.id)??(period==='past'?[...candidates].reverse().find(event=>event.event_status!=='cancelled'):candidates.find(event=>event.event_status!=='cancelled'))??candidates[0]??run.events[0];
   }
   function runCard(run:ConcertRun<AtlasEvent>,inside=false){
     const event=runEvent(run,inside&&venueSearch),first=run.events[0],last=run.events.at(-1)!,multiple=run.events.length>1,cancelled=run.events.every(item=>item.event_status==='cancelled');
     const saved=run.events.some(item=>savedPlaylists?.some(playlist=>playlist.event_id===item.id));
-    const memoryCount=personal.value?.memories.filter(memory=>run.events.some(night=>night.id===memory.event_id)).length??0;
     return <article className={`atlas-schedule-item${multiple?' is-run':''}`} key={run.id}>
       <button className="atlas-schedule-row" type="button" disabled={cancelled} aria-label={`${dateLabel(event.date)} ${loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name} ${event.title}`} onClick={()=>openEvent(event)}>
         <time data-old-year={!first.date.startsWith(today.slice(0,4))}><span>{first.date.slice(5).replace('-','.')}{multiple&&<>—{last.date.slice(5).replace('-','.')}</>}</span><small>{first.date.slice(0,4)}</small></time>
         <span><strong>{event.city} · {loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}</strong><small>{event.venue}</small></span>
       </button>
       <button type="button" className={`atlas-schedule-heart${saved?' is-saved':''}`} aria-label={`${saved?'取消收藏':'收藏'} ${event.city} ${loadedCatalog.artists.find(item=>item.id===event.artist_id)?.name}`} aria-pressed={saved} disabled={!!savingEvent||playlistUpdate.refreshing||!!user&&savedPlaylists===null||!saved&&!event.songs.length} onClick={()=>void collectEvent(event,run)}><Heart size={21} weight={saved?'fill':'regular'}/></button>
-      <div className="atlas-schedule-details">{scope==='mine'&&<small className="atlas-personal-evidence">{[memoryCount?`${memoryCount} 张记忆`:'',run.events.some(night=>personal.value?.attendedIds.includes(night.id))?'已标记到场':''].filter(Boolean).join(' · ')}</small>}<ScheduleFacts event={event} catalog={loadedCatalog}/>{multiple&&run.events.some(night=>night.event_status==='cancelled')&&!cancelled&&<small className="atlas-run-warning">部分日期已取消</small>}</div>
+      <div className="atlas-schedule-details"><ScheduleFacts event={event} catalog={loadedCatalog}/>{multiple&&run.events.some(night=>night.event_status==='cancelled')&&!cancelled&&<small className="atlas-run-warning">部分日期已取消</small>}</div>
     </article>;
   }
   const matchingArtists=filterArtists(catalog.artists,query);
@@ -181,9 +191,9 @@ export function FootprintsPage() {
   const personalEmpty=scope==='mine'?personal.value!==null&&personalIds.size===0:scope==='saved'?savedPlaylists?.length===0:scope==='followed'?interests.value?.artist_ids.length===0:false;
   const emptyText=scope!=='all'&&!user?'登录后可查看你的经历、收藏和歌手行程。':personalLoading?'正在读取你的行程…':scope==='mine'&&personal.error?'个人经历暂未读到，请重试。':scope==='mine'&&personalEmpty?'还没有关联演出的记忆或到场标记。':scope==='saved'&&personalEmpty?'还没有收藏演出。':scope==='followed'&&personalEmpty?'还没有关注歌手。':scope==='saved'&&saveError?'收藏暂未读到，可重试或查看全部行程。':scope==='followed'&&interests.error?'关注暂未读到，可重试或查看全部行程。':period==='upcoming'?`${futureRangeLabels[futureRange]}暂无待演场次。`:'当前筛选暂无往期场次。';
   if(scene==='sky'&&linkedEvent)return <section className="concert-journal journal-page" data-scene="sky">
-    <nav className="concert-journal-toolbar" aria-label="演出详情导航"><button type="button" onClick={back} aria-label="返回上一页"><ArrowLeft size={18}/>返回</button><button type="button" onClick={()=>{setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}} aria-label="返回全国地图"><MapPinArea size={22} weight="light"/></button></nav>
-    <header className="concert-summary"><h1>{catalog.artists.find(item=>item.id===linkedEvent.artist_id)?.name??linkedEvent.title}</h1><p className="concert-tour" title={linkedEvent.title}>{linkedEvent.title.replace(catalog.artists.find(item=>item.id===linkedEvent.artist_id)?.name??'','').trim()}</p><p className="concert-dateline"><time dateTime={linkedEvent.date}>{dateLabel(linkedEvent.date)}</time>{linkedEvent.time?` · ${linkedEvent.time}`:''} · {linkedEvent.venue}</p><ScheduleFacts event={linkedEvent} catalog={catalog}/></header>
-    <EventRecords key={`${user?.id??'guest'}:${linkedEvent.id}`} eventId={linkedEvent.id} next={next}>
+    <nav className="concert-journal-toolbar" aria-label="演出详情导航"><button type="button" onClick={back} aria-label="返回上一页"><ArrowLeft size={18}/>返回</button><button type="button" onClick={()=>{setHoldCamera(false);setParams(filters({...(artist?{artist:artist.id}:{}),area:''}));setExpanded(false);}} aria-label="返回全国地图"><MapPinArea size={22} weight="light"/></button></nav>
+    <header className="concert-summary"><h1>{catalog.artists.find(item=>item.id===linkedEvent.artist_id)?.name??linkedEvent.title}</h1><p className="concert-tour" title={linkedEvent.title}>{linkedEvent.title.replace(catalog.artists.find(item=>item.id===linkedEvent.artist_id)?.name??'','').trim()}</p><p className="concert-dateline"><time dateTime={activity?.events[0].date??linkedEvent.date}>{activity&&activity.events.length>1?`${dateLabel(activity.events[0].date)}—${dateLabel(activity.events.at(-1)!.date)}`:dateLabel(linkedEvent.date)}</time>{linkedEvent.time?` · ${linkedEvent.time}`:''} · {linkedEvent.venue}</p><ScheduleFacts event={linkedEvent} catalog={catalog}/></header>
+    <EventRecords key={`${user?.id??'guest'}:${linkedEvent.id}`} eventId={linkedEvent.id} eventIds={activityIds} next={next}>
       <details className="concert-info"><summary>演出资料与相关作品</summary><div className="concert-info-content">
         {linkedEvent.source_url&&<a className="text-button" href={linkedEvent.source_url} target="_blank" rel="noreferrer">{linkedEvent.source_title||'查看场次来源'} ↗</a>}
         <h3>{linkedEvent.setlist_kind==='confirmed'?'已核实现场歌单':linkedEvent.setlist_kind==='partial'?'部分现场曲目':'相关作品'}</h3>
@@ -196,7 +206,7 @@ export function FootprintsPage() {
   </section>;
   return <section className={`atlas-page atlas-${scene} ${city&&scene==='map'?'is-venue-map':''}`} data-scene={scene}>
     <div className="atlas-scene">
-      <AtlasMap cities={cities} events={mapEvents} artists={catalog.artists} today={today} overviewRegion={overviewRegion} photos={mapPhotos.photos} initialReady={!sessionLoading&&!personalLoading&&!mapPhotos.loading} holdCamera={holdCamera} focusRequest={focusRequest} selectedCity={city} artistSelected={!!artist} onCity={chooseCity} onVenue={openEvent} onNation={()=>{setHoldCamera(false);setParams(filters(artist?{artist:artist.id}:{}));setExpanded(false);}} onLocate={locate} locating={mapLocation.phase==='locating'} onInteraction={mapLocation.cancel} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
+      <AtlasMap cities={cities} events={mapEvents} artists={catalog.artists} today={today} overviewRegion={overviewRegion} area={area} photos={mapPhotos.photos} initialReady={!sessionLoading&&!personalLoading&&!mapPhotos.loading} holdCamera={holdCamera} focusRequest={focusRequest} selectedCity={city} artistSelected={!!artist} onArea={chooseArea} onNation={()=>{setHoldCamera(false);setParams(filters({...(artist?{artist:artist.id}:{}),area:''}));setExpanded(false);}} onLocate={locate} locating={mapLocation.phase==='locating'} onInteraction={mapLocation.cancel} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
     </div>
     {scene==='map'?<header className="atlas-searchbar has-mine-return">
       <div className="atlas-topline">{city?<button type="button" className="atlas-return-map" onClick={back}><ArrowLeft size={14} aria-hidden="true"/>返回地图</button>:<Link className="atlas-return-mine" to={returnToMine??'/memories'}><ArrowLeft size={14} aria-hidden="true"/>返回我的</Link>}<small>听见城市，走过山海。</small></div>
@@ -216,13 +226,13 @@ export function FootprintsPage() {
       <div ref={scheduleList} className="atlas-schedule-list" onScroll={event=>scheduleScroll.current.set(location.key,event.currentTarget.scrollTop)}>{localRuns.map(run=>runCard(run,true))}</div>
       {(saveError||playlistUpdate.error)&&<p className="atlas-save-error" role="alert">{saveError||playlistUpdate.error}<button type="button" disabled={!!savingEvent||playlistLoading||playlistUpdate.refreshing} onClick={retryPlaylists}>重试读取收藏</button></p>}
       {!localRuns.length&&<div className="atlas-empty-city"><p role={personalLoading?'status':scope==='mine'&&personal.error?'alert':undefined}>{scope!=='all'&&(!user||personalLoading||personalEmpty||scope==='mine'&&personal.error||scope==='saved'&&saveError||scope==='followed'&&interests.error)?emptyText:venueSearch?'没有找到符合条件的场次。':artist?`当前筛选下，${artist.name}在这里暂无已核实场次。`:'当前筛选下，这里暂无已核实场次。'}</p>{scope==='mine'&&personal.error&&<button type="button" onClick={personal.reload}>重试读取经历</button>}{scope!=='all'&&<button type="button" onClick={()=>chooseScope('all')}>查看全部行程</button>}{!venueSearch&&artist&&<button type="button" onClick={()=>setParams(filters({city:city.id}),{replace:true})}>看看这座城的其他现场</button>}{!venueSearch&&month&&<button type="button" onClick={()=>changeMonth('all')}>清除月份筛选</button>}</div>}
-    </section>:scene==='map'&&!searchOpen?<section ref={mapPanel} className={`atlas-panel atlas-itinerary ${expanded?'is-expanded':''}`} aria-label="近期行程">
-      <header><h2>{artist?`${artist.name}的行程`:recentHeading}</h2>{artist&&<FollowArtist artist={artist} next={next} data={interests}/>}</header>
+    </section>:scene==='map'&&!searchOpen?<section ref={mapPanel} className={`atlas-panel atlas-itinerary ${area?'is-area':''} ${expanded?'is-expanded':''}`} aria-label="近期行程">
+      <header><h2>{area?'周边演唱会':artist?`${artist.name}的行程`:recentHeading}</h2>{artist&&<FollowArtist artist={artist} next={next} data={interests}/>}</header>
       {scheduleFilters()}
       <div ref={scheduleList} className="atlas-schedule-list" onScroll={event=>scheduleScroll.current.set(location.key,event.currentTarget.scrollTop)}>{displayRuns.map(run=>runCard(run))}</div>
       {(saveError||playlistUpdate.error)&&<p className="atlas-save-error" role="alert">{saveError||playlistUpdate.error}<button type="button" disabled={!!savingEvent||playlistLoading||playlistUpdate.refreshing} onClick={retryPlaylists}>重试读取收藏</button></p>}
       {!displayRuns.length&&<div className="atlas-schedule-empty"><p role={personalLoading?'status':undefined}>{emptyText}</p>{scope==='mine'&&personal.error&&<button type="button" onClick={personal.reload}>重试读取经历</button>}{scope!=='all'&&<button type="button" onClick={()=>chooseScope('all')}>查看全部行程</button>}{!personalEmpty&&!personalLoading&&period==='upcoming'&&selectSchedule(events,'past','',today).length>0&&<button type="button" onClick={()=>changePeriod('past')}>看看往期现场 <ArrowRight size={14}/></button>}{!personalEmpty&&!personalLoading&&month&&<button type="button" onClick={()=>changeMonth('all')}>清除月份筛选</button>}</div>}
-      {!!displayRuns.length&&<p className="atlas-scroll-hint">下滑查看更多</p>}
+      {!!displayRuns.length&&(!area||displayRuns.length>1)&&<p className="atlas-scroll-hint">{area?'上滑查看其他演唱会':'下滑查看更多'}</p>}
     </section>:null}
   </section>;
 }
