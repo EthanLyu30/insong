@@ -12,21 +12,21 @@ export const mapMarkerPhotos:Record<string,MarkerPhoto>={
 };
 mapMarkerPhotos.liu=mapMarkerPhotos['liu-yuxin'];
 
-export function mapMarkerLayout(city:string,artistId:string,events:{city:string;artist_id:string;event_status?:string}[]):{offset:[number,number];diameter:number}{
+/** Keep a city group compact at national scale, then open it as the map zooms in. */
+export function mapMarkerLayout(city:string,artistId:string,events:{city:string;artist_id:string;event_status?:string}[],zoom=6):{offset:[number,number];diameter:number}{
   const ids=[...new Set(events.filter(event=>event.city===city&&event.event_status!=='cancelled'&&Object.hasOwn(mapMarkerPhotos,event.artist_id)).map(event=>event.artist_id))].sort();
   const index=ids.indexOf(artistId);
   if(index<0)return {offset:[0,0],diameter:48};
-  if(ids.length===1)return {offset:[0,0],diameter:58};
-  if(ids.length===2)return {offset:[index===0?-33:33,0],diameter:index===0?58:50};
-
-  const centered=ids.length>=7;
-  const diameters=centered?[58,50,46,44,42,40,40,40]:[58,50,46,44,42,40];
-  if(centered&&index===0)return {offset:[0,0],diameter:diameters[0]};
-  const slot=centered?index-1:index;
-  const ringCount=centered?ids.length-1:ids.length;
-  const radius=centered?(ids.length===7?57:60):({3:45,4:49,5:53,6:58} as Record<number,number>)[ids.length];
-  const angle=slot*2*Math.PI/ringCount-Math.PI/2;
-  return {offset:[Math.round(Math.cos(angle)*radius),Math.round(Math.sin(angle)*radius)],diameter:diameters[index]};
+  const progress=Math.max(0,Math.min(1,(zoom-3)/6));
+  const diameter=Math.max(38,Math.round(40+22*progress-index*2.3));
+  if(ids.length===1)return {offset:[0,0],diameter};
+  const spread=30+26*progress;
+  const slots=ids.length===2?[[-.48,0],[.48,0]]:[
+    [-1.1,-.7],[0,-.95],[1.1,-.6],[-.65,.15],[.55,.05],
+    [-1.1,1],[0,1.05],[1.1,.9],
+  ];
+  const [x,y]=slots[index]??[0,0];
+  return {offset:[Math.round(x*spread),Math.round(y*spread)],diameter};
 }
 
 export function mapMarkerOffset(city:string,artistId:string,events:{city:string;artist_id:string;event_status?:string}[]):[number,number]{

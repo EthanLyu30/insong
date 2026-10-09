@@ -45,13 +45,14 @@ test('empty event prioritizes public feed, auto-appends unique real pages and en
   assert.equal(document.querySelector('.concert-write-link').getAttribute('href'),'/create?event=one');
   assert.ok(document.querySelector('.concert-write-link').classList.contains('primary-button'));
   const feed=document.querySelector('.concert-public-memories');
-  assert.equal(feed.querySelector('h2').textContent,'这一场的瞬间');assert.ok(!feed.querySelector('.concert-section-heading small'));
+  assert.equal(feed.querySelector('h2').textContent,'其他瞬间');assert.ok(!feed.querySelector('.concert-section-heading small'));
   const supplement=document.querySelector('.concert-supplement');
   assert.ok(supplement.compareDocumentPosition(feed)&window.Node.DOCUMENT_POSITION_FOLLOWING,'folded event information precedes the public feed');
   assert.match(supplement.textContent,/补充资料/);
-  assert.match(feed.textContent,/公开文字21/);
+  assert.ok(feed.querySelector('a[href="/stories/21"]'),'public stories keep the music-card entry even without my memory');
+  assert.equal(feed.querySelectorAll('.unified-story-card').length,0);
   await intersect();assert.match(feed.querySelector('[role="alert"]').textContent,/加载失败/);
-  assert.match(feed.textContent,/公开文字21/,'failed continuation preserves already loaded content');
+  assert.ok(feed.querySelector('a[href="/stories/21"]'),'failed continuation preserves already loaded content');
   await React.act(async()=>[...feed.querySelectorAll('button')].find(button=>button.textContent==='重试').click());
   assert.equal(feed.querySelectorAll('a[href="/stories/22"]').length,1,'cursor overlap never repeats a card');
   assert.equal(feed.querySelectorAll('a[href="/stories/23"]').length,1);
@@ -59,11 +60,11 @@ test('empty event prioritizes public feed, auto-appends unique real pages and en
   const requests=feedRequests;await intersect();await intersect();assert.equal(feedRequests,requests,'true exhaustion never cycles pages');
 }));
 
-test('record errors do not offer duplicate creation, existing records keep a single edit and older data',async()=>harness(async({render})=>{
+test('record errors do not offer duplicate creation, multiple memories form a directly visible private card collection',async()=>harness(async({render})=>{
   let error=true;
   globalThis.fetch=async url=>{
     if(url==='/api/me')return Response.json({user:{id:3,display_name:'我',is_demo:false}});
-    if(String(url).startsWith('/api/memories?'))return error?Response.json({detail:'读取失败'},{status:503}):Response.json([memory,{...memory,id:12,story:'旧记录'}]);
+    if(String(url).startsWith('/api/memories?'))return error?Response.json({detail:'读取失败'},{status:503}):Response.json([memory,{...memory,id:12,title:'旧记录标题',story:'旧记录'}]);
     if(String(url).startsWith('/api/public-feed?'))return Response.json({items:[],next_cursor:null});
     if(String(url).startsWith('/api/stories?'))return Response.json([]);
     throw Error('Unexpected '+url);
@@ -71,13 +72,14 @@ test('record errors do not offer duplicate creation, existing records keep a sin
   await render();assert.match(document.querySelector('[role="alert"]').textContent,/读取失败/);
   assert.ok(!document.querySelector('.concert-write-link'));
   error=false;await render('/events/one','existing');
-  assert.equal(document.querySelector('.concert-memory-edit').textContent,'编辑');
-  assert.equal(document.querySelector('.concert-memory-edit').getAttribute('href'),'/memories/11/edit');
-  assert.ok(document.querySelector('.concert-memory-edit').classList.contains('memory-edit-link'));
-  assert.ok(!document.querySelector('.concert-memory-details'));
-  assert.match(document.querySelector('.concert-older-memories').textContent,/旧记录/);
-  assert.match(document.querySelector('.concert-my-memories .unified-story-card').textContent,/私密文字/);
-  assert.match(document.querySelector('.concert-my-memories .story-byline').textContent,/晚风小岚/,'the approved author name survives the concert entry');
+  const collection=document.querySelector('.concert-my-memories');
+  assert.equal(collection.querySelectorAll('a[href="/memories/11"]').length,1);
+  assert.equal(collection.querySelectorAll('a[href="/memories/12"]').length,1);
+  assert.equal(collection.querySelectorAll('.story-card').length,2);
+  assert.equal(collection.querySelectorAll('details,.unified-story-card').length,0,'no extra expansion or privileged first document');
+  assert.match(collection.textContent,/旧记录标题/);
+  assert.ok(collection.querySelector('[aria-label="作者：晚风小岚"]'),'the approved author name survives the concert entry');
+  assert.match(collection.querySelector('h2').textContent,/2/);
   const supplement=document.querySelector('.concert-supplement'),mine=document.querySelector('.concert-my-memories'),feed=document.querySelector('.concert-public-memories');
   assert.ok(supplement.compareDocumentPosition(mine)&window.Node.DOCUMENT_POSITION_FOLLOWING,'event information comes before private cards');
   assert.ok(mine.compareDocumentPosition(feed)&window.Node.DOCUMENT_POSITION_FOLLOWING,'private cards still come before public cards');
@@ -138,7 +140,7 @@ test('event and account switches discard late public pages instead of exposing o
   await render('/events/two');
   await React.act(async()=>finishLate());
   assert.equal(oldSignal.aborted,true);assert.ok(!document.body.textContent.includes('旧账号晚到内容'));
-  assert.match(document.querySelector('.concert-public-memories').textContent,/公开文字21/);
+  assert.ok(document.querySelector('.concert-public-memories a[href="/stories/21"]'));
 }));
 
 test('expired popularity pages retry from a fresh scoped ranking instead of repeating a dead cursor',async()=>harness(async({React,render,intersect})=>{

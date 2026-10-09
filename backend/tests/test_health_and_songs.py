@@ -20,7 +20,7 @@ def test_home_can_load_five_clearly_labeled_demo_songs(tmp_path):
     assert response.status_code == 200
     catalog = response.json()
     songs = [song for song in catalog if song['is_demo']]
-    assert len(catalog) == 13 and len(songs) == 5
+    assert len(catalog) == 17 and len(songs) == 5
     assert songs[0]["title"] == "散场以后"
     assert all(song["is_demo"] is True for song in songs)
     assert all(song["audio_available"] is True for song in songs)

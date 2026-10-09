@@ -4,10 +4,10 @@ import {PencilSimple} from '@phosphor-icons/react';
 import {useSession} from './SessionContext';
 import {useData} from './useData';
 import {StoryCard} from './StoryCard';
-import {StoryGrid} from './PublicPages';
+import {StoryEntry,StoryGrid} from './PublicPages';
 import {cardPhotos} from './cardMedia';
 import {PublicFeed} from './PublicFeed';
-import type {Memory,PublicStory} from './memoryClient';
+import type {Memory} from './memoryClient';
 import './memoryExperience.css';
 
 export function EventRecords({eventId,next,children}:{eventId:string;next:string;children?:ReactNode}){
@@ -22,7 +22,7 @@ function EventRecordsBody({eventId,children}:{eventId:string;next:string;childre
     {children&&<div className="concert-supplement">{children}</div>}
     {loading?<p className="concert-resource-note" role="status">正在确认账号…</p>:user&&<PersonalRecords eventId={eventId} author={user.display_name} onCount={setOwnCount}/>}
     {!loading&&!error&&ownCount===0&&<Link className="primary-button concert-write-link" to={`/create?event=${encodeURIComponent(eventId)}`}>记下这一晚</Link>}
-    <PublicRecords key={`${user?.id??'guest'}:${eventId}`} eventId={eventId} featured={ownCount===0}/>
+    <PublicRecords key={`${user?.id??'guest'}:${eventId}`} eventId={eventId}/>
   </div>;
 }
 
@@ -38,16 +38,12 @@ function PersonalRecords({eventId,author,onCount}:{eventId:string;author:string;
   if(error)return <p className="concert-resource-error" role="alert">{error}<button type="button" className="text-button" onClick={()=>setRetry(value=>value+1)}>重试</button></p>;
   if(!value)return <p className="concert-resource-note" role="status">正在翻开我的记忆…</p>;
   if(!value.length)return null;
-  return <section className="concert-my-memories" aria-labelledby="concert-my-heading"><header className="concert-section-heading"><h2 id="concert-my-heading">我的记忆</h2></header><MemoryDocument memory={value[0]} author={author}/>{value.length>1&&<details className="concert-older-memories"><summary>这场还留下了 {value.length-1} 段记忆</summary>{value.slice(1).map(memory=><MemoryDocument key={memory.id} memory={memory} author={author}/>)}</details>}</section>;
+  return <section className="concert-my-memories" aria-labelledby="concert-my-heading"><header className="concert-section-heading"><h2 id="concert-my-heading">我的记忆{value.length>1&&` · ${value.length} 条`}</h2></header>{value.length===1?<MemoryDocument memory={value[0]} author={author}/>:<div className="story-masonry concert-memory-collection">{value.map(memory=><StoryEntry key={memory.id} memory={memory} author={author}/>)}</div>}</section>;
 }
 
-function PublicRecords({eventId,featured}:{eventId:string;featured:boolean}){
+function PublicRecords({eventId}:{eventId:string}){
   return <section className="concert-public-memories" aria-labelledby="concert-public-heading">
-    <header className="concert-section-heading"><h2 id="concert-public-heading">这一场的瞬间</h2></header>
-    <PublicFeed eventId={eventId} excludeMine emptyText="还没有听友公开分享这场演出。" renderStories={stories=>{
-      const first:PublicStory|undefined=featured?stories[0]:undefined;
-      const rest=first?stories.slice(1):stories;
-      return <>{first&&<StoryCard author={first.author_name} sample={first.is_demo_sample} title={first.title} year={first.life_year} time={first.life_time} song={first.song} photos={cardPhotos(first)} text={first.excerpt} tags={first.tags} anchor={first.offset_ms} end={first.end_ms} lyric={first.lyric} musicSelection={first.music_selection} headingLevel="h2"/>}{rest.length>0&&<StoryGrid stories={rest}/>}</>;
-    }}/>
+    <header className="concert-section-heading"><h2 id="concert-public-heading">其他瞬间</h2></header>
+    <PublicFeed eventId={eventId} excludeMine emptyText="还没有听友公开分享这场演出。" renderStories={stories=><StoryGrid stories={stories}/>}/>
   </section>;
 }

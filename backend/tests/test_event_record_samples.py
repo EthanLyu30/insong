@@ -33,7 +33,7 @@ def test_event_samples_have_owner_records_and_other_listeners_with_protected_pho
         assert guest.get(other[0]['photos'][0]['url']).status_code == 200
         assert guest.get(f'/api/memories/{other[0]["id"]}').status_code == 404
         assert len(owner.get(f'/api/memories?event_id={LIU}').json()) == 1
-        assert len(guest.get(f'/api/stories?event_id={LIU}').json()) == 1
+        assert len(guest.get(f'/api/stories?event_id={LIU}').json()) == 5
 
 
 def test_restart_and_lost_marker_preserve_edited_withdrawn_and_deleted_samples(tmp_path):

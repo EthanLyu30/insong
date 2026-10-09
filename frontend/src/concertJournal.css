@@ -23,10 +23,7 @@
 .concert-memory-edit{display:inline-flex;align-items:center;min-height:40px;font-size:12px}
 .concert-memory-actions{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin:12px 0 20px}
 .concert-memory-actions .memory-edit-link{width:100%}
-.concert-older-memories{margin-top:12px}
-.concert-older-memories>summary{cursor:pointer;min-height:44px;color:#9a806a;font-size:12px;display:flex;align-items:center;list-style:none}
-.concert-older-memories>summary::after{content:'＋';margin-left:auto}
-.concert-older-memories[open]>summary::after{content:'−'}
+.concert-card-privacy{margin-right:auto;color:#9a8670;font-size:11px;align-self:center}
 .concert-journal .concert-my-memories .concert-memory-stack{margin:0;padding:0}
 .concert-journal .concert-my-memories .concert-memory-stack::before{display:none}
 .concert-resource-note,.concert-empty p{margin:0 0 12px;color:#9a8670;font-size:13px;line-height:1.8}

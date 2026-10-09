@@ -9,7 +9,8 @@ export function visibleMapPhotoKeys(points:MapPhotoCircle[],bounds:MapPhotoBound
     if(![point.x,point.y,point.diameter].every(Number.isFinite)||point.diameter<=0)continue;
     const radius=point.diameter/2;
     if(point.x-radius<bounds.left||point.x+radius>bounds.right||point.y-radius<bounds.top||point.y+radius>bounds.bottom)continue;
-    if(visible.some(other=>Math.hypot(point.x-other.x,point.y-other.y)<(point.diameter+other.diameter)/2+3))continue;
+    // A little overlap makes dense cities readable; only hide near-duplicates.
+    if(visible.some(other=>Math.hypot(point.x-other.x,point.y-other.y)<(point.diameter+other.diameter)*.31))continue;
     visible.push(point);
   }
   return visible.map(point=>point.key);

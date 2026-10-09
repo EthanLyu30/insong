@@ -72,7 +72,8 @@ test('concert journal directly shows the complete memory while preserving privat
     assert.ok(!document.querySelector('.concert-my-memories'),'empty private headings no longer precede actual public content');
     assert.equal(document.querySelector('.concert-write-link').getAttribute('href'),'/create?event=two');
     assert.ok(document.querySelector('.concert-public-memories .story-card'),'non-attended performances still show public memories');
-    assert.ok(document.querySelector('.concert-public-memories .unified-story-card'),'without My notes the first actual public post is directly readable');
+    assert.ok(document.querySelector('.concert-public-memories a[href="/stories/21"]'),'without My notes all public memories still use the existing music cards');
+    assert.equal(document.querySelectorAll('.concert-public-memories .unified-story-card').length,0);
 
     await render('/footprints?event=late','late');
     await render('/footprints?event=two','switch');

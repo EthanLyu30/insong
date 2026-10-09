@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {advanceTrail,previousVisit,restoreTrail,localPath} from '../src/navigationTrail.ts';
+import {advanceTrail,concertStoryOrigin,previousVisit,restoreTrail,localPath} from '../src/navigationTrail.ts';
 
 test('visit tracking preserves source query state through PUSH, REPLACE, POP and forward',()=>{
   const map={key:'map',url:'/footprints?artist=gem&period=past&month=2026-09'};
@@ -29,4 +29,27 @@ test('refresh restores only a matching app visit; external, malformed and unrela
   const unsafe={entries:[{key:'x',url:'//other.example'},b],index:1};
   assert.equal(previousVisit(restoreTrail(JSON.stringify(unsafe),b)),null);
   for(const url of ['https://other.example','//other.example','/\\other.example','/\nunsafe'])assert.equal(localPath(url),false);
+});
+
+test('related-story return keeps the concert history entry through refresh, POP and forward',()=>{
+  const source={key:'concert',url:'/footprints?artist=liu-yuxin&city=shanghai&event=one&scene=sky'};
+  const first={key:'first',url:'/stories/21'},second={key:'second',url:'/stories/22'},third={key:'third',url:'/stories/23'};
+  let trail=restoreTrail(null,source);
+  for(const visit of [first,second,third])trail=advanceTrail(trail,visit,'PUSH');
+  assert.deepEqual(concertStoryOrigin(trail),{key:'concert',url:source.url,delta:-3});
+  trail=restoreTrail(JSON.stringify(trail),third);
+  assert.deepEqual(concertStoryOrigin(trail),{key:'concert',url:source.url,delta:-3});
+  trail=advanceTrail(trail,source,'POP');
+  trail=advanceTrail(trail,second,'POP');
+  assert.deepEqual(concertStoryOrigin(trail),{key:'concert',url:source.url,delta:-2});
+});
+
+test('related-story return never jumps across another list or into an unobserved concert',()=>{
+  const concert={key:'concert',url:'/footprints?event=one&scene=sky'};
+  const discovery={key:'discover',url:'/discover?q=REALITY'};
+  const first={key:'first',url:'/stories/21'},second={key:'second',url:'/stories/22'};
+  let trail=restoreTrail(null,concert);
+  for(const visit of [discovery,first,second])trail=advanceTrail(trail,visit,'PUSH');
+  assert.equal(concertStoryOrigin(trail),null,'an earlier concert is not the current reading origin');
+  assert.equal(concertStoryOrigin(advanceTrail(restoreTrail(null,first),second,'PUSH')),null,'direct story entry still uses the safe discovery fallback');
 });

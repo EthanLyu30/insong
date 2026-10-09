@@ -11,7 +11,10 @@ def test_every_seeded_public_card_has_a_specific_consistent_username(tmp_path):
     with TestClient(app) as client:
         stories = client.get('/api/stories').json()
         assert stories
-        assert {story['author_name'] for story in stories if story['is_demo_sample']} <= {'小林', '阿远'}
+        assert {story['author_name'] for story in stories if story['is_demo_sample']} <= {
+            '小林', '阿远', '阿禾', '小满', '南枝', '晚星',
+            '橙子', '小屿', '木木', '初夏', '青禾', '阿宁', '可可', '小舟',
+        }
         with app.state.session_factory() as db:
             expected = {card.id: card.owner.display_name for card in db.scalars(select(MemoryCard))}
         assert all(story['author_name'] == expected[story['id']] for story in stories if story['is_demo_sample'])

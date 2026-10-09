@@ -19,6 +19,15 @@ export function previousVisit(trail:Trail) {
   for(let index=trail.index-1;index>=0;index--)if(trail.entries[index].url!==current.url)return {...trail.entries[index],delta:index-trail.index};
   return null;
 }
+/** Related stories stay in the concert-list reading session that opened them. */
+export function concertStoryOrigin(trail:Trail) {
+  for(let index=trail.index-1;index>=0;index--){
+    const visit=trail.entries[index],path=visit.url.split(/[?#]/)[0];
+    if(/^\/stories\/[^/]+$/.test(path))continue;
+    return path==='/footprints'?{...visit,delta:index-trail.index}:null;
+  }
+  return null;
+}
 export function restoreTrail(raw:string|null,visit:Visit):Trail {
   try {
     const saved=JSON.parse(raw??'null') as Trail|null;

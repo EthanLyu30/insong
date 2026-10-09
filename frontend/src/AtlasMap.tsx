@@ -19,6 +19,7 @@ import {photoSource} from './cardMedia';
 import {observeMapInteraction} from './mapInteraction';
 import {regionalMapView,applyRegionalMapView} from './regionalMapView';
 import {visibleMapPhotoKeys} from './mapPhotoVisibility';
+import {mapZoomFocus} from './mapZoomFocus';
 
 type Props={cities:AtlasCity[];events:AtlasEvent[];artists?:AtlasArtist[];today:string;selectedCity?:AtlasCity;artistSelected:boolean;wantedEventIds?:string[];focusPoint?:[number,number];overviewRegion?:PersonalRegion|null;photos?:MapPhotoChoice[];holdCamera?:boolean;focusRequest?:number;initialReady?:boolean;onCity:(city:AtlasCity,artistId?:string)=>void;onVenue:(event:AtlasEvent)=>void;onNation:()=>void;onLocate?:()=>void;locating?:boolean;onInteraction?:()=>void;scene?:string;venueEvent?:AtlasEvent;controller:RefObject<SceneController|null>};
 function photoPriority(element:HTMLElement){return element.dataset.photoSource==='mine'?5:element.dataset.photoSource==='public'?4:element.classList.contains('is-selected')?3:element.classList.contains('is-upcoming')?2:1;}
@@ -102,14 +103,21 @@ export function AtlasMap(props:Props){
         const header=container.current?.closest('.atlas-page')?.querySelector('.atlas-searchbar')?.getBoundingClientRect().height??185;
         const nav=container.current?.closest('.site-shell')?.querySelector('.bottom-nav')?.getBoundingClientRect().height??70;
         const points=markers.current.filter(marker=>marker.getElement().style.display!=='none').map(marker=>{
-          const point=map.project(marker.getLngLat()),offset=marker.getOffset(),element=marker.getElement();
+          const element=marker.getElement(),city=latest.current.cities.find(item=>item.id===element.dataset.city);
+          if(city){
+            const layout=mapMarkerLayout(city.name,element.dataset.artist??'',latest.current.events,map.getZoom());
+            const previous=marker.getOffset();
+            if(previous.x!==layout.offset[0]||previous.y!==layout.offset[1])marker.setOffset(layout.offset);
+            element.style.setProperty('--map-photo-size',`${layout.diameter}px`);
+          }
+          const point=map.project(marker.getLngLat()),offset=marker.getOffset();
           return {key:`${element.dataset.city}:${element.dataset.artist}`,x:point.x+offset.x,y:point.y+offset.y,diameter:parseFloat(element.style.getPropertyValue('--map-photo-size'))||58,priority:photoPriority(element),date:latest.current.events.find(event=>event.id===element.dataset.photoEvent)?.date??''};
         });
         const visible=new Set(visibleMapPhotoKeys(points,{left:3,top:header+3,right:w-3,bottom:h-sheet-nav-3}));
         markers.current.forEach(marker=>{const element=marker.getElement(),shown=visible.has(`${element.dataset.city}:${element.dataset.artist}`);element.style.visibility=shown?'visible':'hidden';element.tabIndex=shown?0:-1;element.setAttribute('aria-hidden',String(!shown));});
       };
       arrangeMarkers.current=arrange;
-      map.on('moveend',arrange);map.on('idle',arrange);
+      map.on('zoom',arrange);map.on('moveend',arrange);map.on('idle',arrange);
       map.on('click','venue-points',event=>{if(latest.current.scene!=='map')return;const feature=event.features?.[0],venue=latest.current.events.find(item=>item.id===feature?.properties.event_id);if(venue)latest.current.onVenue(venue);});
       let size=[container.current.clientWidth,container.current.clientHeight];
       resize=new ResizeObserver(()=>{
@@ -199,7 +207,7 @@ export function AtlasMap(props:Props){
     const current:Marker[]=[];
     for(const {key,city,artistId,events:shows,identity} of photoMarkers){
       let marker=previous.get(key);
-      const layout=mapMarkerLayout(city.name,artistId,events);
+      const layout=mapMarkerLayout(city.name,artistId,events,map.getZoom());
       if(!marker){
         const button=document.createElement('button');button.type='button';button.className='real-city-pin';button.dataset.city=city.id;button.dataset.artist=artistId;
         button.addEventListener('click',()=>{const currentCity=latest.current.cities.find(item=>item.id===city.id);if(currentCity)latest.current.onCity(currentCity,artistId);});
@@ -244,6 +252,16 @@ export function AtlasMap(props:Props){
     const observer=new ResizeObserver(arrange);observer.observe(fallback);return()=>observer.disconnect();
   },[failed,frameReady,cities,events,props.photos,props.artists,selectedCity?.id,props.overviewRegion,props.focusPoint]);
   function reset(){interacted.current=false;if(selectedCity){props.onNation();return;}if(engine.current)frameRegionalMap(engine.current,props,container.current?.clientHeight??844,container.current?.closest<HTMLElement>('.atlas-page'));}
+  function zoomMap(direction:'in'|'out'){
+    interacted.current=true;props.onInteraction?.();
+    const map=engine.current,canvas=container.current;if(!map||!canvas)return;
+    const page=canvas.closest<HTMLElement>('.atlas-page');
+    const header=page?.querySelector('.atlas-searchbar')?.getBoundingClientRect().height??185;
+    const sheet=page?parseFloat(getComputedStyle(page).getPropertyValue('--atlas-sheet-height'))||160:160;
+    const nav=page?.closest('.site-shell')?.querySelector('.bottom-nav')?.getBoundingClientRect().height??70;
+    const around=map.unproject(mapZoomFocus({width:canvas.clientWidth,height:canvas.clientHeight,header,sheet,nav}));
+    map.zoomTo(map.getZoom()+(direction==='in'?1:-1),{duration:180,around});
+  }
   function retryScene(){if(venueLayer.current)venueLayer.current.location(latest.current.venueEvent);else{setSceneImageError(false);setSceneImageLoading(true);setLayerRetry(value=>value+1);}}
   const fallbackView=regionalMapView(selectedCity,props.overviewRegion,props.focusPoint);
   const [fallbackX,fallbackY]=projectChina(fallbackView.bounds[0][0],fallbackView.bounds[1][1]);
@@ -255,7 +273,7 @@ export function AtlasMap(props:Props){
     <img className="atlas-sky-canopy" src="/scenes/atlas-sky.webp" alt="" aria-hidden="true"/>
     {scene==='map'&&!selectedCity&&<img className="atlas-cloud-canopy" src="/scenes/atlas-clouds.png" alt="" aria-hidden="true"/>}
     {failed&&<div className="atlas-map-fallback"><svg viewBox={`${fallbackX} ${fallbackY} ${fallbackWidth} ${fallbackHeight}`} preserveAspectRatio="none" aria-hidden="true">{provinces.features.map(feature=>{const polygons=feature.geometry.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry.coordinates;const d=(polygons as number[][][][]).map(p=>p.map(r=>r.map(([x,y],i)=>(i?'L':'M')+projectChina(x,y).join(',')).join(' ')+'Z').join(' ')).join(' ');return <path key={feature.properties.adcode} d={d}/>;})}</svg>{photoMarkers.map(({key,city,artistId,identity})=>{
-      const [x,y]=projectChina(city.lng,city.lat),layout=mapMarkerLayout(city.name,artistId,events);
+      const [x,y]=projectChina(city.lng,city.lat),layout=mapMarkerLayout(city.name,artistId,events,fallbackView.zoom);
       const outside=x<fallbackX||x>fallbackRight||y<fallbackY||y>fallbackBottom;
       return identity.photo?<button type="button" key={key} className={`real-city-pin${events.some(event=>event.city===city.name&&event.artist_id===artistId&&event.date>=today)?' is-upcoming':''}`} data-photo-key={key} data-photo-source={identity.source} data-photo-event={identity.eventId} title={identity.photo.context} aria-label={`${city.name} · ${identity.name}`} aria-hidden={outside} tabIndex={outside?-1:0} onClick={()=>props.onCity(city,artistId)} style={{'--map-photo-size':`${layout.diameter}px`,visibility:outside?'hidden':undefined,left:`calc(${(x-fallbackX)/fallbackWidth*100}% + ${layout.offset[0]}px)`,top:`calc(${(y-fallbackY)/fallbackHeight*100}% + ${layout.offset[1]}px)`} as CSSProperties}><img src={photoSource(identity.photo.url)} alt={identity.name} className={identity.photo.bakedAvatar?'is-baked-avatar':undefined}/></button>:null;
     })}<p>当前设备无法开启三维地图，可继续选择照片标记或下方日程。</p></div>}
@@ -263,6 +281,6 @@ export function AtlasMap(props:Props){
     {imageryError&&scene==='map'&&<div className="atlas-imagery-error" role="status">地图连接较慢，地点与日程仍可查看。</div>}
     {(!modelReady||sceneImageLoading)&&scene!=='map'&&!failed&&<span className="cinematic-loading" role="status">正在准备场馆画面…</span>}
     {sceneImageError&&scene!=='map'&&<span className="cinematic-loading cinematic-load-error" role="status">现场画面暂未载入，仍可查看歌单或返回地图。<button type="button" onClick={retryScene}>重新载入画面</button></span>}
-    {scene==='map'&&<div className="atlas-map-controls"><button type="button" aria-label="放大地图" onClick={()=>{interacted.current=true;props.onInteraction?.();engine.current?.zoomIn({duration:180});}}><Plus size={24} weight="light"/></button><button type="button" aria-label="缩小地图" onClick={()=>{interacted.current=true;props.onInteraction?.();engine.current?.zoomOut({duration:180});}}><Minus size={24} weight="light"/></button><button type="button" aria-label={props.onLocate?'查看附近演唱会':'全国复位'} disabled={props.locating} onClick={props.onLocate??reset}><MapPinArea size={23} weight="light"/></button></div>}
+    {scene==='map'&&<div className="atlas-map-controls"><button type="button" aria-label="放大地图" onClick={()=>zoomMap('in')}><Plus size={24} weight="light"/></button><button type="button" aria-label="缩小地图" onClick={()=>zoomMap('out')}><Minus size={24} weight="light"/></button><button type="button" aria-label={props.onLocate?'查看附近演唱会':'全国复位'} disabled={props.locating} onClick={props.onLocate??reset}><MapPinArea size={23} weight="light"/></button></div>}
   </div>;
 }

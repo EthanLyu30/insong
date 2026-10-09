@@ -1198,6 +1198,15 @@ test('verified concert imagery replaces text circles without visible city labels
   });
 });
 
+test('fallback map sizes photo markers for its camera zoom',async()=>{
+  const catalog={...revisionCatalog,artists:[{id:'phoenix',name:'凤凰传奇'}],events:[{...revisionCatalog.events[0],artist_id:'phoenix'}]};
+  await harness('/footprints?artist=phoenix',async url=>{if(url==='/api/footprints/catalog')return Response.json(catalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({until})=>{
+    await until('.atlas-map-fallback button');
+    const marker=document.querySelector('.atlas-map-fallback button');
+    assert.equal(marker.style.getPropertyValue('--map-photo-size'),'50px','fallback should use its 5.8 camera zoom, not a fixed default');
+  });
+});
+
 test('month filter defaults to this month and applies numeric year/month only on confirmation',async()=>{
   await harness('/footprints',async url=>{if(url==='/api/footprints/catalog')return Response.json(revisionCatalog);if(url==='/api/playlists')return Response.json([]);throw new Error(url);},async({act,fill,until,location})=>{
     await until('.atlas-month-filter button');

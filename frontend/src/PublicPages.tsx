@@ -40,7 +40,11 @@ function RecentConcerts() {
   })}</div></section>:null;
 }
 
-export function StoryEntry({story}:{story:PublicStory}) {
+export function StoryEntry(props:{story:PublicStory}|{memory:Memory;author:string}) {
+  const memory='memory' in props?props.memory:undefined;
+  const card='memory' in props?props.memory:props.story;
+  const author='memory' in props?props.memory.owner_display_name??props.author:props.story.author_name;
+  const text='memory' in props?props.memory.story:props.story.excerpt;
   const body=useRef<HTMLDivElement>(null);
   const [rows,setRows]=useState<number>();
   useEffect(()=>{
@@ -59,11 +63,11 @@ export function StoryEntry({story}:{story:PublicStory}) {
   },[]);
   return <article className="story-card" style={rows?{gridRowEnd:`span ${rows}`}:undefined}>
     <div className="story-card-body" ref={body}>
-        <Link className="story-card-main card-read" to={`/stories/${story.id}`} aria-label={`阅读${story.song.title}的完整故事`}>
-          <div className="story-cover"><img src={cardCover(story)} alt={`《${story.song.title}》${story.is_demo_sample?'演出配图':story.photo_url?'记忆照片':'配图'}`} loading="lazy"/><span className="cover-stamp">{story.is_demo_sample?'虚构样例':'音乐卡片'}</span>{cardPhotos(story).length>1&&<span className="photo-count">{cardPhotos(story).length} 张</span>}</div>
-          <div className="story-front-copy"><div className="story-song-line"><h3>{story.song.title}</h3><span className="story-artist">{story.song.artist}</span></div><p className="story-card-title">{story.title||story.excerpt}</p></div>
+        <Link className="story-card-main card-read" to={`/${memory?'memories':'stories'}/${card.id}`} aria-label={memory?`阅读我的记忆：${card.title||card.song.title}`:`阅读${card.song.title}的完整故事`}>
+          <div className="story-cover"><img src={cardCover(card)} alt={`《${card.song.title}》${card.is_demo_sample?'演出配图':card.photo_url?'记忆照片':'配图'}`} loading="lazy"/><span className="cover-stamp">{card.is_demo_sample?'虚构样例':'音乐卡片'}</span>{cardPhotos(card).length>1&&<span className="photo-count">{cardPhotos(card).length} 张</span>}</div>
+          <div className="story-front-copy"><div className="story-song-line"><h3>{card.song.title}</h3><span className="story-artist">{card.song.artist}</span></div><p className="story-card-title">{card.title||text}</p></div>
         </Link>
-        <div className="story-card-footer"><div className="story-card-author" role="img" aria-label={`作者：${story.author_name}`} title={story.author_name}><span aria-hidden="true">{story.author_name.slice(0,1)}</span></div></div>
+        <div className="story-card-footer">{memory&&<span className="concert-card-privacy">{memory.publication?.published?'已公开':'仅自己'}</span>}<div className="story-card-author" role="img" aria-label={`作者：${author}`} title={author}><span aria-hidden="true">{author.slice(0,1)}</span></div></div>
     </div>
   </article>;
 }
@@ -158,7 +162,7 @@ export function StoryPage() {
   const {storyId}=useParams(),[retry,setRetry]=useState(0);
   const fromRelatedStory=useLocation().state?.fromRelatedStory===true;
   const {value:story,error}=useData<PublicStory>(`/api/stories/${storyId}`,retry);
-  const back=fromRelatedStory?<Link className="back-link" to="/discover" replace><span aria-hidden="true">←</span> 返回</Link>:<BackLink fallback="/discover"/>;
+  const back=<BackLink fallback="/discover" returnToConcert={fromRelatedStory}/>;
   if(!story)return <section className="journal-page">{back}{error?<div className="empty-paper" role="alert"><h1>这一页，暂时合上了。</h1><p>{error}</p><button className="soft-button" onClick={()=>setRetry(value=>value+1)}>重新查看</button></div>:<p role="status">正在翻开故事…</p>}</section>;
   const capture=new URLSearchParams();if(story.offset_ms!==null)capture.set('at',String(story.offset_ms));if(story.lyric_id)capture.set('lyric',story.lyric_id);if(story.theme_id)capture.set('theme',story.theme_id);if(story.end_ms!=null)capture.set('end',String(story.end_ms));if(story.event_id)capture.set('event',story.event_id);
   return <section className="journal-page public-detail">{back}

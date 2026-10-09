@@ -13,6 +13,9 @@ from .sample_media import refresh_generated_covers, seed_sample_galleries
 from .event_snapshots import capture_event, snapshot_json
 from .event_record_samples import seed_event_record_samples, seed_expanded_event_record_samples
 from .user_concert_sample_photos import refresh_user_concert_sample_photos
+from .personal_concert_sample_refresh import refresh_personal_concert_samples
+from .liu_concert_moments import seed_liu_concert_moments
+from .concert_demo_memories import seed_concert_demo_memories
 from . import footprints
 from .settings import validate_schema
 from .database_compat import conflict_insert, synchronize_sequences
@@ -147,6 +150,9 @@ def _seed_database(db: OrmSession) -> None:
     seed_expanded_event_record_samples(db)
     refresh_sample_usernames(db)
     refresh_user_concert_sample_photos(db)
+    refresh_personal_concert_samples(db)
+    seed_liu_concert_moments(db)
+    seed_concert_demo_memories(db)
     db.flush()
     synchronize_sequences(db.connection())
     # Legacy records get one best-effort snapshot from surviving catalog data.

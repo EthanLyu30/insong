@@ -3,11 +3,11 @@ import {test} from 'node:test';
 
 async function visibility(){return import('../src/mapPhotoVisibility.ts').catch(()=>({}));}
 
-test('neighbor-city photos with overlapping circles remain separately readable by deterministic visibility',async()=>{
+test('neighbor-city photos with partial overlap remain separately readable',async()=>{
   const {visibleMapPhotoKeys}=await visibility();assert.equal(typeof visibleMapPhotoKeys,'function');
   const points=[{key:'sz',x:205,y:340,diameter:58,priority:5,date:'2026-10-05'},{key:'gz',x:174,y:302,diameter:58,priority:5,date:'2025-10-18'}];
-  assert.deepEqual(visibleMapPhotoKeys(points,{left:12,top:197,right:378,bottom:468}),['sz']);
-  assert.deepEqual(visibleMapPhotoKeys([...points].reverse(),{left:12,top:197,right:378,bottom:468}),['sz'],'source row order must not decide which city photo survives');
+  assert.deepEqual(visibleMapPhotoKeys(points,{left:12,top:197,right:378,bottom:468}),['sz','gz']);
+  assert.deepEqual(visibleMapPhotoKeys([...points].reverse(),{left:12,top:197,right:378,bottom:468}),['sz','gz'],'source row order must not decide photo priority');
 });
 
 test('nonoverlapping varied city circles remain visible with the renderer clearance',async()=>{

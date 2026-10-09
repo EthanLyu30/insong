@@ -211,7 +211,7 @@ test('entering My waits for its actual records before exposing the initial geogr
   },undefined,{memories:options=>new Promise(resolve=>{finish=()=>resolve(Response.json([{id:1,event_id:'sz'}]));options.signal?.addEventListener('abort',()=>resolve(Response.json([])),{once:true});})});
 });
 
-test('fallback collision visibility refreshes when Locate changes only the projected region',async()=>{
+test('fallback visibility refreshes after Locate and keeps partially overlapping photos',async()=>{
   let resolved;
   const extendedCities=[...cities,{id:'tj',name:'天津',lng:117.2,lat:39.1}];
   const events=[...shows,{...shows[0],id:'tj',city:'天津',date:'2026-10-02',venue:'天津场馆'},{...shows[0],id:'sz-extra',date:'2026-10-02'},{...shows[1],id:'gz-extra',date:'2026-10-03'}];
@@ -229,10 +229,12 @@ test('fallback collision visibility refreshes when Locate changes only the proje
     };
     try{
       await render('/footprints?scope=all&period=past&month=all','projection');
+      const visibleNeighbors=()=>[...document.querySelectorAll('.atlas-map-fallback button')].filter(button=>['bj','tj'].includes(button.dataset.photoEvent)&&button.style.visibility!=='hidden');
+      assert.equal(visibleNeighbors().length,0,'northern photos are outside the original southern frame');
       await click('查看附近演唱会');await React.act(async()=>resolved({coords:{longitude:116.4,latitude:39.9}}));
-      const neighboring=[...document.querySelectorAll('.atlas-map-fallback button')].filter(button=>['bj','tj'].includes(button.dataset.photoEvent)&&button.style.visibility!=='hidden');
-      assert.equal(neighboring.length,1,'new regional positions must be checked for overlap even when data and dimensions are unchanged');
-      assert.equal(neighboring[0].dataset.photoEvent,'bj','the more recent real photo remains visible');
+      const neighboring=visibleNeighbors();
+      assert.deepEqual(neighboring.map(button=>button.dataset.photoEvent),['bj','tj'],
+        'both nearby photos should appear after projection changes, even with partial overlap');
     }finally{window.HTMLElement.prototype.getBoundingClientRect=original;}
   },{getCurrentPosition(success){resolved=success;}},{catalog:{cities:extendedCities,events},photos:()=>Response.json({photos})});
 });
