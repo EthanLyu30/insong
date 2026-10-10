@@ -306,3 +306,15 @@
 .song-search-list button span{display:flex;flex:1;flex-direction:column;gap:4px}
 .song-search-list strong{font-size:15px}.song-search-list small{font-size:12px;color:#96816d}
 .composer-recommendations .composer-existing-tag{background:#e7d3c2;color:#76513e}
+
+/* iOS focus zoom also affects account fields and the composer's nested editors. */
+@media(max-width:700px){
+  .site-shell .account-page .memory-form input,
+  .site-shell .memory-composer .composer-story textarea,
+  .site-shell .memory-composer .editor-sharing textarea,
+  .site-shell .memory-composer .creation-search input,
+  .site-shell .memory-composer .composer-tag-entry input,
+  .site-shell .memory-composer .range-inputs input,
+  .site-shell .composer-modal .composer-sheet input,
+  .site-shell .song-search-page input{font-size:16px}
+}
