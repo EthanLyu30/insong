@@ -33,6 +33,10 @@
 .discover-intro .discover-doodle { flex-shrink: 0; width: 25px; margin-right: 1px; }
 .discover-page .public-search { padding-block: 9px 3px; margin-bottom: 0; }
 .public-search .recall-input input { font-size: 13px; min-width: 0; }
+/* Keep mobile search text large enough to avoid iOS focus zoom. */
+@media(max-width:700px){
+  .public-search .recall-input input { font-size: 16px; }
+}
 .public-search .recall-input button { font-size: 13px; min-height: 40px; }
 .public-search .recall-tools { margin: 6px 0 3px; }
 .public-search .segmented-control.small button { padding: 7px 9px; font-size: 11px; }
