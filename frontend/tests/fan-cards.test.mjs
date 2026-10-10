@@ -363,6 +363,91 @@ async function harness(path,respond,work,fixtures={}){
   finally{await act(async()=>root.unmount());await server.close();globalThis.fetch=prior;globalThis.FormData=priorFormData;delete globalThis.ResizeObserver;dom.window.close();}
 }
 
+test('followed artists remain selectable without matching dates and concert Back returns to their list',async()=>{
+  const catalog={...revisionCatalog,artists:[...revisionCatalog.artists,{id:'no-dates',name:'暂无场次的歌手'}]};
+  await harness('/footprints?month=2026-01&artist=gem&city=sh',async url=>{
+    if(url==='/api/footprints/catalog')return Response.json(catalog);
+    if(url==='/api/playlists')return Response.json([{event_id:'sh',songs:[]}]);
+    if(url==='/api/footprints/photos')return Response.json({photos:[]});
+    if(url==='/api/footprints')return Response.json([]);
+    if(url.startsWith('/api/memories?'))return Response.json([]);
+    if(url.startsWith('/api/public-feed?'))return Response.json({items:[],next_cursor:null});
+    throw new Error(url);
+  },async({act,until,location})=>{
+    await until('.atlas-artist-pills');
+    await act(async()=>[...document.querySelectorAll('.atlas-artist-pills button')].find(button=>button.textContent==='我的歌手').click());
+    assert.ok(document.querySelector('[aria-label="查看刘雨昕的场次"]'));
+    assert.ok(document.querySelector('[aria-label="查看暂无场次的歌手的场次"]'),'a followed artist is not hidden by month/city filters or missing concerts');
+    assert.equal(document.querySelector('[aria-label="查看邓紫棋的场次"]'),null,'saved shows do not invent artist follows');
+    assert.equal(new URLSearchParams(location().search).get('artist'),null);
+    assert.equal(new URLSearchParams(location().search).get('city'),null);
+    const list=document.querySelector('.atlas-followed-list');
+    list.scrollTop=37;
+    await act(async()=>list.dispatchEvent(new window.Event('scroll',{bubbles:true})));
+    await act(async()=>document.querySelector('[aria-label="查看刘雨昕的场次"]').click());
+    // Layout changes can clamp the former scroll container while dates load.
+    list.scrollTop=0;
+    assert.equal(new URLSearchParams(location().search).get('scope'),'followed');
+    assert.equal(new URLSearchParams(location().search).get('artist'),'liu-yuxin');
+    await act(async()=>document.querySelector('[aria-label="返回我的歌手"]').click());
+    assert.ok(document.querySelector('[aria-label="查看刘雨昕的场次"]'));
+    assert.equal(document.querySelectorAll('.atlas-schedule-row').length,0);
+    assert.equal(document.querySelector('.atlas-followed-list').scrollTop,37);
+  },{interests:{artist_ids:['liu-yuxin','no-dates'],wish_event_ids:[]}});
+});
+
+test('photo selection uses an associated native file control instead of a script-only picker button',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async()=>{
+    const input=document.querySelector('input[type="file"]');
+    assert.ok(input.closest('label')?.control===input,'tapping the visible label reaches the native file input in mobile webviews');
+    assert.equal(input.classList.contains('sr-only'),false,'the native touch target must not be clipped to one pixel');
+    assert.equal(input.disabled,false);
+  });
+});
+
+test('mobile JPEG metadata aliases upload as JPEG and select the returned gallery cover',async()=>{
+  const previousReader=globalThis.FileReader;
+  const requests=[];
+  try{
+    await harness('/create',async(url,options)=>{
+      if(url==='/api/photos'){
+        const data=JSON.parse(options.body).data;requests.push(data);
+        assert.match(data,/^data:image\/jpeg;base64,/);
+        return Response.json({id:'mobile-'+requests.length,url:'/api/photos/mobile-'+requests.length});
+      }
+      throw new Error(url);
+    },async({act})=>{
+      globalThis.FileReader=window.FileReader;
+      for(const type of ['', 'image/jpg']){
+        await act(async()=>{
+          const input=document.querySelector('input[type="file"]');
+          Object.defineProperty(input,'files',{configurable:true,value:[new window.File(['camera bytes'],'camera.jpg',{type})]});
+          input.dispatchEvent(new window.Event('change',{bubbles:true}));
+          await new Promise(resolve=>setTimeout(resolve,30));
+        });
+      }
+      assert.equal(requests.length,2,'supported mobile JPEGs must not be rejected solely by missing/nonstandard MIME metadata');
+      assert.equal(document.querySelectorAll('.gallery-edit-grid>div').length,2);
+      assert.equal(document.querySelector('[aria-label="将第1张照片设为封面"]').getAttribute('aria-pressed'),'true');
+      assert.equal(document.querySelector('.photo-picker [role="alert"]'),null);
+    });
+  }finally{globalThis.FileReader=previousReader;}
+});
+
+test('photo rejection is a full-gallery alert and does not occupy the small add-photo tile',async()=>{
+  await harness('/create',async url=>{throw new Error(url);},async({act})=>{
+    await act(async()=>{
+      const input=document.querySelector('input[type="file"]');
+      Object.defineProperty(input,'files',{value:[new window.File(['bad'],'unsupported.gif',{type:'image/gif'})]});
+      input.dispatchEvent(new window.Event('change',{bubbles:true}));
+    });
+    const error=document.querySelector('[role="alert"]');
+    assert.ok(error);
+    assert.ok(error.parentElement===document.querySelector('.gallery-picker'),'the message must flow below the gallery at its full width');
+    assert.equal(document.querySelector('input[type="file"]').disabled,false);
+  });
+});
+
 test('launch home keeps its full collage and is not a persistent navigation tab',async()=>{
   await harness('/',async url=>{
     if(url==='/api/songs')return Response.json(Array.from({length:5},(_,i)=>({...song,id:i+1,title:`原版歌曲${i+1}`,cover_url:'/photos/memory-concert-20261002.webp'})));
@@ -805,6 +890,9 @@ test('My shortcuts filter real saved concerts and followed artists without chang
     await act(async()=>buttons.find(button=>button.textContent==='我的收藏').click());
     assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback .real-city-pin img')].map(img=>img.alt),['邓紫棋']);
     await act(async()=>buttons.find(button=>button.textContent==='我的歌手').click());
+    assert.equal(document.querySelector('.atlas-itinerary header h2').textContent,'我的歌手');
+    assert.equal(document.querySelectorAll('.atlas-schedule-row').length,0,'followed artists are selected before browsing dates');
+    await act(async()=>document.querySelector('[aria-label="查看刘雨昕的场次"]').click());
     assert.deepEqual([...document.querySelectorAll('.atlas-schedule-row strong')].map(label=>label.textContent),['北京 · 刘雨昕']);
     assert.equal(document.querySelector('.atlas-scroll-hint').textContent,'下滑查看更多');
     await act(async()=>document.querySelector('.atlas-schedule-filters button:last-child').click());
@@ -926,6 +1014,9 @@ test('following an artist is distinct from saving a concert and remains availabl
     await act(async()=>follow.click());
     assert.equal(document.querySelector('[aria-label="已关注邓紫棋"]').getAttribute('aria-pressed'),'true');
     await go('/memories');await go('/footprints?month=all&scope=followed');
+    await until('[aria-label="查看邓紫棋的场次"]');
+    assert.equal(document.querySelectorAll('.atlas-schedule-row').length,0);
+    await act(async()=>document.querySelector('[aria-label="查看邓紫棋的场次"]').click());
     await until('.atlas-map-fallback .real-city-pin');
     assert.deepEqual([...document.querySelectorAll('.atlas-map-fallback .real-city-pin img')].map(img=>img.alt),['邓紫棋']);
     await go('/footprints?month=all&scope=followed&artist=gem');

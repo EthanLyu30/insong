@@ -58,3 +58,13 @@
 .atlas-page.atlas-map .atlas-map-fallback path{fill:#f7f2e8;stroke:#a78670;stroke-width:.5}
 .atlas-page.atlas-map .atlas-map-fallback .real-city-pin{position:absolute;padding:0;transform:translate(-50%,-50%)}
 .atlas-page.atlas-map :is(.real-city-pin,.real-venue-pin){pointer-events:none;cursor:default}
+.atlas-followed-list{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.atlas-followed-artist{display:flex;align-items:center;gap:12px;width:100%;min-height:68px;padding:10px 0;border:0;border-bottom:1px solid #e5d9c8;background:transparent;color:#514431;text-align:left;font:inherit;cursor:pointer}
+.atlas-followed-artist:last-child{border-bottom:0}
+.atlas-followed-artist>img,.atlas-followed-initial{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;background:#eee4d5}
+.atlas-followed-initial{display:grid;place-items:center;color:#946646;font-size:20px}
+.atlas-followed-artist>span:not(.atlas-followed-initial){flex:1;min-width:0}
+.atlas-followed-artist strong{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.atlas-followed-artist small{display:block;margin-top:3px;font-size:12px;color:#8e7d69}
+.atlas-followed-artist>svg{flex:none;color:#9b846f}
+.atlas-followed-artist:focus-visible{outline:2px solid #b38665;outline-offset:-2px}

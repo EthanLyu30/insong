@@ -35,6 +35,15 @@
 .memory-composer .photo-picker { margin: 0; }
 .memory-composer input.sr-only { width: 1px; height: 1px; padding: 0; border: 0; }
 .memory-composer .photo-add { min-height: 44px; margin-top: 8px; border: 1px dashed #ccb89e; background: #f5f0e6; border-radius: 8px; color: #80674f; font-size: 12px; }
+.photo-picker .photo-add { position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation; }
+.photo-picker .photo-add .photo-file-input { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; clip: auto; cursor: pointer; }
+.photo-add:focus-within { outline: 2px solid #b38665; outline-offset: 3px; }
+.photo-add[aria-disabled=true] { opacity: .5; cursor: default; }
+.memory-composer .gallery-upload-error { grid-column: 1 / -1; margin: 0; overflow-wrap: anywhere; }
+.memory-composer .composer-title { width: 100%; min-width: 0; margin: 0; }
+.memory-composer .composer-title input { appearance: none; min-height: 44px; box-sizing: border-box; }
+.memory-composer .composer-song-picker { min-width: 0; }
+.memory-composer .composer-song-trigger strong { overflow-wrap: anywhere; white-space: normal; }
 .composer-song-picker { border-top: 1px solid #e3d8c8; }
 .composer-song-trigger { display:flex;align-items:center;gap:10px;width:100%;min-height:62px;padding:10px 0;border:0;background:transparent;color:#6d5947;text-align:left;font:inherit;font-size:13px;cursor:pointer; }
 .composer-song-trigger>span { flex:1;min-width:0; }

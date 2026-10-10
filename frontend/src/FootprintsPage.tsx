@@ -24,6 +24,7 @@ import {scheduleOverview} from './personalMap';
 import {nearbyConcertOverview,recentConcertOverview} from './concertMapFocus';
 import {useMapLocation} from './useMapLocation';
 import {ChoicePicker} from './ChoicePicker';
+import {officialArtistPhotos} from './officialArtistPhotos';
 import {explorationFromParam,explorationParam,eventsInExploration,type ExplorationArea} from './mapExploration';
 import './personalMap.css';
 
@@ -126,7 +127,19 @@ export function FootprintsPage() {
   }
   function retryPlaylists(){if(!collectionRequest.current&&!playlistUpdate.inFlight())setPlaylistRetry(value=>value+1);}
   function filters(extra:Record<string,string>={}){return Object.fromEntries(Object.entries({...(returnToMine?{from:'mine',return:returnToMine}:{}),...(scope?{scope}:{}),period,...(area?{area:explorationParam(area)}:{}),...(params.has('range')?{range:futureRange}:{}),...(params.get('month')==='all'?{month:'all'}:month?{month}:{}),...extra}).filter(([,value])=>value));}
-  function chooseScope(value:'mine'|'all'|'saved'|'followed'){mapLocation.cancel();setLocationMode(false);setHoldCamera(value!=='mine');if(value==='mine')setFocusRequest(value=>value+1);setParams(filters({scope:value,...(value==='mine'?{month:'all',period:'past'}:{})}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);}
+  function chooseScope(value:'mine'|'all'|'saved'|'followed'){mapLocation.cancel();setLocationMode(false);setHoldCamera(value!=='mine'&&value!=='followed');if(value==='mine')setFocusRequest(value=>value+1);setParams(filters({scope:value,...(value==='mine'||value==='followed'?{month:'all',period:'past',area:''}:{})}),{replace:true});setQuery('');setSearchOpen(false);setExpanded(false);setVenueSearch(false);setVenueQuery('');}
+  function openFollowedArtist(id:string){
+    mapLocation.cancel();setLocationMode(false);setHoldCamera(false);
+    setParams(filters({scope:'followed',artist:id,area:''}));
+    setQuery('');setSearchOpen(false);setExpanded(false);setVenueSearch(false);setVenueQuery('');
+  }
+  function returnToFollowedArtists(){
+    mapLocation.cancel();setLocationMode(false);setHoldCamera(false);setExpanded(false);
+    const previous=navigation.previous,query=new URLSearchParams(previous?.url.split('?')[1]??'');
+    if(previous?.url.split('?')[0]==='/footprints'&&query.get('scope')==='followed'&&!query.has('artist')&&!query.has('event'))navigation.back();
+    else setParams(filters({scope:'followed',area:''}),{replace:true});
+    setSearchOpen(false);setQuery('');setVenueSearch(false);setVenueQuery('');
+  }
   function locate(){
     setSearchOpen(false);setQuery('');
     mapLocation.request(()=>{setLocationMode(true);setHoldCamera(false);setFocusRequest(value=>value+1);setParams(filters({scope:'all',month:'all',area:''}),{replace:true});setExpanded(false);});
@@ -189,6 +202,10 @@ export function FootprintsPage() {
   function scheduleFilters(){return <div className="atlas-schedule-filters"><div aria-label="日程时期" role="group"><button type="button" aria-pressed={period==='past'} onClick={()=>changePeriod('past')}>往期</button><button type="button" aria-pressed={period==='upcoming'} onClick={()=>changePeriod('upcoming')}>未来</button></div><div className="atlas-time-slot">{period==='past'?<div className="atlas-month-filter"><MonthFilter value={month} onChange={changeMonth}/></div>:<ChoicePicker label="选择未来时间范围" value={futureRange} options={Object.entries(futureRangeLabels).map(([value,label])=>({value,label}))} onChange={changeRange}/>}</div></div>;}
   const personalLoading=!!user&&(scope==='mine'?personal.value===null&&!personal.error:scope==='saved'?savedPlaylists===null&&!saveError:scope==='followed'?!interests.value&&!interests.error:false);
   const personalEmpty=scope==='mine'?personal.value!==null&&personalIds.size===0:scope==='saved'?savedPlaylists?.length===0:scope==='followed'?interests.value?.artist_ids.length===0:false;
+  // Existing city deep links keep their scoped local dates; the My Artists tab
+  // clears that geography and starts with the artist list.
+  const followedList=scope==='followed'&&!artist&&!city;
+  const followedArtists=catalog.artists.filter(item=>interests.value?.artist_ids.includes(item.id));
   const emptyText=scope!=='all'&&!user?'登录后可查看你的经历、收藏和歌手行程。':personalLoading?'正在读取你的行程…':scope==='mine'&&personal.error?'个人经历暂未读到，请重试。':scope==='mine'&&personalEmpty?'还没有关联演出的记忆或到场标记。':scope==='saved'&&personalEmpty?'还没有收藏演出。':scope==='followed'&&personalEmpty?'还没有关注歌手。':scope==='saved'&&saveError?'收藏暂未读到，可重试或查看全部行程。':scope==='followed'&&interests.error?'关注暂未读到，可重试或查看全部行程。':period==='upcoming'?`${futureRangeLabels[futureRange]}暂无待演场次。`:'当前筛选暂无往期场次。';
   if(scene==='sky'&&linkedEvent)return <section className="concert-journal journal-page" data-scene="sky">
     <nav className="concert-journal-toolbar" aria-label="演出详情导航"><button type="button" onClick={back} aria-label="返回上一页"><ArrowLeft size={18}/>返回</button><button type="button" onClick={()=>{setHoldCamera(false);setParams(filters({...(artist?{artist:artist.id}:{}),area:''}));setExpanded(false);}} aria-label="返回全国地图"><MapPinArea size={22} weight="light"/></button></nav>
@@ -209,7 +226,7 @@ export function FootprintsPage() {
       <AtlasMap cities={cities} events={mapEvents} artists={catalog.artists} today={today} overviewRegion={overviewRegion} area={area} photos={mapPhotos.photos} initialReady={!sessionLoading&&!personalLoading&&!mapPhotos.loading} holdCamera={holdCamera} focusRequest={focusRequest} selectedCity={city} artistSelected={!!artist} onArea={chooseArea} onNation={()=>{setHoldCamera(false);setParams(filters({...(artist?{artist:artist.id}:{}),area:''}));setExpanded(false);}} onLocate={locate} locating={mapLocation.phase==='locating'} onInteraction={mapLocation.cancel} scene={scene} venueEvent={stageEvent} controller={sceneController}/>
     </div>
     {scene==='map'?<header className="atlas-searchbar has-mine-return">
-      <div className="atlas-topline">{city?<button type="button" className="atlas-return-map" onClick={back}><ArrowLeft size={14} aria-hidden="true"/>返回地图</button>:<Link className="atlas-return-mine" to={returnToMine??'/memories'}><ArrowLeft size={14} aria-hidden="true"/>返回我的</Link>}<small>听见城市，走过山海。</small></div>
+      <div className="atlas-topline">{scope==='followed'&&artist&&!city?<button type="button" className="atlas-return-map" onClick={returnToFollowedArtists} aria-label="返回我的歌手"><ArrowLeft size={14} aria-hidden="true"/>返回我的歌手</button>:city&&!followedList?<button type="button" className="atlas-return-map" onClick={back}><ArrowLeft size={14} aria-hidden="true"/>返回地图</button>:<Link className="atlas-return-mine" to={returnToMine??'/memories'}><ArrowLeft size={14} aria-hidden="true"/>返回我的</Link>}<small>听见城市，走过山海。</small></div>
       <div className="atlas-wordmark"><div><span>音乐足迹</span></div><Link to="/playlists" state={{footprintReturn:next}} aria-label="我的现场歌单"><BookmarkSimple size={23} weight="light"/></Link></div>
       <div className="atlas-search-input"><MagnifyingGlass size={23} weight="light"/><input aria-label="搜索歌手或城市" placeholder="搜索喜欢的歌手或城市" autoComplete="off" value={query} onFocus={()=>setSearchOpen(true)} onChange={event=>{setQuery(event.target.value);setSearchOpen(true);}} onKeyDown={event=>{if(event.nativeEvent.isComposing)return;if(event.key==='Escape')setSearchOpen(false);if(event.key==='Enter'&&matchingArtists.length===1)chooseArtist(matchingArtists[0].id);}}/><button type="button" className={!query&&!searchOpen?'is-inactive':''} tabIndex={query||searchOpen?0:-1} aria-hidden={!query&&!searchOpen} aria-label="收起搜索" onClick={()=>{setSearchOpen(false);setQuery('');}}><X size={20}/></button></div>
       {searchOpen?<div className="atlas-search-results"><span>{query?'搜索结果':'从一位喜欢的歌手开始'}</span>{matchingArtists.map(item=><button key={item.id} type="button" onClick={()=>chooseArtist(item.id)}>{item.name}<small>查看行程 <CaretRight size={16}/></small></button>)}{matchingCities.map(item=><button key={item.id} type="button" onClick={()=>chooseCity(item)}>{item.name}<small>看看这里的现场 <CaretRight size={16}/></small></button>)}{!matchingArtists.length&&!matchingCities.length&&<p>暂未收录这位歌手，试试邓紫棋或刘雨昕。</p>}</div>:<div className="atlas-artist-pills"><button type="button" aria-pressed={scope==='all'} onClick={()=>chooseScope('all')}>全部</button><button type="button" aria-pressed={scope==='mine'} onClick={()=>chooseScope('mine')}>我的经历</button><button type="button" aria-pressed={scope==='saved'} onClick={()=>chooseScope('saved')}>我的收藏</button><button type="button" aria-pressed={scope==='followed'} onClick={()=>chooseScope('followed')}>我的歌手</button></div>}
@@ -219,7 +236,10 @@ export function FootprintsPage() {
     </header>:null}
     {scene==='map'&&<div className="atlas-legend" aria-label="行程图例"><span><i className="past"/>往期</span><span><i className="future"/>今日 / 待演</span></div>}
     {invalidEvent&&<div className="atlas-invalid" role="status">这个场次暂未收录，请从地图重新选择。</div>}
-    {scene==='map'&&city?<section ref={mapPanel} className="atlas-panel atlas-city-sheet atlas-local-itinerary" aria-label={`${city.name}当地场次`}>
+    {scene==='map'&&!searchOpen&&followedList?<section ref={mapPanel} className="atlas-panel atlas-itinerary atlas-followed-artists" aria-label="我的歌手">
+      <header><h2>我的歌手</h2></header>
+      {sessionLoading||personalLoading?<p className="atlas-schedule-empty" role="status">正在读取关注的歌手…</p>:interests.needsLogin?<div className="atlas-schedule-empty"><p>登录后可查看已关注的歌手。</p><Link to={`/account?next=${encodeURIComponent(next)}`}>登录</Link></div>:interests.error?<div className="atlas-schedule-empty" role="alert"><p>关注的歌手暂时未读到。</p><button type="button" onClick={interests.reload}>重试</button></div>:followedArtists.length?<div ref={scheduleList} className="atlas-followed-list" onScroll={event=>scheduleScroll.current.set(location.key,event.currentTarget.scrollTop)}>{followedArtists.map(item=><button type="button" key={item.id} className="atlas-followed-artist" aria-label={`查看${item.name}的场次`} onClick={()=>openFollowedArtist(item.id)}>{officialArtistPhotos[item.id]?<img src={officialArtistPhotos[item.id].url} alt=""/>:<span className="atlas-followed-initial" aria-hidden="true">{item.name.slice(0,1)}</span>}<span><strong>{item.name}</strong><small>查看场次</small></span><CaretRight size={18}/></button>)}</div>:<div className="atlas-schedule-empty"><p>还没有关注歌手。搜索一位喜欢的歌手后，可以关注并在这里找回。</p><button type="button" onClick={()=>chooseScope('all')}>查看全部行程</button></div>}
+    </section>:scene==='map'&&city?<section ref={mapPanel} className="atlas-panel atlas-city-sheet atlas-local-itinerary" aria-label={`${city.name}当地场次`}>
       <header><div><small>{artist?`${artist.name}的演出`:'当地演出'}</small><h2>{city.name}</h2></div><div className="atlas-selected-actions">{artist&&<FollowArtist artist={artist} next={next} data={interests}/>}<button type="button" className="atlas-venue-search-toggle" aria-label={venueSearch?'收起场次搜索':'搜索场次'} aria-expanded={venueSearch} onClick={()=>{setVenueSearch(!venueSearch);setVenueQuery('');}}>{venueSearch?<X size={19}/>:<MagnifyingGlass size={20}/>}</button><button type="button" onClick={back} aria-label="返回上一页">×</button></div></header>
       {scheduleFilters()}
       {venueSearch&&<div className="atlas-venue-search"><MagnifyingGlass size={17}/><input autoFocus aria-label="搜索当地场次" placeholder="歌手或日期" value={venueQuery} onChange={event=>setVenueQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape'){setVenueSearch(false);setVenueQuery('');}}}/></div>}
